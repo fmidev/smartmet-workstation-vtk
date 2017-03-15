@@ -1,0 +1,11 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = git@github.com:finestep/fmi_util.git
+	branch = master
+	commit = 280f1c949b0196be5f840c569afa7da050a61282
+	parent = 7ccebd4bca90bd4061c84a47824d1ab6a4002e95
+	cmdver = 0.3.1
