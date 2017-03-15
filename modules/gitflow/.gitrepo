@@ -1,0 +1,11 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = git@github.com:horttanainen/gitflow.git
+	branch = master
+	commit = 356da6c24dddea7961b135eabb751f24d9d3c63c
+	parent = eb17e75238063b18503f1f7977ca79859c0a13f6
+	cmdver = 0.3.1
