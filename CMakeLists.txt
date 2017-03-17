@@ -2,7 +2,12 @@ cmake_minimum_required(VERSION 3.7.2)
 
 project (VTKSLN)
 
+
 add_subdirectory(
 	step1
+)
+
+add_subdirectory(
+	volumetest
 )
 
