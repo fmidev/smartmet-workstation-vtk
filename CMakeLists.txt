@@ -4,6 +4,10 @@ project (VTKSLN)
 
 
 add_subdirectory(
+	modules/newbase
+)
+
+add_subdirectory(
 	step1
 )
 
