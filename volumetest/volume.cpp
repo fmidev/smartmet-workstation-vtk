@@ -24,6 +24,8 @@
 
 #include <vtkStreamingDemandDrivenPipeline.h>
 #include <vtkSmartVolumeMapper.h>
+#include <vtkProbeFilter.h>
+#include <vtkAlgorithmOutput.h>
 
 #include <vtkPlanes.h>
 #include <vtkTransform.h>
@@ -45,8 +47,14 @@
 #include <vtkContourFilter.h>
 #include <vtkPerlinNoise.h>
 
+#include <vtkBoxWidget2.h>
+#include <vtkBoxRepresentation.h>
+
 #include <vtkSliderRepresentation2D.h>
 #include <vtkSliderWidget.h>
+
+#include <vtkPlaneWidget.h>
+#include <vtkLinearSubdivisionFilter.h>
 
 #include <vtkLight.h>
 
@@ -71,27 +79,36 @@ public:
 	}
 	void Execute(vtkObject *caller, unsigned long, void*) VTK_OVERRIDE
 	{
-		vtkBoxWidget *widget = reinterpret_cast<vtkBoxWidget*>(caller);
+		vtkBoxWidget2 *widget = reinterpret_cast<vtkBoxWidget2*>(caller);
+		vtkBoxRepresentation* boxRep = reinterpret_cast<vtkBoxRepresentation*>(widget->GetRepresentation());
+		
+		boxRep->GetPlanes(planes);
 		if (this->Mapper)
 		{
-			vtkPlanes *planes = vtkPlanes::New();
-			widget->GetPlanes(planes);
 			this->Mapper->SetClippingPlanes(planes);
-			planes->Delete();
+		}
+		if (this->isoSurf) {
+			this->isoSurf->SetClippingPlanes(planes);
 		}
 	}
 	void SetMapper(vtkSmartVolumeMapper* m)
 	{
 		this->Mapper = m;
 	}
-
+	void SetIsoSurf(vtkPolyDataMapper* i)
+	{
+		this->isoSurf = i;
+	}
 protected:
 	boxWidgetCallback()
 	{
-		this->Mapper = 0;
+		this->Mapper = nullptr;
+		this->isoSurf = nullptr;
+		planes = vtkPlanes::New();
 	}
-
+	vtkPlanes *planes;
 	vtkSmartVolumeMapper *Mapper;
+	vtkPolyDataMapper *isoSurf;
 };
 
 //callback aikasarjasliderille
@@ -127,6 +144,35 @@ public:
 protected:
 	std::list<vtkAlgorithm*> *algoList;
 	vtkRenderWindow *renWin;
+};
+
+class planeWidgetCallback : public vtkCommand
+{
+public:
+	planeWidgetCallback() {}
+
+	static planeWidgetCallback *New()
+	{
+		return new planeWidgetCallback;
+	}
+	void Execute(vtkObject *caller, unsigned long, void*) VTK_OVERRIDE
+	{
+
+		for (auto i = algoList->begin(); i != algoList->end(); i++) {
+			(*i)->Update();
+		}
+
+	}
+	void setAlgoList(std::list<vtkAlgorithm*> *m)
+	{
+		this->algoList = m;
+	}
+	void setProbe(vtkProbeFilter *b) {
+		probe = b;
+	}
+protected:
+	vtkProbeFilter* probe;
+	std::list<vtkAlgorithm*> *algoList;
 };
 
 
@@ -173,7 +219,7 @@ int main(int argc, char *argv[])
 	
 
 	//nbs-lukija #1
-	newBaseSourcer *nbs = new newBaseSourcer(file, &meta, kFmiTotalCloudCover);
+	newBaseSourcer *nbs = new newBaseSourcer(file, &meta, kFmiTemperature);
 
 	nbs->initMeta();
 
@@ -182,14 +228,14 @@ int main(int argc, char *argv[])
 	//nbs->SetReleaseDataFlag(true);
 
 
+	
+
 	//mapperit ottavat datan ja translatoivat sen piirrett‰v‰ksi
 	vtkSmartPointer<vtkSmartVolumeMapper> volumeMapper =
 		vtkSmartPointer<vtkSmartVolumeMapper>::New();
 	volumeMapper->SetBlendModeToComposite(); // composite first
-
 	volumeMapper->SetRequestedRenderModeToGPU();
 	volumeMapper->SetMaxMemoryInBytes(4e9);
-
 	volumeMapper->SetInputConnection(nbs->GetOutputPort());
 
 
@@ -197,6 +243,7 @@ int main(int argc, char *argv[])
 	vtkSmartPointer<vtkVolumeProperty> volumeProperty =
 		vtkSmartPointer<vtkVolumeProperty>::New();
 	volumeProperty->ShadeOff();
+
 	volumeProperty->SetInterpolationType(VTK_LINEAR_INTERPOLATION);
 
 	volumeMapper->SetRequestedRenderModeToGPU();
@@ -207,18 +254,25 @@ int main(int argc, char *argv[])
 
 	vtkSmartPointer<vtkPiecewiseFunction> compositeOpacity =
 		vtkSmartPointer<vtkPiecewiseFunction>::New();
-	compositeOpacity->AddPoint(0, 0);
-	compositeOpacity->AddPoint(15, 0.05);
-	compositeOpacity->AddPoint(300, 0.3);
+	//compositeOpacity->AddPoint(0, 0.0);
+	//compositeOpacity->AddPoint(1, 0.05);
+	compositeOpacity->AddPoint(80, 0.2);
+	compositeOpacity->AddPoint(81, 0);
+	//compositeOpacity->AddPoint(100, 0.5);
 	volumeProperty->SetScalarOpacity(compositeOpacity); // composite first.
 
 
 	vtkSmartPointer<vtkColorTransferFunction> color =
 		vtkSmartPointer<vtkColorTransferFunction>::New();
-	color->AddRGBPoint(0.0, 0.0, 0.2, 0.0);
-	color->AddRGBPoint(70, 0, 0.6, 0);
-	color->AddRGBPoint(156, 0.6, 0.5, 0.0);
-	color->AddRGBPoint(300, 1.0, 0.0, 0.0);
+	//color->AddRGBPoint(0.0, 0.0, 0.1, 0.0);
+	//color->AddRGBPoint(0.5, 0.0, 1, 0.0);
+	//color->AddRGBPoint(100, 1.0, 0, 0.0);
+	color->AddRGBPoint(-40, 0, 0, 1);
+	color->AddRGBPoint(0, 0.6, 0, 0.6);
+	color->AddRGBPoint(40, 1, 0, 0);
+	color->ClampingOff();
+	color->UseAboveRangeColorOn();
+	color->SetAboveRangeColor(0, 1, 0);
 	volumeProperty->SetColor(color);
 
 
@@ -228,8 +282,7 @@ int main(int argc, char *argv[])
 	volume->SetMapper(volumeMapper);
 	volume->SetProperty(volumeProperty);
 
-	ren1->AddViewProp(volume);
-
+	//ren1->AddViewProp(volume);
 
 	//toinen nbs-lukija
 	newBaseSourcer *nbsWind = new newBaseSourcer(file, &meta, kFmiWindSpeedMS);
@@ -244,7 +297,6 @@ int main(int argc, char *argv[])
 	shrinkWind->SetInputConnection(nbsWind->GetOutputPort());
 
 	shrinkWind->SetShrinkFactors(4,4,4);
-	
 	shrinkWind->Update();
 	*/
 	//isopinta-filtteri
@@ -257,7 +309,7 @@ int main(int argc, char *argv[])
 
 	mc->ComputeNormalsOn();
 	mc->ComputeScalarsOff();
-	mc->SetValue(0, 80);
+	mc->SetValue(0, 50);
 	mc->UpdateTimeStep(nbsWind->minDT());
 
 	vtkSmartPointer<vtkPolyDataMapper> windMap =
@@ -265,7 +317,6 @@ int main(int argc, char *argv[])
 
 	//windMap->SetInputData(mc->GetOutput());
 	windMap->SetInputConnection(mc->GetOutputPort());
-
 	
 	windMap->ScalarVisibilityOff();
 	
@@ -362,30 +413,98 @@ int main(int argc, char *argv[])
 	texturedPlane->SetPickable(false);
 
 	ren1->AddActor(texturedPlane);
-	
 
-	vtkBoxWidget *boxWidget = vtkBoxWidget::New();
+	vtkSmartPointer<vtkBoxRepresentation> boxRep =
+		vtkSmartPointer<vtkBoxRepresentation>::New();
+	boxRep->SetPlaceFactor(1.1);
+	boxRep->PlaceWidget(volume->GetBounds() );
+	boxRep->InsideOutOn();
+	boxRep->GetSelectedFaceProperty()->SetOpacity(0.0);
+
+	vtkSmartPointer<vtkBoxWidget2> boxWidget =
+		vtkSmartPointer<vtkBoxWidget2>::New();
 	boxWidget->SetInteractor(iren);
-	boxWidget->SetPlaceFactor(1.1);
+	boxWidget->SetRepresentation(boxRep);
 
-
-	boxWidget->SetTranslationEnabled(true);
+	boxWidget->SetTranslationEnabled(false);
 	boxWidget->SetRotationEnabled(false);
 
-	boxWidget->SetProp3D(volume);
-	boxWidget->PlaceWidget();
-
-	boxWidget->InsideOutOn();
 	boxWidget->EnabledOn();
 
 	boxWidgetCallback *callback = boxWidgetCallback::New();
 	callback->SetMapper( volumeMapper );
+	callback->SetIsoSurf(windMap);
 	boxWidget->AddObserver(vtkCommand::InteractionEvent, callback);
 	callback->Delete();
-	boxWidget->GetSelectedFaceProperty()->SetOpacity(0.0);
+
+
+
+
+	vtkSmartPointer<vtkPlaneWidget> planeWidget =
+		vtkSmartPointer<vtkPlaneWidget>::New();
+	planeWidget->SetInteractor(iren);
+	planeWidget->SetResolution(80);
+	planeWidget->SetRepresentationToOutline();
+	planeWidget->SetNormalToZAxis(true);
+	planeWidget->SetProp3D(texturedPlane);
+	planeWidget->GetHandleProperty()->SetPointSize(0.3);
+	planeWidget->GetSelectedHandleProperty()->SetPointSize(0.2);
+
+	vtkSmartPointer<vtkProbeFilter> probe =
+		vtkSmartPointer<vtkProbeFilter>::New();
+
+	probe->SetInputConnection(planeWidget->GetPolyDataAlgorithm()->GetOutputPort());
+	probe->SetSourceConnection(nbs->GetOutputPort());
+
+	probe->Update();
+
+	vtkSmartPointer<vtkContourFilter> probeContours =
+		vtkSmartPointer<vtkContourFilter>::New();
+	probeContours->SetInputConnection(probe->GetOutputPort());
+	probeContours->GenerateValues(6, -40, 40);
+
+	probeContours->Update();
+
+	vtkSmartPointer<vtkPolyDataMapper> probeMap =
+		vtkSmartPointer<vtkPolyDataMapper>::New();
+	probeMap->SetInputConnection(probeContours->GetOutputPort());
+	probeMap->SetScalarRange(-40, 40);
+	probeMap->SetLookupTable(color);
+
+	probeMap->Update();
+
+	vtkSmartPointer<vtkActor> probeAct =
+		vtkSmartPointer<vtkActor>::New();
+	probeAct->SetMapper(probeMap);
+
+
+
+	ren1->AddActor(probeAct);
+
+
+
+
+	planeWidgetCallback *planeCallback = planeWidgetCallback::New();
+
+	std::list<vtkAlgorithm*> pwidgetList;
+	pwidgetList.push_back(nbs);
+	pwidgetList.push_back(probe);
+	pwidgetList.push_back(probeContours);
+	pwidgetList.push_back(probeMap);
+
+	planeCallback->setAlgoList(&pwidgetList);
+
+	planeCallback->setProbe(probe);
+	planeWidget->PlaceWidget();
+
+
+	planeWidget->AddObserver(vtkCommand::InteractionEvent, planeCallback);
+
+	planeWidget->EnabledOn();
+
 
 	vtkSliderRepresentation2D * sliderRep = vtkSliderRepresentation2D::New();
-	
+
 	sliderRep->SetTitleText("t");
 	sliderRep->GetPoint1Coordinate()->SetCoordinateSystemToNormalizedDisplay();
 	sliderRep->GetPoint2Coordinate()->SetCoordinateSystemToNormalizedDisplay();
@@ -393,10 +512,10 @@ int main(int argc, char *argv[])
 	sliderRep->GetPoint2Coordinate()->SetValue(0.9, 0.08);
 
 
-	
+
 	sliderRep->SetMinimumValue(nbs->minDT());
 	sliderRep->SetMaximumValue(nbs->maxDT());
-	sliderRep->SetValue( nbs->minDT() );
+	sliderRep->SetValue(nbs->minDT());
 
 
 
@@ -411,16 +530,21 @@ int main(int argc, char *argv[])
 	//lista filttereit‰ jotka callback p‰ivitt‰‰
 	std::list<vtkAlgorithm*> widgetList;
 	widgetList.push_back(nbs);
+	widgetList.push_back(probe);
+	widgetList.push_back(probeContours);
 	widgetList.push_back(nbsWind);
-	widgetList.push_back(mc);
 
 	//widgetList.push_back(shrinkWind);
+
+	widgetList.push_back(mc);
+
 
 	sliderCallback->setAlgoList(&widgetList);
 	sliderCallback->setRenWin(renWin);
 
 	slider->AddObserver(vtkCommand::InteractionEvent, sliderCallback);
 	slider->EnabledOn();
+
 
 
 	vtkSmartPointer<vtkLight> overheadLight =
@@ -434,6 +558,7 @@ int main(int argc, char *argv[])
 	
 	volumeMapper->UpdateTimeStep( nbs->minDT() );
 	windMap->UpdateTimeStep( nbsWind->minDT() );
+	windMap->SetGlobalImmediateModeRendering(true);
 	ren1->Render();
 	ren1->ResetCamera();
 

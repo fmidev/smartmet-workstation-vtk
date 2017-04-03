@@ -50,10 +50,10 @@ void newBaseSourcer::initMeta() {
 			} while ((rising && dataInfo.NextLevel()) || (!rising && dataInfo.PreviousLevel()));
 		}
 
-		meta->minH = minHeight*0.99f;
-		meta->maxH = maxHeight*1.01f;
+		meta->minH = minHeight*0.995f;
+		meta->maxH = maxHeight*1.005f;
 
-		cout << "minheight: " << minHeight*0.99f << ", maxheight: " << maxHeight*1.01f << std::endl;
+		cout << "minheight: " << minHeight*0.995f << ", maxheight: " << maxHeight*1.005f << std::endl;
 
 	}
 
@@ -107,7 +107,7 @@ int newBaseSourcer::RequestData(vtkInformation* vtkNotUsed(request),
 	vtkInformationVector* outputVector) {
 
 	//pystyakseli vaikuttaa alikäytetyltä datassa
-	float zScale = 0.5f;
+	float zScale = 1.0f;
 
 	int sizeX = meta->sizeX;
 	int sizeY = meta->sizeY;
@@ -118,8 +118,10 @@ int newBaseSourcer::RequestData(vtkInformation* vtkNotUsed(request),
 		im = vtkImageData::New();
 		im->Initialize();
 		im->SetDimensions(sizeX, sizeY, sizeZ);
-		im->SetSpacing(1, 1, 1 / zScale);
+		im->SetSpacing(1, 1, 1/zScale);
 		im->AllocateScalars(VTK_FLOAT, 1);
+		float* pixels = static_cast<float*>(im->GetScalarPointer());
+		memset(pixels, 0.0f, sizeX*sizeY*sizeZ * sizeof(float)); //clears entire image!!
 	}
 
 	unsigned long time = 0;
@@ -156,7 +158,7 @@ int newBaseSourcer::RequestData(vtkInformation* vtkNotUsed(request),
 
 		float minVal = kMaxFloat, maxVal = kMinFloat;
 
-		bool rising = dataInfo.HeightParamIsRising();
+		
 
 		heights;
 		if (heights == nullptr) {
@@ -169,15 +171,17 @@ int newBaseSourcer::RequestData(vtkInformation* vtkNotUsed(request),
 		//luetaan datapisteiden korkeudet
 		if (dataInfo.Param(kFmiGeopHeight)) {
 
-			bool rising = dataInfo.HeightParamIsRising();
-
 			dataInfo.TimeIndex(timeI);
 			int ix, iz = 0;
+
+			bool rising = dataInfo.HeightParamIsRising();
 
 			if (rising) dataInfo.ResetLevel();
 			else dataInfo.LastLevel();
 
 			do {
+				float h;
+				float totalH = 0;
 				ix = 0;
 				for (dataInfo.ResetLocation(); dataInfo.NextLocation(); ) {
 
@@ -189,16 +193,20 @@ int newBaseSourcer::RequestData(vtkInformation* vtkNotUsed(request),
 
 
 
-					if (val == kFloatMissing) val = 0;
+					if (val == kFloatMissing) {
+						val = 0;
+					}
 
 					if (val > maxHeight)
 						maxHeight = val;
 
-					float h = (val - meta->minH) / meta->maxH * sizeZ;
+					h = (val - meta->minH) / meta->maxH * float(sizeZ);
 					heights[x + y *sizeX + z*sizeX*sizeY] = h;
-
+					//totalH += h;
 					ix++;
 				}
+				//totalH /= sizeX*sizeY;
+				//cout << "Z: " << iz << ", h: " << totalH<<endl;
 				iz++;
 
 			} while ((rising && dataInfo.NextLevel()) || (!rising && dataInfo.PreviousLevel()));
@@ -207,6 +215,9 @@ int newBaseSourcer::RequestData(vtkInformation* vtkNotUsed(request),
 
 		cout << "MaxHeight for time " << timeI << " is " << maxHeight << std::endl;
 
+		//for (int i = 0; i < sizeZ; ++i)
+		//	cout << heights[40+40*sizeX+i*sizeX*sizeY] << ", ";
+
 		int highest = -1;
 
 		//luetaan parametri
@@ -214,6 +225,8 @@ int newBaseSourcer::RequestData(vtkInformation* vtkNotUsed(request),
 
 			dataInfo.TimeIndex(timeI);
 			int ix, iz = 0;
+
+			bool rising = dataInfo.HeightParamIsRising();
 
 			if (rising) dataInfo.ResetLevel();
 			else dataInfo.LastLevel();
@@ -225,11 +238,8 @@ int newBaseSourcer::RequestData(vtkInformation* vtkNotUsed(request),
 					int x = ix % sizeX;
 					int y = (ix / sizeX) % sizeY;
 					int z = iz*zScale;
-					float zFrac = 1.0f;
 					if (meta->hasHeight) {
-						float modZ;
-						zFrac = modf(heights[x + y*sizeX + z*sizeX*sizeY], &modZ);
-						z = modZ;
+						z =heights[x + y*sizeX + z*sizeX*sizeY];
 					}
 					if (reqExtent) {
 						if (x<reqExtent[0] || x>reqExtent[1]
@@ -241,23 +251,20 @@ int newBaseSourcer::RequestData(vtkInformation* vtkNotUsed(request),
 
 					}
 
-					float val = dataInfo.FloatValue();
-					if (val == kFloatMissing) val = 0; //voi myös piirtää laittamalla negatiiviseksi tjms
-					if (val > maxVal) maxVal = val;
-					if (val < minVal) minVal = val;
-
-					if (val > 0.001f) {
-						highest = z + 1;
-
-						float* pixel = static_cast<float*>(im->GetScalarPointer(x, y, z));
-						float* nextPixel = nullptr;
-						if (z + 1 < sizeZ) static_cast<float*>(im->GetScalarPointer(x, y, z + 1));
-
-
-						pixel[0] += val*(1.0f - zFrac);
-						if (pixel[0] > maxVal) maxVal = pixel[0];
-						if (nextPixel) nextPixel[0] += val*zFrac;
+					float val = dataInfo.FloatValue()*zScale;
+					if (val != kFloatMissing) {
+							//val = 0.0f; //voi myös piirtää laittamalla negatiiviseksi tjms
+						if (val > maxVal) maxVal = val;
+						if (val < minVal) minVal = val;
 					}
+					highest = z;
+
+					float* pixel = static_cast<float*>(im->GetScalarPointer(x, y, z));
+
+
+					pixel[0] += val;
+					if (pixel[0] > maxVal) maxVal = pixel[0];
+
 					ix++;
 				}
 				iz++;
@@ -279,8 +286,6 @@ int newBaseSourcer::RequestData(vtkInformation* vtkNotUsed(request),
 		prevTime = timeI;
 	}
 	else cout << "Reused time " << prevTime << std::endl;
-
-	cout << "released: " << im->GetDataReleased() << std::endl;
 
 	//siirretään imagedata ulostuloon
 	ds->DeepCopy(im);
