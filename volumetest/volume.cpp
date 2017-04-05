@@ -219,7 +219,7 @@ int main(int argc, char *argv[])
 	
 
 	//nbs-lukija #1
-	newBaseSourcer *nbs = new newBaseSourcer(file, &meta, kFmiTemperature);
+	newBaseSourcer *nbs = new newBaseSourcer(file, &meta, kFmiTotalCloudCover);
 
 	nbs->initMeta();
 
@@ -254,25 +254,21 @@ int main(int argc, char *argv[])
 
 	vtkSmartPointer<vtkPiecewiseFunction> compositeOpacity =
 		vtkSmartPointer<vtkPiecewiseFunction>::New();
-	//compositeOpacity->AddPoint(0, 0.0);
-	//compositeOpacity->AddPoint(1, 0.05);
-	compositeOpacity->AddPoint(80, 0.2);
-	compositeOpacity->AddPoint(81, 0);
-	//compositeOpacity->AddPoint(100, 0.5);
+	compositeOpacity->AddPoint(0, 0.0);
+	compositeOpacity->AddPoint(2, 0.05);
+	compositeOpacity->AddPoint(100, 0.3);
+	compositeOpacity->AddPoint(105, 0.9);
 	volumeProperty->SetScalarOpacity(compositeOpacity); // composite first.
 
 
 	vtkSmartPointer<vtkColorTransferFunction> color =
 		vtkSmartPointer<vtkColorTransferFunction>::New();
-	//color->AddRGBPoint(0.0, 0.0, 0.1, 0.0);
-	//color->AddRGBPoint(0.5, 0.0, 1, 0.0);
-	//color->AddRGBPoint(100, 1.0, 0, 0.0);
-	color->AddRGBPoint(-40, 0, 0, 1);
-	color->AddRGBPoint(0, 0.6, 0, 0.6);
-	color->AddRGBPoint(40, 1, 0, 0);
+	color->AddRGBPoint(0.0, 0.0, 0.2, 0.0);
+	color->AddRGBPoint(50, 0.0, 1, 0.0);
+	color->AddRGBPoint(100, 1.0, 0, 0.0);
 	color->ClampingOff();
 	color->UseAboveRangeColorOn();
-	color->SetAboveRangeColor(0, 1, 0);
+	color->SetAboveRangeColor(0, 0, 1);
 	volumeProperty->SetColor(color);
 
 
@@ -282,7 +278,7 @@ int main(int argc, char *argv[])
 	volume->SetMapper(volumeMapper);
 	volume->SetProperty(volumeProperty);
 
-	//ren1->AddViewProp(volume);
+	ren1->AddViewProp(volume);
 
 	//toinen nbs-lukija
 	newBaseSourcer *nbsWind = new newBaseSourcer(file, &meta, kFmiWindSpeedMS);
@@ -309,7 +305,7 @@ int main(int argc, char *argv[])
 
 	mc->ComputeNormalsOn();
 	mc->ComputeScalarsOff();
-	mc->SetValue(0, 50);
+	mc->SetValue(0, 35);
 	mc->UpdateTimeStep(nbsWind->minDT());
 
 	vtkSmartPointer<vtkPolyDataMapper> windMap =
@@ -453,23 +449,33 @@ int main(int argc, char *argv[])
 	vtkSmartPointer<vtkProbeFilter> probe =
 		vtkSmartPointer<vtkProbeFilter>::New();
 
+
+	newBaseSourcer *nbsTemp = new newBaseSourcer(file, &meta, kFmiTemperature);
+	nbsTemp->Update();
+
 	probe->SetInputConnection(planeWidget->GetPolyDataAlgorithm()->GetOutputPort());
-	probe->SetSourceConnection(nbs->GetOutputPort());
+	probe->SetSourceConnection(nbsTemp->GetOutputPort());
 
 	probe->Update();
 
 	vtkSmartPointer<vtkContourFilter> probeContours =
 		vtkSmartPointer<vtkContourFilter>::New();
 	probeContours->SetInputConnection(probe->GetOutputPort());
-	probeContours->GenerateValues(6, -40, 40);
+	probeContours->GenerateValues(8, -40, 40);
 
 	probeContours->Update();
+
+	vtkSmartPointer<vtkColorTransferFunction> contourColor =
+		vtkSmartPointer<vtkColorTransferFunction>::New();
+	contourColor->AddRGBPoint(-40, 0, 0, 1);
+	contourColor->AddRGBPoint(0, 0.6, 0, 0.6);
+	contourColor->AddRGBPoint(40, 1, 0, 0);
 
 	vtkSmartPointer<vtkPolyDataMapper> probeMap =
 		vtkSmartPointer<vtkPolyDataMapper>::New();
 	probeMap->SetInputConnection(probeContours->GetOutputPort());
 	probeMap->SetScalarRange(-40, 40);
-	probeMap->SetLookupTable(color);
+	probeMap->SetLookupTable(contourColor);
 
 	probeMap->Update();
 
@@ -487,7 +493,7 @@ int main(int argc, char *argv[])
 	planeWidgetCallback *planeCallback = planeWidgetCallback::New();
 
 	std::list<vtkAlgorithm*> pwidgetList;
-	pwidgetList.push_back(nbs);
+	//pwidgetList.push_back(nbsTemp);
 	pwidgetList.push_back(probe);
 	pwidgetList.push_back(probeContours);
 	pwidgetList.push_back(probeMap);
@@ -530,13 +536,11 @@ int main(int argc, char *argv[])
 	//lista filttereit‰ jotka callback p‰ivitt‰‰
 	std::list<vtkAlgorithm*> widgetList;
 	widgetList.push_back(nbs);
+	widgetList.push_back(nbsWind);
+	widgetList.push_back(mc);
+	widgetList.push_back(nbsTemp);
 	widgetList.push_back(probe);
 	widgetList.push_back(probeContours);
-	widgetList.push_back(nbsWind);
-
-	//widgetList.push_back(shrinkWind);
-
-	widgetList.push_back(mc);
 
 
 	sliderCallback->setAlgoList(&widgetList);

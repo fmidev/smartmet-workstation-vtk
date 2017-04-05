@@ -2,3 +2,5 @@
 !/scripts/move_scripts.sh
 !scripts/git/branches/dev_branch
 !scripts/git/branches/master_branch
+
+/modules/boost/*

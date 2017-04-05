@@ -29,6 +29,9 @@ class newBaseSourcer : public vtkImageAlgorithm {
 
 	int prevTime;
 
+	int zRes;
+	float zHeight;
+
 
 	//muunnos epoch-ajasta newbasen aikaindekseiksi ja takaisin
 	inline double epochToDouble(time_t t) {
@@ -36,6 +39,18 @@ class newBaseSourcer : public vtkImageAlgorithm {
 	}
 	inline time_t doubleToEpoch(double t) {
 		return std::lround(t*((maxT() - minT()) / times.size())) + minT();
+	}
+	inline void resetImage() {
+		assert(im);
+		int sizeX=meta->sizeX, sizeY=meta->sizeY;
+		float* p = static_cast<float*>(im->GetScalarPointer());
+		for (long iz = 0; iz < zRes; ++iz) {
+			for (long iy = 0; iy < sizeX; ++iy) {
+				for (long ix = 0; ix < sizeX; ++ix) {
+					p[ix + iy*sizeX + iz*sizeX*sizeY] = kFloatMissing;
+				}
+			}
+		}
 	}
 
 public:
@@ -52,8 +67,8 @@ public:
 		return 0;
 	}
 
-	newBaseSourcer(const std::string &file, metaData *meta, int param) :
-		data(file), dataInfo(&data), meta(meta), im(nullptr), heights(nullptr), param(param), times(), timeIndex(), prevTime(-1) {
+	newBaseSourcer(const std::string &file, metaData *meta, int param,int res=70,float height = 13000) :
+		data(file), dataInfo(&data), meta(meta), im(nullptr), heights(nullptr), param(param), times(), timeIndex(), prevTime(-1),zRes(res),zHeight(height) {
 		SetNumberOfInputPorts(0);
 	}
 	~newBaseSourcer() {
