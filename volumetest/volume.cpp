@@ -39,10 +39,11 @@
 #include <vtkTransformPolyDataFilter.h>
 #include <vtkImageShrink3D.h>
 
-#include <vtkInteractorStyleTrackballCamera.h>
+#include <vtkInteractorStyleTerrain.h>
 #include <vtkCubeAxesActor.h>
 #include <vtkTextProperty.h>
 #include <vtkProperty.h>
+#include <vtkTextActor.h>
 
 #include <vtkContourFilter.h>
 #include <vtkPerlinNoise.h>
@@ -61,12 +62,18 @@
 #include <list>
 
 #include <NFmiQueryData.h>
+#include <NFmiFastQueryInfo.h>
+
+#include "fmiVisInteractor.h"
 
 #include "newBaseSourcerMetaData.h"
 #include "newBaseSourcer.h"
 
+#include "VisualizerManager.h"
+#include "VisualizerFactory.h"
+
 static std::string *newBaseFile;
-static metaData *meta;
+
 
 
 //Callback jota kutsutaan kun laatikkoa skaalataan
@@ -83,32 +90,20 @@ public:
 		vtkBoxRepresentation* boxRep = reinterpret_cast<vtkBoxRepresentation*>(widget->GetRepresentation());
 		
 		boxRep->GetPlanes(planes);
-		if (this->Mapper)
-		{
-			this->Mapper->SetClippingPlanes(planes);
-		}
-		if (this->isoSurf) {
-			this->isoSurf->SetClippingPlanes(planes);
-		}
+		vm->CropMappers(planes);
+
 	}
-	void SetMapper(vtkSmartVolumeMapper* m)
+	void setManager(VisualizerManager *vm)
 	{
-		this->Mapper = m;
+		this->vm = vm;
 	}
-	void SetIsoSurf(vtkPolyDataMapper* i)
-	{
-		this->isoSurf = i;
-	}
+
 protected:
-	boxWidgetCallback()
-	{
-		this->Mapper = nullptr;
-		this->isoSurf = nullptr;
-		planes = vtkPlanes::New();
+	boxWidgetCallback() {
+		planes = vtkSmartPointer<vtkPlanes>::New();
 	}
-	vtkPlanes *planes;
-	vtkSmartVolumeMapper *Mapper;
-	vtkPolyDataMapper *isoSurf;
+	VisualizerManager *vm;
+	vtkSmartPointer<vtkPlanes> planes;
 };
 
 //callback aikasarjasliderille
@@ -125,24 +120,26 @@ public:
 	{
 		vtkSliderWidget *sliderWidget =
 			reinterpret_cast<vtkSliderWidget*>(caller);
-		int value = static_cast<int>(static_cast<vtkSliderRepresentation *>(sliderWidget->GetRepresentation())->GetValue());
+		auto value = static_cast<vtkSliderRepresentation *>(sliderWidget->GetRepresentation())->GetValue();
 
-		for (auto i = algoList->begin(); i != algoList->end(); i++) {
-			(*i)->UpdateTimeStep(value);
-		}
+		
+		vm->UpdateTimeStep(value);
+		
+		sliderWidget->GetSliderRepresentation()->SetTitleText( metaData::getTimeString( (value) ).c_str() );
 
 		this->renWin->Render();
 	}
-	void setAlgoList(std::list<vtkAlgorithm*> *m)
+	void setManager(VisualizerManager *vm)
 	{
-		this->algoList = m;
+		this->vm = vm;
 	}
+
 	void setRenWin(vtkRenderWindow* r) {
 		renWin = r;
 	}
 
 protected:
-	std::list<vtkAlgorithm*> *algoList;
+	VisualizerManager *vm;
 	vtkRenderWindow *renWin;
 };
 
@@ -158,21 +155,17 @@ public:
 	void Execute(vtkObject *caller, unsigned long, void*) VTK_OVERRIDE
 	{
 
-		for (auto i = algoList->begin(); i != algoList->end(); i++) {
-			(*i)->Update();
-		}
+		vm->Update();
 
 	}
-	void setAlgoList(std::list<vtkAlgorithm*> *m)
+	void setManager(VisualizerManager *vm)
 	{
-		this->algoList = m;
+		this->vm = vm;
 	}
-	void setProbe(vtkProbeFilter *b) {
-		probe = b;
-	}
+
+
 protected:
-	vtkProbeFilter* probe;
-	std::list<vtkAlgorithm*> *algoList;
+	VisualizerManager *vm;
 };
 
 
@@ -181,20 +174,17 @@ int main(int argc, char *argv[])
 {
 
 	//lis‰‰ aikasarjatuen?
-	vtkStreamingDemandDrivenPipeline *sdp = vtkStreamingDemandDrivenPipeline::New();
+	auto *sdp = vtkStreamingDemandDrivenPipeline::New();
 	vtkAlgorithm::SetDefaultExecutivePrototype(sdp);
 	sdp->Delete();
 
-
 	//yleisi‰ tietoja newBasesta
-	metaData meta;
+
 
 
 	//vtk boilerplatea
-	vtkSmartPointer<vtkRenderWindow> renWin =
-		vtkSmartPointer<vtkRenderWindow>::New();
-	vtkSmartPointer<vtkRenderer> ren1 =
-		vtkSmartPointer<vtkRenderer>::New();
+	auto renWin = vtkSmartPointer<vtkRenderWindow>::New();
+	auto ren1 = vtkSmartPointer<vtkRenderer>::New();
 	ren1->SetBackground(0.1, 0.4, 0.2);
 
 	renWin->AddRenderer(ren1);
@@ -203,142 +193,49 @@ int main(int argc, char *argv[])
 	renWin->SetSize(800, 800);
 
 
-	vtkSmartPointer<vtkRenderWindowInteractor> iren =
-		vtkSmartPointer<vtkRenderWindowInteractor>::New();
+	auto iren = vtkSmartPointer<vtkRenderWindowInteractor>::New();
 	iren->SetRenderWindow(renWin);
 
-	vtkSmartPointer<vtkInteractorStyleTrackballCamera> style =
-		vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
 
-	iren->SetInteractorStyle(style);
+	ren1->GetActiveCamera()->Azimuth(45);
+	ren1->GetActiveCamera()->SetViewUp(0,0,1);
 
 	renWin->Render();
 
-	
-	std::string file = std::string("D:/3D-dataa/201703210327_hirlam_skandinavia_mallipinta.sqd");
-	
+	VisualizerFactory::init();
 
-	//nbs-lukija #1
-	newBaseSourcer *nbs = new newBaseSourcer(file, &meta, kFmiTotalCloudCover);
-
-	nbs->initMeta();
-
-	nbs->Update();
-
-	//nbs->SetReleaseDataFlag(true);
+	std::string file = std::string( argc<2 ? 
+		"D:/3D-dataa/201703210327_hirlam_skandinavia_mallipinta.sqd" :
+		argv[1]
+	);
 
 
-	
 
-	//mapperit ottavat datan ja translatoivat sen piirrett‰v‰ksi
-	vtkSmartPointer<vtkSmartVolumeMapper> volumeMapper =
-		vtkSmartPointer<vtkSmartVolumeMapper>::New();
-	volumeMapper->SetBlendModeToComposite(); // composite first
-	volumeMapper->SetRequestedRenderModeToGPU();
-	volumeMapper->SetMaxMemoryInBytes(4e9);
-	volumeMapper->SetInputConnection(nbs->GetOutputPort());
+	auto vm = VisualizerManager(ren1);
+
+	vm.GetMeta().init(file);
 
 
-	//propertyt m‰‰r‰‰v‰t kuinka actor piirret‰‰n
-	vtkSmartPointer<vtkVolumeProperty> volumeProperty =
-		vtkSmartPointer<vtkVolumeProperty>::New();
-	volumeProperty->ShadeOff();
+	auto meta = vm.GetMeta();
 
-	volumeProperty->SetInterpolationType(VTK_LINEAR_INTERPOLATION);
-
-	volumeMapper->SetRequestedRenderModeToGPU();
-
-	//volumeMapper->SetReleaseDataFlag(true);
-
-	volumeMapper->UpdateTimeStep(nbs->minDT());
-
-	vtkSmartPointer<vtkPiecewiseFunction> compositeOpacity =
-		vtkSmartPointer<vtkPiecewiseFunction>::New();
-	compositeOpacity->AddPoint(0, 0.0);
-	compositeOpacity->AddPoint(2, 0.05);
-	compositeOpacity->AddPoint(100, 0.3);
-	compositeOpacity->AddPoint(105, 0.9);
-	volumeProperty->SetScalarOpacity(compositeOpacity); // composite first.
+	auto style = vtkSmartPointer<fmiVisInteractor>::New();
+	style->setVM(&vm);
+	iren->SetInteractorStyle(style);
 
 
-	vtkSmartPointer<vtkColorTransferFunction> color =
-		vtkSmartPointer<vtkColorTransferFunction>::New();
-	color->AddRGBPoint(0.0, 0.0, 0.2, 0.0);
-	color->AddRGBPoint(50, 0.0, 1, 0.0);
-	color->AddRGBPoint(100, 1.0, 0, 0.0);
-	color->ClampingOff();
-	color->UseAboveRangeColorOn();
-	color->SetAboveRangeColor(0, 0, 1);
-	volumeProperty->SetColor(color);
-
-
-	//actor hallitsee itse visualisaation piirt‰misen
-	vtkSmartPointer<vtkVolume> volume =
-		vtkSmartPointer<vtkVolume>::New();
-	volume->SetMapper(volumeMapper);
-	volume->SetProperty(volumeProperty);
-
-	ren1->AddViewProp(volume);
-
-	//toinen nbs-lukija
-	newBaseSourcer *nbsWind = new newBaseSourcer(file, &meta, kFmiWindSpeedMS);
-
-	nbsWind->Update();
-
-	//t‰ll‰ voisi subsamplata dataa, muttei vaikuta toimivan
-	/*
-	vtkSmartPointer<vtkImageShrink3D> shrinkWind =
-		vtkSmartPointer<vtkImageShrink3D>::New();
-
-	shrinkWind->SetInputConnection(nbsWind->GetOutputPort());
-
-	shrinkWind->SetShrinkFactors(4,4,4);
-	shrinkWind->Update();
-	*/
-	//isopinta-filtteri
-	vtkSmartPointer<vtkContourFilter> mc =
-		vtkSmartPointer<vtkContourFilter>::New();
-
-	mc->SetInputConnection(nbsWind->GetOutputPort());
-
-	//mc->SetReleaseDataFlag(true);
-
-	mc->ComputeNormalsOn();
-	mc->ComputeScalarsOff();
-	mc->SetValue(0, 35);
-	mc->UpdateTimeStep(nbsWind->minDT());
-
-	vtkSmartPointer<vtkPolyDataMapper> windMap =
-		vtkSmartPointer<vtkPolyDataMapper>::New();
-
-	//windMap->SetInputData(mc->GetOutput());
-	windMap->SetInputConnection(mc->GetOutputPort());
-	
-	windMap->ScalarVisibilityOff();
-	
-	windMap->UpdateTimeStep(nbsWind->minDT());
-
-	vtkSmartPointer<vtkActor> windAct =
-		vtkSmartPointer<vtkActor>::New();
-	windAct->SetMapper(windMap);
-	windAct->GetProperty()->SetColor(0, 0.8, 0.8);
-	windAct->GetProperty()->SetOpacity(0.9);
-	
-	windAct->SetPosition(0, 0, 0);
-
-	ren1->AddActor(windAct);
+	style->setStepSize((meta.maxT - meta.minT) / meta.timeSteps);
 
 	//koordinaattiakselit
-	vtkSmartPointer<vtkCubeAxesActor> cubeAxesActor =
-		vtkSmartPointer<vtkCubeAxesActor>::New();
-	cubeAxesActor->SetBounds(nbs->GetOutput()->GetBounds());
+	auto cubeAxesActor = vtkSmartPointer<vtkCubeAxesActor>::New();
+	double bounds[6] = { 0,meta.sizeX*2,0,meta.sizeY*2,0,70*2};
+	cubeAxesActor->SetBounds(bounds);
 	cubeAxesActor->SetCamera(ren1->GetActiveCamera());
 
 	cubeAxesActor->GetTitleTextProperty(0)->SetColor(1.0, 0.0, 0.0);
 	cubeAxesActor->GetLabelTextProperty(0)->SetColor(1.0, 0.0, 0.0);
 
 	cubeAxesActor->SetXAxisRange(meta.p1.Y(), meta.p2.Y());
-	cubeAxesActor->SetXTitle("longtitude");
+	cubeAxesActor->SetXTitle("longitude");
 
 	cubeAxesActor->GetTitleTextProperty(1)->SetColor(0.0, 1.0, 0.0);
 	cubeAxesActor->GetLabelTextProperty(1)->SetColor(0.0, 1.0, 0.0);
@@ -360,24 +257,21 @@ int main(int argc, char *argv[])
 
 	//luetaan kartta levylt‰ ja mapataan se tasolle
 
-	vtkSmartPointer<vtkBMPReader> mapReader =
-		vtkSmartPointer<vtkBMPReader>::New();
+	auto mapReader = vtkSmartPointer<vtkBMPReader>::New();
 	mapReader->SetFileName("D:/3d-dataa/Scandinavia.SHADED_TOPO.COLORED_HEIGHT1.bmp");
 
-	vtkSmartPointer<vtkTexture> texture =
-		vtkSmartPointer<vtkTexture>::New();
+	auto texture = vtkSmartPointer<vtkTexture>::New();
 	texture->SetInputConnection(mapReader->GetOutputPort());
 
 	double* volumeBounds = new double[6];
-	volumeBounds = volume->GetBounds();
+	volumeBounds = cubeAxesActor->GetBounds();
 	double* planeScale = new double[2];
 
 	planeScale[0] = volumeBounds[1] - volumeBounds[0];
 	planeScale[1] = volumeBounds[2] - volumeBounds[3];
 
 
-	vtkSmartPointer<vtkPlaneSource> planeSource =
-		vtkSmartPointer<vtkPlaneSource>::New();
+	auto planeSource = vtkSmartPointer<vtkPlaneSource>::New();
 
 	planeSource->SetOrigin(volumeBounds[0], volumeBounds[2], volumeBounds[4]);
 	planeSource->SetPoint1(planeScale[0], 0, 0);
@@ -385,12 +279,10 @@ int main(int argc, char *argv[])
 
 	planeSource->Update();
 
-	vtkSmartPointer<vtkTextureMapToPlane> texturePlane =
-		vtkSmartPointer<vtkTextureMapToPlane>::New();
+	auto texturePlane = vtkSmartPointer<vtkTextureMapToPlane>::New();
 	texturePlane->SetInputConnection(planeSource->GetOutputPort());
 
-	vtkSmartPointer<vtkPolyDataMapper> planeMapper =
-		vtkSmartPointer<vtkPolyDataMapper>::New();
+	auto planeMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 
 	planeMapper->SetInputData(planeSource->GetOutput());
 
@@ -399,8 +291,7 @@ int main(int argc, char *argv[])
 	//planePos[1] = planeBounds[3] / 2.0;
 
 
-	vtkSmartPointer<vtkActor> texturedPlane =
-		vtkSmartPointer<vtkActor>::New();
+	auto texturedPlane = vtkSmartPointer<vtkActor>::New();
 	texturedPlane->SetMapper(planeMapper);
 	texturedPlane->SetTexture(texture);
 
@@ -410,15 +301,13 @@ int main(int argc, char *argv[])
 
 	ren1->AddActor(texturedPlane);
 
-	vtkSmartPointer<vtkBoxRepresentation> boxRep =
-		vtkSmartPointer<vtkBoxRepresentation>::New();
+	auto boxRep = vtkSmartPointer<vtkBoxRepresentation>::New();
 	boxRep->SetPlaceFactor(1.1);
-	boxRep->PlaceWidget(volume->GetBounds() );
+	boxRep->PlaceWidget(cubeAxesActor->GetBounds() );
 	boxRep->InsideOutOn();
 	boxRep->GetSelectedFaceProperty()->SetOpacity(0.0);
 
-	vtkSmartPointer<vtkBoxWidget2> boxWidget =
-		vtkSmartPointer<vtkBoxWidget2>::New();
+	auto boxWidget = vtkSmartPointer<vtkBoxWidget2>::New();
 	boxWidget->SetInteractor(iren);
 	boxWidget->SetRepresentation(boxRep);
 
@@ -428,79 +317,116 @@ int main(int argc, char *argv[])
 	boxWidget->EnabledOn();
 
 	boxWidgetCallback *callback = boxWidgetCallback::New();
-	callback->SetMapper( volumeMapper );
-	callback->SetIsoSurf(windMap);
+
+	callback->setManager( &vm );
+
 	boxWidget->AddObserver(vtkCommand::InteractionEvent, callback);
 	callback->Delete();
 
 
 
 
-	vtkSmartPointer<vtkPlaneWidget> planeWidget =
-		vtkSmartPointer<vtkPlaneWidget>::New();
+	auto planeWidget = vtkSmartPointer<vtkPlaneWidget>::New();
 	planeWidget->SetInteractor(iren);
 	planeWidget->SetResolution(80);
 	planeWidget->SetRepresentationToOutline();
 	planeWidget->SetNormalToZAxis(true);
 	planeWidget->SetProp3D(texturedPlane);
-	planeWidget->GetHandleProperty()->SetPointSize(0.3);
-	planeWidget->GetSelectedHandleProperty()->SetPointSize(0.2);
-
-	vtkSmartPointer<vtkProbeFilter> probe =
-		vtkSmartPointer<vtkProbeFilter>::New();
+	planeWidget->GetHandleProperty()->SetPointSize(0.2);
+	planeWidget->GetSelectedHandleProperty()->SetPointSize(0.1);
 
 
-	newBaseSourcer *nbsTemp = new newBaseSourcer(file, &meta, kFmiTemperature);
-	nbsTemp->Update();
+	std::map<int,std::string> params3D = {
+		std::pair<int,std::string>(kFmiWindSpeedMS,"kFmiWindSpeedMS"),
+		std::pair<int,std::string>(kFmiTotalCloudCover,"kFmiTotalCloudCover"),
+		std::pair<int,std::string>(kFmiCloudWater,"kFmiCloudWater" ),
+		std::pair<int,std::string>(277,"cloud-ice"),
+		std::pair<int,std::string>(kFmiIcing,"kFmiIcing"),
+		std::pair<int,std::string>(kFmiClearAirTurbulence,"kFmiClearAirTurbulence"),
+		std::pair<int,std::string>(kFmiClearAirTurbulence2,"kFmiClearAirTurbulence2"),
+	};
+	std::map<int, std::string> params2D = {
+		std::pair<int,std::string>(kFmiTemperature,"kFmiTemperature"),
+		std::pair<int,std::string>(kFmiPotentialTemperature,"kFmiPotentialTemperature"),
+		std::pair<int,std::string>(kFmiHumidity,"kFmiHumidity"),
+		std::pair<int,std::string>(kFmiWindSpeedMS,"kFmiWindSpeedMS"),
+		std::pair<int,std::string>(kFmiVerticalVelocityMMS,"kFmiVerticalVelocityMMS"),
+	};
+	std::map<int, visID> paramVID;
 
-	probe->SetInputConnection(planeWidget->GetPolyDataAlgorithm()->GetOutputPort());
-	probe->SetSourceConnection(nbsTemp->GetOutputPort());
+	std::vector<vtkSmartPointer<vtkTextActor> > textActs;
 
-	probe->Update();
+	auto data = NFmiQueryData(file);
+	auto dataInfo = NFmiFastQueryInfo(&data);
 
-	vtkSmartPointer<vtkContourFilter> probeContours =
-		vtkSmartPointer<vtkContourFilter>::New();
-	probeContours->SetInputConnection(probe->GetOutputPort());
-	probeContours->GenerateValues(8, -40, 40);
+	int *winSize = ren1->GetSize();
 
-	probeContours->Update();
-
-	vtkSmartPointer<vtkColorTransferFunction> contourColor =
-		vtkSmartPointer<vtkColorTransferFunction>::New();
-	contourColor->AddRGBPoint(-40, 0, 0, 1);
-	contourColor->AddRGBPoint(0, 0.6, 0, 0.6);
-	contourColor->AddRGBPoint(40, 1, 0, 0);
-
-	vtkSmartPointer<vtkPolyDataMapper> probeMap =
-		vtkSmartPointer<vtkPolyDataMapper>::New();
-	probeMap->SetInputConnection(probeContours->GetOutputPort());
-	probeMap->SetScalarRange(-40, 40);
-	probeMap->SetLookupTable(contourColor);
-
-	probeMap->Update();
-
-	vtkSmartPointer<vtkActor> probeAct =
-		vtkSmartPointer<vtkActor>::New();
-	probeAct->SetMapper(probeMap);
+	for (auto &parampair : params3D) {
+		if (dataInfo.Param(FmiParameterName(parampair.first) ) ) {
+			visID vid = vm.AddVisualizer(VisualizerFactory::make3DVisualizer(file, meta, parampair.first));
+			if (vid == -1) continue;
+			paramVID.insert(std::pair<int, visID>(parampair.first, vid));
 
 
+			auto t = vtkSmartPointer<vtkTextActor>::New();
+			std::ostringstream s;
+			s << int(vid+1) << ": " << parampair.second;
+			t->SetInput(s.str().c_str());
+			textActs.push_back(t);
 
-	ren1->AddActor(probeAct);
+			if (paramVID.size() > 1) {
+				vm.DisableVis(vid);
+				t->GetTextProperty()->SetColor(0.2, 0.2, 0.2);
+			}
+			else {
+				t->GetTextProperty()->SetColor(0.8, 0.8, 0.8);
+			}
+
+			t->GetTextProperty()->SetFontSize(7);
+
+			t->SetTextScaleModeToViewport();
+			t->SetDisplayPosition(10, winSize[1]-20 - 10 * vid);
+
+			ren1->AddActor2D(t);
+		}
+	}
+	for (auto &parampair : params2D) {
+		if (dataInfo.Param(FmiParameterName(parampair.first))) {
+			visID vid = vm.AddVisualizer(VisualizerFactory::make2DVisualizer(file, meta, planeWidget->GetPolyDataAlgorithm()->GetOutputPort(), parampair.first));
+			if (vid == -1) continue;
+			paramVID.insert(std::pair<int, visID>(parampair.first, vid));
+			vm.SetCrop(vid, false);
+			vm.DisableVis(vid);
+
+			auto t = vtkSmartPointer<vtkTextActor>::New();
+			std::ostringstream s;
+			s << int(vid+1) << ": " << parampair.second;
+			t->SetInput(s.str().c_str());
+			textActs.push_back(t);
+			t->GetTextProperty()->SetColor(0.2, 0.2, 0.2);
+			t->GetTextProperty()->SetFontSize(7);
+
+
+			t->SetTextScaleModeToViewport();
+			t->SetDisplayPosition(10, winSize[1]-20 - 10 * vid);
+			
+
+			ren1->AddActor2D(t);
+		}
+	}
+
+	style->setVisTexts(&textActs);
+
+	auto timeText = vtkSmartPointer<vtkTextActor>::New();
 
 
 
 
 	planeWidgetCallback *planeCallback = planeWidgetCallback::New();
 
-	std::list<vtkAlgorithm*> pwidgetList;
-	//pwidgetList.push_back(nbsTemp);
-	pwidgetList.push_back(probe);
-	pwidgetList.push_back(probeContours);
-	pwidgetList.push_back(probeMap);
+	planeCallback->setManager(&vm);
 
-	planeCallback->setAlgoList(&pwidgetList);
 
-	planeCallback->setProbe(probe);
 	planeWidget->PlaceWidget();
 
 
@@ -511,58 +437,50 @@ int main(int argc, char *argv[])
 
 	vtkSliderRepresentation2D * sliderRep = vtkSliderRepresentation2D::New();
 
-	sliderRep->SetTitleText("t");
+	style->setSlider(sliderRep);
+
 	sliderRep->GetPoint1Coordinate()->SetCoordinateSystemToNormalizedDisplay();
 	sliderRep->GetPoint2Coordinate()->SetCoordinateSystemToNormalizedDisplay();
 	sliderRep->GetPoint1Coordinate()->SetValue(0.1, 0.08);
 	sliderRep->GetPoint2Coordinate()->SetValue(0.9, 0.08);
 
+	sliderRep->SetShowSliderLabel(false);
+
+	sliderRep->SetMinimumValue(meta.minT+1 );
+	sliderRep->SetMaximumValue(meta.maxT-1 );
+	sliderRep->SetValue( meta.minT+1 );
 
 
-	sliderRep->SetMinimumValue(nbs->minDT());
-	sliderRep->SetMaximumValue(nbs->maxDT());
-	sliderRep->SetValue(nbs->minDT());
+	sliderRep->GetTitleProperty()->SetColor(0.2, 0.2, 0.9);
+	sliderRep->GetTitleProperty()->SetFontSize(10);
+	sliderRep->GetTitleProperty()->BoldOff();
+	sliderRep->GetTitleProperty()->ShadowOff();
 
-
+	sliderRep->SetTitleText( metaData::getTimeString(meta.minT).c_str() );
 
 	vtkSliderWidget *slider = vtkSliderWidget::New();
 	slider->SetInteractor(iren);
 	slider->SetRepresentation(sliderRep);
-	slider->SetAnimationModeToAnimate();
-	slider->SetNumberOfAnimationSteps(10);
+	slider->SetAnimationModeToJump();
 
 	sliderWidgetCallback *sliderCallback = sliderWidgetCallback::New();
 
-	//lista filttereit‰ jotka callback p‰ivitt‰‰
-	std::list<vtkAlgorithm*> widgetList;
-	widgetList.push_back(nbs);
-	widgetList.push_back(nbsWind);
-	widgetList.push_back(mc);
-	widgetList.push_back(nbsTemp);
-	widgetList.push_back(probe);
-	widgetList.push_back(probeContours);
-
-
-	sliderCallback->setAlgoList(&widgetList);
 	sliderCallback->setRenWin(renWin);
+	sliderCallback->setManager(&vm);
 
 	slider->AddObserver(vtkCommand::InteractionEvent, sliderCallback);
 	slider->EnabledOn();
 
 
 
-	vtkSmartPointer<vtkLight> overheadLight =
-		vtkSmartPointer<vtkLight>::New();
+	auto overheadLight = vtkSmartPointer<vtkLight>::New();
 
 	overheadLight->SetPosition(0, 0, volumeBounds[5]*1.1);
-	overheadLight->SetExponent(0.9);
+	overheadLight->SetExponent(3);
 
 	ren1->AddLight(overheadLight);
-	
-	
-	volumeMapper->UpdateTimeStep( nbs->minDT() );
-	windMap->UpdateTimeStep( nbsWind->minDT() );
-	windMap->SetGlobalImmediateModeRendering(true);
+
+
 	ren1->Render();
 	ren1->ResetCamera();
 

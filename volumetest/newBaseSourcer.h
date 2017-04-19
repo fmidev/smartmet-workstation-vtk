@@ -19,8 +19,7 @@ class newBaseSourcer : public vtkImageAlgorithm {
 	NFmiFastQueryInfo dataInfo;
 	metaData *meta;
 
-	std::vector<time_t> times;
-	std::map<time_t, int> timeIndex;
+
 
 	vtkImageData* im;
 	float* heights;
@@ -34,12 +33,7 @@ class newBaseSourcer : public vtkImageAlgorithm {
 
 
 	//muunnos epoch-ajasta newbasen aikaindekseiksi ja takaisin
-	inline double epochToDouble(time_t t) {
-		return (double(t - minT()) / (maxT() - minT())  * times.size());
-	}
-	inline time_t doubleToEpoch(double t) {
-		return std::lround(t*((maxT() - minT()) / times.size())) + minT();
-	}
+
 	inline void resetImage() {
 		assert(im);
 		int sizeX=meta->sizeX, sizeY=meta->sizeY;
@@ -53,38 +47,45 @@ class newBaseSourcer : public vtkImageAlgorithm {
 		}
 	}
 
-public:
-	//etsii aikaindeksin annetulle epoch-ajalle
-	inline int nearestIndex(long time) {
-		for (auto iter = timeIndex.begin(); iter != timeIndex.end(); iter++) {
-			if (iter->first == time) return iter->second;
-			auto nextIter = iter;
-			nextIter++;
-			if (nextIter != timeIndex.end() && nextIter->first > time) return iter->second;
-		}
-		if (timeIndex.rbegin() != timeIndex.rend()) return timeIndex.rbegin()->second;
-
-		return 0;
-	}
-
-	newBaseSourcer(const std::string &file, metaData *meta, int param,int res=70,float height = 13000) :
-		data(file), dataInfo(&data), meta(meta), im(nullptr), heights(nullptr), param(param), times(), timeIndex(), prevTime(-1),zRes(res),zHeight(height) {
-		SetNumberOfInputPorts(0);
-	}
-	~newBaseSourcer() {
+	void freeRes() {
 		if (im)
 			im->Delete();
 		if (heights)
 			delete[] heights;
 	}
 
-	inline time_t minT() { return times.front(); }
-	inline time_t maxT() { return times.back(); }
-	inline double minDT() { return epochToDouble(minT()); }
-	inline double maxDT() { return epochToDouble(maxT()); }
 
-	//täyttää metatiedot
-	void initMeta();
+public:
+	//etsii aikaindeksin annetulle epoch-ajalle
+	inline int nearestIndex(double time) {
+		for (auto iter = meta->timeIndex.begin(); iter != meta->timeIndex.end(); iter++) {
+			if (iter->first == time) return iter->second;
+			auto nextIter = iter;
+			nextIter++;
+			if (nextIter != meta->timeIndex.end() && nextIter->first > time) return iter->second;
+		}
+		if (meta->timeIndex.rbegin() != meta->timeIndex.rend()) return meta->timeIndex.rbegin()->second;
+
+		return 0;
+	}
+
+	newBaseSourcer(const std::string &file, metaData *meta, int param,int res=70) :
+		data(file), dataInfo(&data), meta(meta),
+		im(nullptr), heights(nullptr), 
+		param(param), prevTime(-1),zRes(res)
+	{
+		SetNumberOfInputPorts(0);
+		zHeight = meta->maxH;
+	}
+
+	void Delete() override {
+		freeRes();
+	}
+
+
+	inline double minT() { return meta->times.front(); }
+	inline double maxT() { return meta->times.back(); }
+
 
 	//kertoo VTK:lle mitä dataa on saatavilla
 	int newBaseSourcer::RequestInformation(vtkInformation* vtkNotUsed(request),
@@ -96,6 +97,11 @@ public:
 		vtkInformationVector** vtkNotUsed(inputVector),
 		vtkInformationVector* outputVector);
 
+private:
+	~newBaseSourcer() override {
+	}
+	newBaseSourcer(const newBaseSourcer &copy) = delete;
+	void operator=(const newBaseSourcer &assign) = delete;
 };
 
 #endif /*NEWBASESOURCER_H*/

@@ -6,80 +6,13 @@
 #include <vtkInformation.h>
 #include <vtkInformationVector.h>
 
-void newBaseSourcer::initMeta() {
-	meta->hasHeight = false;
-
-	if (dataInfo.Area()) {
-		const NFmiArea *a = dataInfo.Area();
-		meta->p1 = a->BottomLeftLatLon();
-		meta->p2 = a->TopRightLatLon();
-
-	}
-
-	meta->sizeX = dataInfo.GridXNumber();
-	meta->sizeY = dataInfo.GridYNumber();
-	meta->sizeZ = dataInfo.SizeLevels();
+#include "boost/date_time/posix_time/posix_time.hpp"
 
 
-
-
-
-	int sizeX = meta->sizeX;
-	int sizeY = meta->sizeX;
-	int sizeZ = meta->sizeX;
-
-	float minHeight = kMaxFloat, maxHeight = kMinFloat;
-
-
-	dataInfo.ResetTime();
-	dataInfo.NextTime();
-
-	if (dataInfo.Param(kFmiGeopHeight)) {
-
-		meta->hasHeight = true;
-
-		bool rising = dataInfo.HeightParamIsRising();
-
-		if (rising) dataInfo.ResetLevel();
-		else dataInfo.LastLevel();
-
-		do {
-
-			for (dataInfo.ResetLocation(); dataInfo.NextLocation(); ) {
-				float val = dataInfo.FloatValue();
-
-				if (val == kFloatMissing) val = 0;
-				if (val > maxHeight) maxHeight = val;
-				if (val < minHeight) minHeight = val;
-
-			}
-
-		} while ((rising && dataInfo.NextLevel()) || (!rising && dataInfo.PreviousLevel()));
-	}
-
-	meta->maxH = zHeight;
-	meta->minH = 0;
-
-	cout << "minheight: " << minHeight*0.995f << ", maxheight: " << maxHeight*1.005f << std::endl;
-
-}
 
 int newBaseSourcer::RequestInformation(vtkInformation* vtkNotUsed(request),
 	vtkInformationVector** vtkNotUsed(inputVector),
 	vtkInformationVector* outputVector) {
-
-	if (times.empty()) {
-
-
-		int n = 0;
-
-		for (dataInfo.ResetTime(); dataInfo.NextTime(); ) {
-			times.push_back(dataInfo.Time().EpochTime());
-			timeIndex.insert({ dataInfo.Time().EpochTime(),n });
-			n++;
-		}
-
-	}
 
 	//cout << "start time: " << minT() << ", double conversion: " << minDT() << std::endl;
 	//cout << "end time: " << maxT()<< ", double conversion: " << maxDT() << std::endl;
@@ -89,21 +22,15 @@ int newBaseSourcer::RequestInformation(vtkInformation* vtkNotUsed(request),
 	vtkInformation* outInfo = outputVector->GetInformationObject(0);
 
 
-
-	std::vector<double> doubleTimes;
-	for (auto i = times.begin(); i != times.end(); i++) {
-		doubleTimes.push_back(epochToDouble(*i));
-	}
-
 	double doubleRange[2];
-	doubleRange[0] = doubleTimes.front();
-	doubleRange[1] = doubleTimes.back();
+	doubleRange[0] = meta->times.front();
+	doubleRange[1] = meta->times.back();
+
 
 	outInfo->Set(vtkStreamingDemandDrivenPipeline::TIME_RANGE(), doubleRange, 2);
-	outInfo->Set(vtkStreamingDemandDrivenPipeline::TIME_STEPS(), &doubleTimes[0], doubleTimes.size());
+	outInfo->Set(vtkStreamingDemandDrivenPipeline::TIME_STEPS(), &meta->times[0], meta->times.size());
 
 
-	//outInfo->Set(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(), 0, meta->sizeX - 1, 0, meta->sizeY - 1, 0, meta->sizeZ - 1);
 	outInfo->Set(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(), 0, meta->sizeX - 1, 0, meta->sizeY - 1, 0, zRes - 1);
 	return 1;
 }
@@ -137,7 +64,7 @@ int newBaseSourcer::RequestData(vtkInformation* vtkNotUsed(request),
 
 	//pyydetäänkö tiettyä ajanjaksoa
 	if (outInfo->Has(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEP())) {
-		time = doubleToEpoch(outInfo->Get(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEP()));
+		time = outInfo->Get(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEP());
 		cout << param << ": Request for time " << time << std::endl;
 	}
 
@@ -227,66 +154,6 @@ int newBaseSourcer::RequestData(vtkInformation* vtkNotUsed(request),
 
 		int highest = -1;
 
-		/*
-
-		//luetaan parametri
-		if (dataInfo.Param(FmiParameterName(param))) {
-
-			dataInfo.TimeIndex(timeI);
-			int ix, iz = 0;
-
-			bool rising = dataInfo.HeightParamIsRising();
-
-			if (rising) dataInfo.ResetLevel();
-			else dataInfo.LastLevel();
-
-			do {
-
-				ix = 0;
-				for (dataInfo.ResetLocation(); dataInfo.NextLocation(); ) {
-					int x = ix % sizeX;
-					int y = (ix / sizeX) % sizeY;
-					int z = iz*zScale;
-					if (meta->hasHeight) {
-						z = heights[x + y*sizeX + z*sizeX*sizeY];
-					}
-					if (reqExtent) {
-						if (x<reqExtent[0] || x>reqExtent[1]
-							|| y<reqExtent[2] || y>reqExtent[3]
-							|| z<reqExtent[4] || z>reqExtent[5]) {
-							ix++;
-							continue;
-						}
-
-					}
-
-					float val = dataInfo.FloatValue()*zScale;
-					if (val != kFloatMissing) {
-							//val = 0.0f; //voi myös piirtää laittamalla negatiiviseksi tjms
-						if (val > maxVal) maxVal = val;
-						if (val < minVal) minVal = val;
-					}
-					highest = z;
-
-					float* pixel = static_cast<float*>(im->GetScalarPointer(x, y, z));
-
-
-					pixel[0] += val;
-
-					if (pixel[0] > maxVal) maxVal = pixel[0];
-
-					ix++;
-				}
-				iz++;
-
-			} while ((rising && dataInfo.NextLevel()) || (!rising && dataInfo.PreviousLevel()));
-		}
-		else {
-			cout << "Failed to find param!" << std::endl;
-			return 0;
-		}
-
-		*/
 
 		//luetaan parametri
 		if (dataInfo.Param(FmiParameterName(param))) {
@@ -359,26 +226,6 @@ int newBaseSourcer::RequestData(vtkInformation* vtkNotUsed(request),
 
 		auto t1 = std::chrono::system_clock::now();
 
-		/*
-
-		if (dataInfo.Param(FmiParameterName(param))) {
-			float step = zHeight / zRes;
-			NFmiDataMatrix<float> levelValues;
-			for (int iz = 0; iz < zRes;++iz) {
-				float z = iz*step;
-				cout << iz << endl;
-				dataInfo.HeightValues(levelValues, boost::posix_time::from_time_t(time), iz);
-				for(int ix=0;ix<sizeX;++ix) {
-					//for (int iy = 0; iy < sizeY; ++iy) {
-						float* pixel = static_cast<float*>(im->GetScalarPointer(ix, 0, iz));
-						//pixel[0] += levelValues[ix][iy];
-						memcpy(pixel, &levelValues[ix][0], sizeY * sizeof(float));
-					}
-			}
-		}
-
-		*/
-
 		//for (int i = 0; i<zRes; ++i)
 		//	cout << "z: " << i << " : " << static_cast<float*>(im->GetScalarPointer(40, 40, i))[0] << endl;
 
@@ -402,7 +249,7 @@ int newBaseSourcer::RequestData(vtkInformation* vtkNotUsed(request),
 				while (iter != threads.end())
 				{
 
-					if (iter->wait_for(std::chrono::milliseconds(0)) == std::future_status::ready) {
+					if (iter->wait_for(std::chrono::milliseconds(4)) == std::future_status::ready) {
 						iter = threads.erase(iter);
 					}
 					else ++iter;
@@ -449,7 +296,7 @@ int newBaseSourcer::RequestData(vtkInformation* vtkNotUsed(request),
 
 		auto readTime = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
 		auto interpTime = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
-		cout << "time to read: " << readTime << " time to interp: " << interpTime;
+		cout << "time to read: " << readTime << " time to interp: " << interpTime << endl;
 
 		prevTime = timeI;
 	}
@@ -459,10 +306,14 @@ int newBaseSourcer::RequestData(vtkInformation* vtkNotUsed(request),
 	ds->DeepCopy(im);
 
 	//kerrotaan mitä dataa löytyi
-	ds->GetInformation()->Set(vtkDataObject::DATA_TIME_STEP(), epochToDouble(dataInfo.Time().EpochTime()));
+	ds->GetInformation()->Set(vtkDataObject::DATA_TIME_STEP(), dataInfo.Time().EpochTime());
 	outInfo->Set(vtkDataObject::DATA_EXTENT(), reqExtent ? reqExtent : im->GetExtent(), 6);
 
-	//cout << "Returned time " << dataInfo.Time().EpochTime() << " , double: "<< epochToDouble( dataInfo.Time().EpochTime() ) << std::endl;
+	Modified();
+
+	//ptime utcTime = ptime(from_time_t(dataInfo.Time().EpochTime()));
+
+	//cout << "Returned time " << dataInfo.Time().EpochTime() << ", UTC: " << to_iso_extended_string( utcTime.date() ) <<", "<< utcTime.time_of_day() << endl;
 
 	//ds->ReleaseData();
 
