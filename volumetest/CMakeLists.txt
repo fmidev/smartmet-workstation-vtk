@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.7.2)
-
 project (volumetest)
 
 find_package(VTK REQUIRED)
@@ -36,3 +34,10 @@ endif()
 target_include_directories(${PROJECT_NAME}
 	PUBLIC ${Newbase_INCLUDE_DIRS}
 	)
+
+
+add_custom_command(
+        TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+                ${PROJECT_SOURCE_DIR}/res
+                ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$(Configuration))

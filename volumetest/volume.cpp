@@ -258,7 +258,7 @@ int main(int argc, char *argv[])
 	//luetaan kartta levyltä ja mapataan se tasolle
 
 	auto mapReader = vtkSmartPointer<vtkBMPReader>::New();
-	mapReader->SetFileName("D:/3d-dataa/Scandinavia.SHADED_TOPO.COLORED_HEIGHT1.bmp");
+	mapReader->SetFileName("bottom.bmp");
 
 	auto texture = vtkSmartPointer<vtkTexture>::New();
 	texture->SetInputConnection(mapReader->GetOutputPort());
