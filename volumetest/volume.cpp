@@ -57,6 +57,9 @@
 #include <vtkPlaneWidget.h>
 #include <vtkLinearSubdivisionFilter.h>
 
+#include <vtkAnimationScene.h>
+#include "vtkAnimationCue.h"
+
 #include <vtkLight.h>
 
 #include <list>
@@ -72,7 +75,78 @@
 #include "VisualizerManager.h"
 #include "VisualizerFactory.h"
 
+
 static std::string *newBaseFile;
+
+class vtkAnimCallback: public vtkCommand {
+public:
+	static vtkAnimCallback* New() {
+		return new vtkAnimCallback();
+	}
+
+	void setRenwin(vtkRenderWindow * val) {
+		renWin = val;
+	}
+
+	void setVm(VisualizerManager * val) {
+		vm = val;
+	}
+
+	void setSlider(vtkSliderRepresentation2D * val) {
+		slider = val;
+	}
+	metaData *meta;
+	void setMeta(metaData *m) {
+		meta = m;
+	}
+	bool enabled;
+protected:
+	int timerID;
+	vtkRenderWindow *renWin;
+	VisualizerManager *vm;
+	vtkSliderRepresentation2D *slider;
+
+	int wrapCount;
+
+	vtkAnimCallback() {
+		renWin = nullptr;
+		vm = nullptr;
+		slider = nullptr;
+		meta = nullptr;
+		timerID = -1;
+		enabled = false;
+		wrapCount = 0;
+	}
+	virtual void Execute(vtkObject* caller, unsigned long eventID, void *data) {
+		if (!enabled) return;
+
+		double val = slider->GetValue();
+
+
+		if (val == meta->timeSteps) {
+			wrapCount++;
+		}
+		else wrapCount = 0;
+
+		if (wrapCount > 3) {
+
+			wrapCount = 0;
+			val = 0;
+
+		} else val = floor(val + 1);
+
+		time_t time = meta->timeStepToEpoch(val);
+		slider->SetTitleText(metaData::getTimeString(time).c_str());
+
+		slider->SetValue(val);
+		vm->UpdateTimeStep(val);
+
+		
+
+
+		renWin->Render();
+	}
+};
 
 
 
@@ -122,10 +196,13 @@ public:
 			reinterpret_cast<vtkSliderWidget*>(caller);
 		auto value = static_cast<vtkSliderRepresentation *>(sliderWidget->GetRepresentation())->GetValue();
 
+		value = floor(value);
 		
+		sliderWidget->GetSliderRepresentation()->SetValue(value);
+
 		vm->UpdateTimeStep(value);
 		
-		sliderWidget->GetSliderRepresentation()->SetTitleText( metaData::getTimeString( (value) ).c_str() );
+		sliderWidget->GetSliderRepresentation()->SetTitleText( metaData::getTimeString( (meta->timeStepToEpoch(value) ) ).c_str() );
 
 		this->renWin->Render();
 	}
@@ -137,10 +214,14 @@ public:
 	void setRenWin(vtkRenderWindow* r) {
 		renWin = r;
 	}
+	void setMetaData(metaData *m) {
+		meta = m;
+	}
 
 protected:
 	VisualizerManager *vm;
 	vtkRenderWindow *renWin;
+	metaData *meta;
 };
 
 class planeWidgetCallback : public vtkCommand
@@ -216,14 +297,17 @@ int main(int argc, char *argv[])
 	vm.GetMeta().init(file);
 
 
+
+
 	auto meta = vm.GetMeta();
+
+
 
 	auto style = vtkSmartPointer<fmiVisInteractor>::New();
 	style->setVM(&vm);
 	iren->SetInteractorStyle(style);
 
-
-	style->setStepSize((meta.maxT - meta.minT) / meta.timeSteps);
+	style->setMeta(&meta);
 
 	//koordinaattiakselit
 	auto cubeAxesActor = vtkSmartPointer<vtkCubeAxesActor>::New();
@@ -417,10 +501,6 @@ int main(int argc, char *argv[])
 
 	style->setVisTexts(&textActs);
 
-	auto timeText = vtkSmartPointer<vtkTextActor>::New();
-
-
-
 
 	planeWidgetCallback *planeCallback = planeWidgetCallback::New();
 
@@ -446,9 +526,9 @@ int main(int argc, char *argv[])
 
 	sliderRep->SetShowSliderLabel(false);
 
-	sliderRep->SetMinimumValue(meta.minT+1 );
-	sliderRep->SetMaximumValue(meta.maxT-1 );
-	sliderRep->SetValue( meta.minT+1 );
+	sliderRep->SetMinimumValue( 0 );
+	sliderRep->SetMaximumValue(meta.timeSteps);
+	sliderRep->SetValue( 0 );
 
 
 	sliderRep->GetTitleProperty()->SetColor(0.2, 0.2, 0.9);
@@ -467,11 +547,23 @@ int main(int argc, char *argv[])
 
 	sliderCallback->setRenWin(renWin);
 	sliderCallback->setManager(&vm);
+	sliderCallback->setMetaData(&meta);
 
 	slider->AddObserver(vtkCommand::InteractionEvent, sliderCallback);
 	slider->EnabledOn();
 
+	auto *timerCallback = vtkAnimCallback::New();
 
+	timerCallback->setRenwin(renWin);
+	timerCallback->setSlider(sliderRep);
+	timerCallback->setMeta(&meta);
+	timerCallback->setVm(&vm);
+
+	auto timerID = renWin->GetInteractor()->CreateRepeatingTimer(30);
+
+	style->setAnim(&timerCallback->enabled);
+	
+	renWin->GetInteractor()->AddObserver(vtkCommand::TimerEvent, timerCallback);
 
 	auto overheadLight = vtkSmartPointer<vtkLight>::New();
 

@@ -13,6 +13,7 @@
 #include "vtkImageData.h"
 #include "vtkTextActor.h"
 #include "vtkSliderRepresentation2D.h"
+#include "vtkAnimationScene.h"
 
 
 
@@ -25,10 +26,15 @@ public:
 	VisualizerManager *vm;
 	
 	vtkSliderRepresentation2D *timeSlider;
-	double stepSize;
+
 
 	std::vector<vtkSmartPointer<vtkTextActor>> *visualizerTexts;
 
+	metaData *meta;
+
+	bool *anim;
+
+	double animStart;
 
 	inline void setVM(VisualizerManager *vm) {
 		this->vm = vm;
@@ -41,8 +47,12 @@ public:
 	inline void setSlider(vtkSliderRepresentation2D *slider) {
 		timeSlider = slider;
 	}
-	inline void setStepSize(double step) {
-		this->stepSize = step;
+
+	inline void setMeta(metaData *m) {
+		meta = m;
+	}
+	inline void setAnim(bool *a) {
+		anim = a;
 	}
 
 	virtual void OnKeyRelease() {
@@ -55,18 +65,26 @@ public:
 
 		double val = timeSlider->GetValue();
 
+		if(s.find("space") == 0 ) {
+			if ( *anim ) {
+				*anim = false;
+			}
+			else {
 
+				*anim = true;
+			}
+		} else
 		if (s.find("Right") == 0) {
 
 			timeChanged = true;
-			val += stepSize;
+			val += 1;
 
 			if (val > timeSlider->GetMaximumValue()) val = timeSlider->GetMaximumValue();
 		}
 		else if (s.find("Left") == 0) {
 
 			timeChanged = true;
-			val -= stepSize;
+			val -= 1;
 
 			if (val < timeSlider->GetMinimumValue()) val = timeSlider->GetMinimumValue();
 		}
@@ -116,14 +134,15 @@ public:
 		}
 
 		if (timeChanged) {
+			time_t time = meta->timeStepToEpoch(val);
+			timeSlider->SetTitleText(metaData::getTimeString(time).c_str());
 
-			timeSlider->SetTitleText(metaData::getTimeString(val).c_str());
 			timeSlider->SetValue(val);
 			vm->UpdateTimeStep(val);
 		}
 		
 
-		//cout << "Pressed key " << (ctrl ? "ctrl+" : std::string()) << ", sym "<<s<<", int "<<vid<< endl;
+		cout << "Pressed key " << (ctrl ? "ctrl+" : std::string()) << ", sym "<<s<< endl;
 	}
 
 	virtual void OnChar()
@@ -135,7 +154,10 @@ public:
 		if(k != 'l' && k!= 'f' && k!='s' && (k<0 && k>9) ) //disable latlon-sphere, fly-to, stereo
 			this->Superclass::OnChar();
 	}
-
+	protected:
+		fmiVisInteractor() {
+			animStart = 0;
+		}
 };
 
 

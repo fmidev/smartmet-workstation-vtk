@@ -39,12 +39,13 @@ class newBaseSourcer : public vtkImageAlgorithm {
 		int sizeX=meta->sizeX, sizeY=meta->sizeY;
 		float* p = static_cast<float*>(im->GetScalarPointer());
 		for (long iz = 0; iz < zRes; ++iz) {
-			for (long iy = 0; iy < sizeX; ++iy) {
+			for (long iy = 0; iy < sizeY; ++iy) {
 				for (long ix = 0; ix < sizeX; ++ix) {
 					p[ix + iy*sizeX + iz*sizeX*sizeY] = kFloatMissing;
 				}
 			}
 		}
+		
 	}
 
 	void freeRes() {

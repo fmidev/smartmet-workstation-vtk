@@ -64,7 +64,7 @@ int newBaseSourcer::RequestData(vtkInformation* vtkNotUsed(request),
 
 	//pyydetäänkö tiettyä ajanjaksoa
 	if (outInfo->Has(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEP())) {
-		time = outInfo->Get(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEP());
+		time = meta->timeStepToEpoch ( outInfo->Get(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEP()) );
 		cout << param << ": Request for time " << time << std::endl;
 	}
 
@@ -176,7 +176,7 @@ int newBaseSourcer::RequestData(vtkInformation* vtkNotUsed(request),
 				for (dataInfo.ResetLocation(); dataInfo.NextLocation(); ) {
 					int x = ix % sizeX;
 					int y = (ix / sizeX) % sizeY;
-					int z = iz*zScale;
+					int z = floor(double(iz)*zScale);
 					float pz = iz*step;
 					if (meta->hasHeight) {
 						z = heights[x + y*sizeX + z*sizeX*sizeY];
@@ -199,6 +199,7 @@ int newBaseSourcer::RequestData(vtkInformation* vtkNotUsed(request),
 						if (val < minVal) minVal = val;
 					}
 					highest = z;
+
 
 					if (z < zRes) {
 
@@ -226,30 +227,47 @@ int newBaseSourcer::RequestData(vtkInformation* vtkNotUsed(request),
 
 		auto t1 = std::chrono::system_clock::now();
 
-		//for (int i = 0; i<zRes; ++i)
-		//	cout << "z: " << i << " : " << static_cast<float*>(im->GetScalarPointer(40, 40, i))[0] << endl;
+		for (int i = 0; i<zRes; ++i)
+			cout << "z: " << i << " : " << static_cast<float*>(im->GetScalarPointer(0, 90, i))[0] << endl;
 
 		//cout << "interpolating..." << endl;
 
 		unsigned int usedThreadCount = boost::thread::hardware_concurrency();
 		auto threads = std::list<std::shared_future<void>>();
 
-		for (int i = 0; i < 9; ++i) {
-			int blockX = i % 3;
-			int blockY = i / 3;
+		int blockWidth = 3;
 
-			int startX = blockX*sizeX / 3;
-			int startY = blockY*sizeY / 3;
+		for (int i = 0; i < blockWidth*blockWidth; ++i) {
+			int blockX = i % blockWidth;
+			int blockY = i / blockWidth;
 
-			int endX = startX + sizeX / 3;
-			int endY = startY + sizeY / 3;
+			int startX = blockX*sizeX / blockWidth;
+			int endX;
+
+			if (blockX < blockWidth - 1) {
+
+				endX = startX + sizeX / blockWidth;
+			}
+			else {
+				endX = sizeX;
+			}
+
+			int startY = blockY*sizeY / blockWidth;
+			int endY;
+
+			if (blockY < blockWidth - 1) {
+				endY = startY + sizeY / blockWidth;
+			}
+			else {
+				endY = sizeY;
+			}
 
 			if (threads.size() >= usedThreadCount) {
 				auto iter = threads.begin();
 				while (iter != threads.end())
 				{
 
-					if (iter->wait_for(std::chrono::milliseconds(4)) == std::future_status::ready) {
+					if (iter->wait_for(std::chrono::milliseconds(2)) == std::future_status::ready) {
 						iter = threads.erase(iter);
 					}
 					else ++iter;

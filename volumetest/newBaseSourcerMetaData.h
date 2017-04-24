@@ -25,8 +25,8 @@ struct metaData {
 
 	std::vector<double> times;
 	std::map<double, int> timeIndex;
-	double minT;
-	double maxT;
+	long minT;
+	long maxT;
 
 	inline void init(const std::string &file) {
 		auto data = NFmiQueryData(file);
@@ -92,17 +92,22 @@ struct metaData {
 		minT = times.front();
 		maxT = times.back();
 
-		timeSteps = times.size();
+		timeSteps = times.size()-1;
 
 
 
 	}
 	static std::string getTimeString(double val) {
 		ptime utcTime = ptime(from_time_t(val));
-		std::stringstream timeString;
-		timeString << to_iso_extended_string(utcTime.date()) << " " << utcTime.time_of_day();
+		auto timeString = std::stringstream();
+
+		timeString << to_iso_extended_string(utcTime.date()) << " " << utcTime.time_of_day() << " UTC";
 
 		return timeString.str();
+	}
+
+	time_t timeStepToEpoch(double step) {
+		return minT + step*(double(maxT - minT) / (timeSteps));
 	}
 };
 

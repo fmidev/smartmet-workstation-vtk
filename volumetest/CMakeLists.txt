@@ -5,6 +5,13 @@ find_package(VTK REQUIRED)
 include(${VTK_USE_FILE})
 
 
+# Configure the template file
+SET(USER_FILE ${PROJECT_NAME}.vcxproj.user)
+SET(OUTPUT_PATH ${PROJECT_BINARY_DIR}/${USER_FILE})
+SET(COMMANDLINE_ARGUMENTS "")
+SET(WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$(Configuration))
+CONFIGURE_FILE(UserTemplate.user ${USER_FILE} @ONLY)
+
 file( 
 GLOB SOURCE_FILES
 	*.cpp
