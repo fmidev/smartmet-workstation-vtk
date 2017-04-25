@@ -75,6 +75,7 @@
 #include "VisualizerManager.h"
 #include "VisualizerFactory.h"
 
+#include "CreateHeightdata.h"
 
 static std::string *newBaseFile;
 
@@ -354,21 +355,14 @@ int main(int argc, char *argv[])
 	planeScale[0] = volumeBounds[1] - volumeBounds[0];
 	planeScale[1] = volumeBounds[2] - volumeBounds[3];
 
-
-	auto planeSource = vtkSmartPointer<vtkPlaneSource>::New();
-
-	planeSource->SetOrigin(volumeBounds[0], volumeBounds[2], volumeBounds[4]);
-	planeSource->SetPoint1(planeScale[0], 0, 0);
-	planeSource->SetPoint2(0, -planeScale[1], 0);
-
-	planeSource->Update();
+	auto planeData = CreateHeightdata(file);
 
 	auto texturePlane = vtkSmartPointer<vtkTextureMapToPlane>::New();
-	texturePlane->SetInputConnection(planeSource->GetOutputPort());
+	texturePlane->SetInputData( planeData );
 
 	auto planeMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 
-	planeMapper->SetInputData(planeSource->GetOutput());
+	planeMapper->SetInputData(planeData);
 
 	//double* planePos = new double[2];
 	//planePos[0] = planeBounds[1] / 2.0;
@@ -568,7 +562,8 @@ int main(int argc, char *argv[])
 	auto overheadLight = vtkSmartPointer<vtkLight>::New();
 
 	overheadLight->SetPosition(0, 0, volumeBounds[5]*1.1);
-	overheadLight->SetExponent(3);
+	overheadLight->SetExponent(4);
+	overheadLight->SetIntensity(0.4);
 
 	ren1->AddLight(overheadLight);
 
