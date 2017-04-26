@@ -59,7 +59,7 @@ public:
 		crop = c;
 	}
 
-	inline void UpdateTimeStep(double t) {
+	inline virtual void UpdateTimeStep(double t) {
 		nbs->UpdateTimeStep(t);
 		for (auto &filter : filters) {
 			filter->UpdateTimeStep(t);

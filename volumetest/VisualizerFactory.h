@@ -70,17 +70,17 @@ public:
 
 	inline static std::unique_ptr<ParamVisualizerBase> make2DVisualizer(const std::string &file, metaData &meta,
 		vtkAlgorithmOutput* probingData,
-		int param,  vtkSmartPointer<vtkColorTransferFunction> contourColors, double range[2], int numContours = 10) {
-		return std::make_unique<ParamVisualizer2D>(file, meta,param,probingData, contourColors,range,numContours);
+		int param,  vtkSmartPointer<vtkColorTransferFunction> contourColors, std::shared_ptr<ContourLabeler> labeler, double range[2], int numContours = 10) {
+		return std::make_unique<ParamVisualizer2D>(file, meta,param,probingData, contourColors,labeler,range,numContours);
 	}
 	inline static std::unique_ptr<ParamVisualizerBase> make2DVisualizer(const std::string &file, metaData &meta,
-		vtkAlgorithmOutput* probingData, Vis2DParams &p) {
-		return make2DVisualizer(file, meta,probingData,p.param, p.contourColors, p.range, p.numContours);
+		vtkAlgorithmOutput* probingData, std::shared_ptr<ContourLabeler> labeler, Vis2DParams &p) {
+		return make2DVisualizer(file, meta,probingData,p.param, p.contourColors, labeler, p.range, p.numContours);
 	}
 
-	inline static std::unique_ptr<ParamVisualizerBase> make2DVisualizer(const std::string &file, metaData &meta, vtkAlgorithmOutput* probingData, int param) {
+	inline static std::unique_ptr<ParamVisualizerBase> make2DVisualizer(const std::string &file, metaData &meta, vtkAlgorithmOutput* probingData, std::shared_ptr<ContourLabeler> labeler, int param) {
 		if (config2D.find(param) != config2D.end())
-			return make2DVisualizer(file, meta, probingData, config2D.find(param)->second);
+			return make2DVisualizer(file, meta, probingData, labeler, config2D.find(param)->second);
 		else
 			return nullptr;
 	}

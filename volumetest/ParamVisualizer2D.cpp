@@ -2,6 +2,10 @@
 
 #include <vtkActor.h>
 #include <vtkProperty.h>
+#include <vtkType.h>
+
+#include "ContourLabeler.h"
+
 
 void ParamVisualizer2D::ModeIsoLine() {
 	contourFilter->AddInputConnection(probeFilter->GetOutputPort(0));
@@ -29,10 +33,51 @@ void ParamVisualizer2D::ModeColorContour() {
 	filters.push_back(probeFilter);
 }
 
-ParamVisualizer2D::ParamVisualizer2D(const std::string & file, metaData & m, int param, vtkAlgorithmOutput * probingData, vtkSmartPointer<vtkColorTransferFunction> contourColors, double range[2], int numContours) :
+void ParamVisualizer2D::UpdateTimeStep(double t) {
+	ParamVisualizerBase::UpdateTimeStep(t);
+
+	if (mode) return;
+
+	contourStripper->Update();
+
+	vtkPoints *points =
+		contourStripper->GetOutput()->GetPoints();
+	vtkCellArray *cells =
+		contourStripper->GetOutput()->GetLines();
+	vtkDataArray *scalars =
+		contourStripper->GetOutput()->GetPointData()->GetScalars();
+
+	vtkIdType *indices;
+	vtkIdType numberOfPoints;
+	unsigned int lineCount = 0;
+	for (cells->InitTraversal();
+		cells->GetNextCell(numberOfPoints, indices);
+		lineCount++)
+	{
+		if (numberOfPoints < 10)
+		{
+			continue;
+		}
+
+		// Compute the point id to hold the label
+		// Mid point or a random point
+		vtkIdType midPointId = indices[(numberOfPoints / 2)*(lineCount%2)];
+
+		double midPoint[3];
+		points->GetPoint(midPointId, midPoint);
+
+		labeler->Add(midPoint, scalars->GetTuple1(midPointId));
+	}
+}
+
+ParamVisualizer2D::ParamVisualizer2D(const std::string & file, metaData & m, 
+	int param, vtkAlgorithmOutput * probingData,
+	vtkSmartPointer<vtkColorTransferFunction> contourColors,std::shared_ptr<ContourLabeler> labeler, double range[2], int numContours) :
 	ParamVisualizerBase(file, m, param),
+	labeler(labeler),
 	probeFilter(vtkProbeFilter::New()),
 	contourFilter(vtkContourFilter::New()),
+	contourStripper(vtkStripper::New()),
 	polyMap(vtkPolyDataMapper::New()),
 	polyAct(vtkActor::New())
 {
@@ -41,6 +86,8 @@ ParamVisualizer2D::ParamVisualizer2D(const std::string & file, metaData & m, int
 	probeFilter->AddInputConnection(probingData);
 
 	contourFilter->GenerateValues(numContours, range[0], range[1]);
+
+	contourStripper->SetInputConnection(contourFilter->GetOutputPort());
 
 	polyMap->SetScalarRange(range[0], range[1]);
 	polyMap->SetLookupTable(contourColors);
@@ -59,6 +106,7 @@ ParamVisualizer2D::ParamVisualizer2D(const std::string & file, metaData & m, int
 ParamVisualizer2D::~ParamVisualizer2D() {
 	probeFilter->Delete();
 	contourFilter->Delete();
+	contourStripper->Delete();
 	polyMap->Delete();
 	polyAct->Delete();
 }

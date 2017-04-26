@@ -8,11 +8,14 @@
 
 #include "newBaseSourcerMetaData.h"
 
+#include "ContourLabeler.h"
+
 typedef size_t visID;
 
 class VisualizerManager {
 	std::vector<std::unique_ptr<ParamVisualizerBase> > visualizers;
 	vtkSmartPointer<vtkRenderer> renderer;
+	std::shared_ptr<ContourLabeler> labeler;
 
 	metaData meta;
 
@@ -24,6 +27,7 @@ public:
 	VisualizerManager(vtkSmartPointer<vtkRenderer> ren, float zHeight = 13000) :
 		renderer(ren),
 		visualizers(),
+		labeler( std::make_shared<ContourLabeler>(ren) ),
 		meta(),
 		prevTime(0)
 	{
@@ -94,12 +98,14 @@ public:
 	}
 
 	inline void UpdateTimeStep(double t) {
+		labeler->Clear();
 		prevTime = t;
 		for (auto &vis : visualizers) {
 			if(vis->IsEnabled())
 				vis->UpdateTimeStep(t);
 			renderer->AddViewProp(vis->GetProp());
 		}
+		labeler->Update();
 		renderer->GetRenderWindow()->Render();
 	}
 	inline void Update() {
@@ -108,6 +114,9 @@ public:
 	inline int GetVisParam(visID vid) {
 		if (vid < visualizers.size())
 			return visualizers[vid]->param;
+	}
+	inline std::shared_ptr<ContourLabeler> GetLabeler() {
+		return labeler;
 	}
 };
 

@@ -133,7 +133,7 @@ int newBaseSourcer::RequestData(vtkInformation* vtkNotUsed(request),
 					if (val > maxHeight)
 						maxHeight = val;
 
-					h = (val - meta->minH) / zHeight * float(sizeZ);
+					h = (val ) / zHeight * float(sizeZ);
 
 					heights[x + y *sizeX + z*sizeX*sizeY] = h;
 					//totalH += h;
@@ -227,8 +227,8 @@ int newBaseSourcer::RequestData(vtkInformation* vtkNotUsed(request),
 
 		auto t1 = std::chrono::system_clock::now();
 
-		for (int i = 0; i<zRes; ++i)
-			cout << "z: " << i << " : " << static_cast<float*>(im->GetScalarPointer(0, 90, i))[0] << endl;
+		//for (int i = 0; i<zRes; ++i)
+		//	cout << "z: " << i << " : " << static_cast<float*>(im->GetScalarPointer(0, 90, i))[0] << endl;
 
 		//cout << "interpolating..." << endl;
 

@@ -84,24 +84,24 @@ void VisualizerFactory::init() {
 		kFmiHumidity, { kFmiHumidity ,
 		greenToRedColor(0,100),
 		{ 0,100 },
-		20
+		5
 		}));
 	config2D.insert(std::pair<int, Vis2DParams>(
 		kFmiWindSpeedMS, { kFmiWindSpeedMS ,
 		blueToRedColor(0,90),
 		{ 0,90 },
-		15
+		10
 		}));
 	config2D.insert(std::pair<int, Vis2DParams>(
 		kFmiVerticalVelocityMMS, { kFmiVerticalVelocityMMS ,
-		blueToRedColor(-1000,1000),
-		{ -1000,1000 },
-		40
+		blueToRedColor(-200,200),
+		{ -200,200 },
+		8
 		}));
 	config2D.insert(std::pair<int, Vis2DParams>(
 		kFmiPotentialTemperature, { kFmiPotentialTemperature ,
 		blueToRedColor(250,420),
 		{ 250,420 },
-		30
+		20
 		}));
 }

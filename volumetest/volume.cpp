@@ -470,7 +470,7 @@ int main(int argc, char *argv[])
 	}
 	for (auto &parampair : params2D) {
 		if (dataInfo.Param(FmiParameterName(parampair.first))) {
-			visID vid = vm.AddVisualizer(VisualizerFactory::make2DVisualizer(file, meta, planeWidget->GetPolyDataAlgorithm()->GetOutputPort(), parampair.first));
+			visID vid = vm.AddVisualizer(VisualizerFactory::make2DVisualizer(file, meta, planeWidget->GetPolyDataAlgorithm()->GetOutputPort(),vm.GetLabeler(), parampair.first));
 			if (vid == -1) continue;
 			paramVID.insert(std::pair<int, visID>(parampair.first, vid));
 			vm.SetCrop(vid, false);
@@ -562,8 +562,8 @@ int main(int argc, char *argv[])
 	auto overheadLight = vtkSmartPointer<vtkLight>::New();
 
 	overheadLight->SetPosition(0, 0, volumeBounds[5]*1.1);
-	overheadLight->SetExponent(4);
-	overheadLight->SetIntensity(0.4);
+	overheadLight->SetExponent(2);
+	overheadLight->SetIntensity(0.3);
 
 	ren1->AddLight(overheadLight);
 

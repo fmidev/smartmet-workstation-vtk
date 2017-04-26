@@ -52,7 +52,7 @@ inline vtkPolyData * CreateHeightdata(std::string file) {
 					val = 0;
 				}
 
-				points->InsertNextPoint(x*2, y*2, val*2 / 13000 * 70);
+				points->InsertNextPoint(x*2, y*2, val*2 / 13000 * 70); //VisualizerManager zHeight ja newBaseSourcer zRes
 				
 
 				float tuple[3] = { 0.0, 0.0, 0.0 };
@@ -62,8 +62,7 @@ inline vtkPolyData * CreateHeightdata(std::string file) {
 
 				ix++;
 			}
-			//totalH /= sizeX*sizeY;
-			//cout << "Z: " << iz << ", h: " << totalH<<endl;
+
 			iz++;
 
 		} while ((rising && dataInfo.NextLevel()) || (!rising && dataInfo.PreviousLevel()));
