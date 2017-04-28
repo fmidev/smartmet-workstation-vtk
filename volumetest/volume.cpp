@@ -77,78 +77,9 @@
 
 #include "CreateHeightdata.h"
 
+#include "TimeAnimator.h"
+
 static std::string *newBaseFile;
-
-class vtkAnimCallback: public vtkCommand {
-public:
-	static vtkAnimCallback* New() {
-		return new vtkAnimCallback();
-	}
-
-	void setRenwin(vtkRenderWindow * val) {
-		renWin = val;
-	}
-
-	void setVm(VisualizerManager * val) {
-		vm = val;
-	}
-
-	void setSlider(vtkSliderRepresentation2D * val) {
-		slider = val;
-	}
-	metaData *meta;
-	void setMeta(metaData *m) {
-		meta = m;
-	}
-	bool enabled;
-protected:
-	int timerID;
-	vtkRenderWindow *renWin;
-	VisualizerManager *vm;
-	vtkSliderRepresentation2D *slider;
-
-	int wrapCount;
-
-	vtkAnimCallback() {
-		renWin = nullptr;
-		vm = nullptr;
-		slider = nullptr;
-		meta = nullptr;
-		timerID = -1;
-		enabled = false;
-		wrapCount = 0;
-	}
-	virtual void Execute(vtkObject* caller, unsigned long eventID, void *data) {
-		if (!enabled) return;
-
-		double val = slider->GetValue();
-
-
-		if (val == meta->timeSteps) {
-			wrapCount++;
-		}
-		else wrapCount = 0;
-
-		if (wrapCount > 3) {
-
-			wrapCount = 0;
-			val = 0;
-
-		} else val = floor(val + 1);
-
-		time_t time = meta->timeStepToEpoch(val);
-		slider->SetTitleText(metaData::getTimeString(time).c_str());
-
-		slider->SetValue(val);
-		vm->UpdateTimeStep(val);
-
-		
-
-
-		renWin->Render();
-	}
-};
-
 
 
 //Callback jota kutsutaan kun laatikkoa skaalataan
@@ -181,49 +112,6 @@ protected:
 	vtkSmartPointer<vtkPlanes> planes;
 };
 
-//callback aikasarjasliderille
-class sliderWidgetCallback : public vtkCommand
-{
-public:
-	sliderWidgetCallback() {}
-
-	static sliderWidgetCallback *New()
-	{
-		return new sliderWidgetCallback;
-	}
-	void Execute(vtkObject *caller, unsigned long, void*) VTK_OVERRIDE
-	{
-		vtkSliderWidget *sliderWidget =
-			reinterpret_cast<vtkSliderWidget*>(caller);
-		auto value = static_cast<vtkSliderRepresentation *>(sliderWidget->GetRepresentation())->GetValue();
-
-		value = floor(value);
-		
-		sliderWidget->GetSliderRepresentation()->SetValue(value);
-
-		vm->UpdateTimeStep(value);
-		
-		sliderWidget->GetSliderRepresentation()->SetTitleText( metaData::getTimeString( (meta->timeStepToEpoch(value) ) ).c_str() );
-
-		this->renWin->Render();
-	}
-	void setManager(VisualizerManager *vm)
-	{
-		this->vm = vm;
-	}
-
-	void setRenWin(vtkRenderWindow* r) {
-		renWin = r;
-	}
-	void setMetaData(metaData *m) {
-		meta = m;
-	}
-
-protected:
-	VisualizerManager *vm;
-	vtkRenderWindow *renWin;
-	metaData *meta;
-};
 
 class planeWidgetCallback : public vtkCommand
 {
@@ -305,10 +193,10 @@ int main(int argc, char *argv[])
 
 
 	auto style = vtkSmartPointer<fmiVisInteractor>::New();
-	style->setVM(&vm);
-	iren->SetInteractorStyle(style);
 
-	style->setMeta(&meta);
+	style->setVM(&vm);
+
+	iren->SetInteractorStyle(style);
 
 	//koordinaattiakselit
 	auto cubeAxesActor = vtkSmartPointer<vtkCubeAxesActor>::New();
@@ -391,8 +279,6 @@ int main(int argc, char *argv[])
 
 	boxWidget->SetTranslationEnabled(false);
 	boxWidget->SetRotationEnabled(false);
-
-	boxWidget->EnabledOn();
 
 	boxWidgetCallback *callback = boxWidgetCallback::New();
 
@@ -511,8 +397,6 @@ int main(int argc, char *argv[])
 
 	vtkSliderRepresentation2D * sliderRep = vtkSliderRepresentation2D::New();
 
-	style->setSlider(sliderRep);
-
 	sliderRep->GetPoint1Coordinate()->SetCoordinateSystemToNormalizedDisplay();
 	sliderRep->GetPoint2Coordinate()->SetCoordinateSystemToNormalizedDisplay();
 	sliderRep->GetPoint1Coordinate()->SetValue(0.1, 0.08);
@@ -537,27 +421,12 @@ int main(int argc, char *argv[])
 	slider->SetRepresentation(sliderRep);
 	slider->SetAnimationModeToJump();
 
-	sliderWidgetCallback *sliderCallback = sliderWidgetCallback::New();
-
-	sliderCallback->setRenWin(renWin);
-	sliderCallback->setManager(&vm);
-	sliderCallback->setMetaData(&meta);
-
-	slider->AddObserver(vtkCommand::InteractionEvent, sliderCallback);
 	slider->EnabledOn();
 
-	auto *timerCallback = vtkAnimCallback::New();
 
-	timerCallback->setRenwin(renWin);
-	timerCallback->setSlider(sliderRep);
-	timerCallback->setMeta(&meta);
-	timerCallback->setVm(&vm);
+	auto ta = TimeAnimator{ renWin,slider,&vm,&meta };
 
-	auto timerID = renWin->GetInteractor()->CreateRepeatingTimer(30);
-
-	style->setAnim(&timerCallback->enabled);
-	
-	renWin->GetInteractor()->AddObserver(vtkCommand::TimerEvent, timerCallback);
+	style->setTA(&ta);
 
 	auto overheadLight = vtkSmartPointer<vtkLight>::New();
 

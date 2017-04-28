@@ -12,8 +12,8 @@
 #include "VisualizerManager.h"
 #include "vtkImageData.h"
 #include "vtkTextActor.h"
-#include "vtkSliderRepresentation2D.h"
-#include "vtkAnimationScene.h"
+
+#include "TimeAnimator.h"
 
 
 
@@ -23,37 +23,25 @@ public:
 		return new fmiVisInteractor();
 	};
 
-	VisualizerManager *vm;
-	
-	vtkSliderRepresentation2D *timeSlider;
-
 
 	std::vector<vtkSmartPointer<vtkTextActor>> *visualizerTexts;
 
-	metaData *meta;
+	VisualizerManager *vm;
 
-	bool *anim;
-
-	double animStart;
-
-	inline void setVM(VisualizerManager *vm) {
+	inline void setVM(VisualizerManager *ta) {
 		this->vm = vm;
+	}
+
+	TimeAnimator *ta;
+
+	inline void setTA(TimeAnimator *ta) {
+		this->ta = ta;
 	}
 
 	inline void setVisTexts(std::vector<vtkSmartPointer<vtkTextActor> > *visualizerTexts) {
 		this->visualizerTexts = visualizerTexts;
 	}
 
-	inline void setSlider(vtkSliderRepresentation2D *slider) {
-		timeSlider = slider;
-	}
-
-	inline void setMeta(metaData *m) {
-		meta = m;
-	}
-	inline void setAnim(bool *a) {
-		anim = a;
-	}
 
 	virtual void OnKeyRelease() {
 		vtkRenderWindowInteractor *rwi = this->Interactor;
@@ -61,32 +49,24 @@ public:
 		bool ctrl = rwi->GetControlKey();
 		auto s = std::string( rwi->GetKeySym() );
 
-		bool timeChanged = false;
-
-		double val = timeSlider->GetValue();
+		double val = ta->GetTime();
 
 		if(s.find("space") == 0 ) {
-			if ( *anim ) {
-				*anim = false;
-			}
-			else {
-
-				*anim = true;
-			}
+			ta->ToggleAnim();
 		} else
 		if (s.find("Right") == 0) {
 
-			timeChanged = true;
-			val += 1;
-
-			if (val > timeSlider->GetMaximumValue()) val = timeSlider->GetMaximumValue();
+			ta->AnimateStep(false);
 		}
 		else if (s.find("Left") == 0) {
 
-			timeChanged = true;
-			val -= 1;
-
-			if (val < timeSlider->GetMinimumValue()) val = timeSlider->GetMinimumValue();
+			ta->AnimateStep(false, -1);
+		}
+		else if (s.find("Up") ) {
+			ta->DecreaseDelay();
+		}
+		else if (s.find("Down")) {
+			ta->IncreaseDelay();
 		}
 		else 
 		{
@@ -133,14 +113,6 @@ public:
 			}
 		}
 
-		if (timeChanged) {
-			time_t time = meta->timeStepToEpoch(val);
-			timeSlider->SetTitleText(metaData::getTimeString(time).c_str());
-
-			timeSlider->SetValue(val);
-			vm->UpdateTimeStep(val);
-		}
-		
 
 		cout << "Pressed key " << (ctrl ? "ctrl+" : std::string()) << ", sym "<<s<< endl;
 	}
@@ -156,7 +128,6 @@ public:
 	}
 	protected:
 		fmiVisInteractor() {
-			animStart = 0;
 		}
 };
 
