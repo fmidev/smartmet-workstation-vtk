@@ -6,9 +6,59 @@
 #include <vtkInformation.h>
 #include <vtkInformationVector.h>
 
+#include <vtkImageData.h>
+
+#include <NFmiQueryData.h>
+#include <NFmiFastQueryInfo.h>
+
+#include "nbsMetadata.h"
+
 #include "boost/date_time/posix_time/posix_time.hpp"
 
 
+struct newBaseSourcer::nb {
+
+	NFmiQueryData data;
+	NFmiFastQueryInfo dataInfo;
+	nb(const std::string &file) : data(file), dataInfo(&data) {}
+};
+
+
+newBaseSourcer::newBaseSourcer(const std::string &file, nbsMetadata *meta, int param, int res/*=70*/) :
+	pimpl(std::make_unique <nb>(file)), meta(meta),
+	im(nullptr), heights(nullptr),
+	param(param), prevTime(-1), zRes(res)
+{
+	SetNumberOfInputPorts(0);
+	zHeight = meta->maxH;
+}
+
+newBaseSourcer::~newBaseSourcer() {}
+
+int newBaseSourcer::nearestIndex(double time)
+{
+	for (auto iter = meta->timeIndex.begin(); iter != meta->timeIndex.end(); iter++) {
+		if (iter->first == time) return iter->second;
+		auto nextIter = iter;
+		nextIter++;
+		if (nextIter != meta->timeIndex.end() && nextIter->first > time) return iter->second;
+	}
+	if (meta->timeIndex.rbegin() != meta->timeIndex.rend()) return meta->timeIndex.rbegin()->second;
+
+	return 0;
+}
+
+
+
+double newBaseSourcer::minT()
+{
+	return meta->times.front();
+}
+
+double newBaseSourcer::maxT()
+{
+	return meta->times.back();
+}
 
 int newBaseSourcer::RequestInformation(vtkInformation* vtkNotUsed(request),
 	vtkInformationVector** vtkNotUsed(inputVector),
@@ -79,6 +129,8 @@ int newBaseSourcer::RequestData(vtkInformation* vtkNotUsed(request),
 	vtkDataObject *ds = outInfo->Get(vtkDataSet::DATA_OBJECT());
 
 	int timeI = nearestIndex(time);
+
+	NFmiFastQueryInfo &dataInfo = pimpl->dataInfo;
 
 	//onko aika-askel jo muistissa
 	if (timeI != prevTime) {
@@ -336,4 +388,18 @@ int newBaseSourcer::RequestData(vtkInformation* vtkNotUsed(request),
 	//ds->ReleaseData();
 
 	return 1;
+}
+
+void newBaseSourcer::resetImage()
+{
+	assert(im);
+	int sizeX = meta->sizeX, sizeY = meta->sizeY;
+	float* p = static_cast<float*>(im->GetScalarPointer());
+	for (long iz = 0; iz < zRes; ++iz) {
+		for (long iy = 0; iy < sizeY; ++iy) {
+			for (long ix = 0; ix < sizeX; ++ix) {
+				p[ix + iy*sizeX + iz*sizeX*sizeY] = kFloatMissing;
+			}
+		}
+	}
 }

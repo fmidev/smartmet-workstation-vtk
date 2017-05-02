@@ -1,5 +1,18 @@
 #include "ParamVisualizer3D.h"
 
+#include <vtkContourFilter.h>
+#include <vtkSmartVolumeMapper.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkProp.h>
+#include <vtkActor.h>
+#include <vtkProperty.h>
+#include <vtkVolume.h>
+#include <vtkVolumeProperty.h>
+#include <vtkPiecewiseFunction.h>
+#include <vtkColorTransferFunction.h>
+
+#include "newBaseSourcer.h"
+
 void ParamVisualizer3D::ModeVolume() {
 
 	contourFilter->RemoveAllInputConnections(0);
@@ -30,7 +43,7 @@ void ParamVisualizer3D::ModeContour() {
 	SetProp(polyAct);
 }
 
-ParamVisualizer3D::ParamVisualizer3D(const std::string & file, metaData & m, int param, vtkSmartPointer<vtkColorTransferFunction> volumeColor, vtkSmartPointer<vtkPiecewiseFunction> volumeOpacity, float contourThreshold, double contourColor[3], float contourOpacity) :
+ParamVisualizer3D::ParamVisualizer3D(const std::string & file, nbsMetadata & m, int param, vtkSmartPointer<vtkColorTransferFunction> volumeColor, vtkSmartPointer<vtkPiecewiseFunction> volumeOpacity, float contourThreshold, double contourColor[3], float contourOpacity) :
 	ParamVisualizerBase(file, m, param),
 	polyMap(vtkPolyDataMapper::New()),
 	volMap(vtkSmartVolumeMapper::New()),

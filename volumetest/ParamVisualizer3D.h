@@ -1,21 +1,20 @@
 #ifndef PARAMVISUALIZER3D_H
 #define PARAMVISUALIZER3D_H
 
-
-#include <vtkSmartVolumeMapper.h>
-#include <vtkPolyDataMapper.h>
-#include <vtkContourFilter.h>
-
-#include <vtkVolumeProperty.h>
-
-#include <vtkColorTransferFunction.h>
-#include <vtkPiecewiseFunction.h>
-
-#include <vtkVolume.h>
-#include <vtkActor.h>
-#include <vtkProperty.h>
+#include <vtkSmartPointer.h>
 
 #include "ParamVisualizerBase.h"
+
+class vtkPolyDataMapper;
+class vtkSmartVolumeMapper;
+class vtkContourFilter;
+class vtkColorTransferFunction;
+class vtkVolumeProperty;
+class vtkPiecewiseFunction;
+class vtkVolume;
+class vtkActor;
+
+
 
 class ParamVisualizer3D : public ParamVisualizerBase {
 protected:
@@ -35,7 +34,7 @@ protected:
 	void ModeContour();
 
 public:
-	ParamVisualizer3D(const std::string &file, metaData &m, int param,
+	ParamVisualizer3D(const std::string &file, nbsMetadata &m, int param,
 		vtkSmartPointer<vtkColorTransferFunction> volumeColor, vtkSmartPointer<vtkPiecewiseFunction> volumeOpacity,
 		float contourThreshold, double contourColor[3], float contourOpacity);
 	~ParamVisualizer3D();

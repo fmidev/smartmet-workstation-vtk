@@ -1,16 +1,18 @@
 #ifndef PARAMVISUALIZERBASE_H
 #define PARAMVISUALIZERBASE_H
 
-
+#include <memory>
+#include <list>
 #include <vtkSmartPointer.h>
+
 #include <vtkProp.h>
-#include <vtkAbstractMapper.h>
-#include <vtkAlgorithm.h>
-#include <vtkPlanes.h>
 
-#include "newBaseSourcerMetaData.h"
-#include "newBaseSourcer.h"
+#include "nbsMetadata.h"
 
+class vtkAbstractMapper;
+class newBaseSourcer;
+class vtkAlgorithm;
+class vtkPlanes;
 
 class ParamVisualizerBase {
 private:
@@ -21,50 +23,28 @@ private:
 
 protected:
 
-	const metaData &meta;
+	const nbsMetadata &meta;
 
 	std::list<vtkAlgorithm* > filters;
 
 	newBaseSourcer* nbs;
 
-	inline void SetActiveMapper(vtkAbstractMapper *m) {
-		if(activeMapper) m->SetClippingPlanes(activeMapper->GetClippingPlanes());
-		activeMapper = m;
-	}
-	inline void SetProp(vtkProp *p) {
-		if(prop) prop->SetVisibility(false);
-		prop = p;
-		prop->SetVisibility(true);
-	}
+	void SetActiveMapper(vtkAbstractMapper *m);
+	void SetProp(vtkProp *p);
 
 
 public:
 	int param;
 
-	ParamVisualizerBase(const std::string &file, metaData &m, int param) :
-		meta(m), activeMapper(nullptr),
-		filters(), nbs(new newBaseSourcer(file, &m, param ) ),
-		prop(nullptr), crop(true), enabled(true), param(param)
-	{
-	}
-	inline virtual ~ParamVisualizerBase() {
-		nbs->Delete();
-	}
-	inline void CropMapper(vtkPlanes* p) {
-		if(crop)
-			activeMapper->SetClippingPlanes(p);
+	ParamVisualizerBase(const std::string &file, nbsMetadata &m, int param);
+	virtual ~ParamVisualizerBase();
+	void CropMapper(vtkPlanes* p);
 
-	}
 	inline void SetCropping(bool c) {
 		crop = c;
 	}
 
-	inline virtual void UpdateTimeStep(double t) {
-		nbs->UpdateTimeStep(t);
-		for (auto &filter : filters) {
-			filter->UpdateTimeStep(t);
-		}
-	}
+	virtual void UpdateTimeStep(double t);
 
 	inline void EnableActor() {
 		enabled = true;

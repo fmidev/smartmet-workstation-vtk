@@ -1,52 +1,29 @@
 #include <math.h>
 
+#include <list>
+
+
 #include <vtkVersion.h>
 #include <vtkSmartPointer.h>
-#include <vtkSphere.h>
-#include <vtkSampleFunction.h>
-#include <vtkColorTransferFunction.h>
-#include <vtkPiecewiseFunction.h>
+
 #include <vtkRenderer.h>
 #include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
-#include <vtkVolumeProperty.h>
 #include <vtkCamera.h>
-#include <vtkImageShiftScale.h>
-#include <vtkImageData.h>
-#include <vtkPointData.h>
-
-#include <vtkCell.h>
-#include <vtkFloatArray.h>
-#include <vtkStructuredGrid.h>
-#include <vtkPointData.h>
-#include <vtkInformation.h>
-#include <vtkInformationVector.h>
 
 #include <vtkStreamingDemandDrivenPipeline.h>
-#include <vtkSmartVolumeMapper.h>
-#include <vtkProbeFilter.h>
-#include <vtkAlgorithmOutput.h>
-
-#include <vtkPlanes.h>
-#include <vtkTransform.h>
-#include <vtkCommand.h>
-#include <vtkBoxWidget.h>
-
 #include <vtkBMPReader.h>
-#include <vtkPlaneSource.h>
-#include <vtkPolyDataMapper.h>
+#include <vtkTexture.h>
 #include <vtkTextureMapToPlane.h>
-#include <vtkTransformPolyDataFilter.h>
-#include <vtkImageShrink3D.h>
 
-#include <vtkInteractorStyleTerrain.h>
+#include <vtkPolyDataMapper.h>
+
 #include <vtkCubeAxesActor.h>
 #include <vtkTextProperty.h>
 #include <vtkProperty.h>
 #include <vtkTextActor.h>
 
-#include <vtkContourFilter.h>
-#include <vtkPerlinNoise.h>
+#include <vtkPlanes.h>
 
 #include <vtkBoxWidget2.h>
 #include <vtkBoxRepresentation.h>
@@ -57,20 +34,11 @@
 #include <vtkPlaneWidget.h>
 #include <vtkLinearSubdivisionFilter.h>
 
-#include <vtkAnimationScene.h>
-#include "vtkAnimationCue.h"
-
 #include <vtkLight.h>
 
-#include <list>
-
-#include <NFmiQueryData.h>
-#include <NFmiFastQueryInfo.h>
 
 #include "fmiVisInteractor.h"
 
-#include "newBaseSourcerMetaData.h"
-#include "newBaseSourcer.h"
 
 #include "VisualizerManager.h"
 #include "VisualizerFactory.h"
@@ -78,6 +46,7 @@
 #include "CreateHeightdata.h"
 
 #include "TimeAnimator.h"
+
 
 static std::string *newBaseFile;
 
@@ -414,7 +383,7 @@ int main(int argc, char *argv[])
 	sliderRep->GetTitleProperty()->BoldOff();
 	sliderRep->GetTitleProperty()->ShadowOff();
 
-	sliderRep->SetTitleText( metaData::getTimeString(meta.minT).c_str() );
+	sliderRep->SetTitleText( nbsMetadata::getTimeString(meta.minT).c_str() );
 
 	vtkSliderWidget *slider = vtkSliderWidget::New();
 	slider->SetInteractor(iren);

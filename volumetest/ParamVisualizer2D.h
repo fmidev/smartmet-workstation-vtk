@@ -1,20 +1,20 @@
 #ifndef PARAMVISUALIZER2D_H
 #define PARAMVISUALIZER2D_H
 
-
-#include <vtkSmartVolumeMapper.h>
-#include <vtkPolyDataMapper.h>
-#include <vtkContourFilter.h>
-#include <vtkProbeFilter.h>
-
-
-#include <vtkColorTransferFunction.h>
-
-#include <vtkActor.h>
+#include <memory>
+#include <vtkSmartPointer.h>
 
 #include "ParamVisualizerBase.h"
-#include "ContourLabeler.h"
 
+class vtkPolyDataMapper;
+class vtkProbeFilter;
+class vtkContourFilter;
+class vtkColorTransferFunction;
+class vtkStripper;
+class vtkActor;
+class vtkAlgorithmOutput;
+
+class ContourLabeler;
 
 class ParamVisualizer2D : public ParamVisualizerBase {
 protected:
@@ -40,7 +40,7 @@ protected:
 
 
 public:
-	ParamVisualizer2D(const std::string &file, metaData &m, int param, vtkAlgorithmOutput* probingData,
+	ParamVisualizer2D(const std::string &file, nbsMetadata &m, int param, vtkAlgorithmOutput* probingData,
 		vtkSmartPointer<vtkColorTransferFunction> contourColors, std::shared_ptr<ContourLabeler> labeler, double range[2], int numContours);
 	~ParamVisualizer2D();
 

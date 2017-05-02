@@ -1,10 +1,21 @@
 #include "ParamVisualizer2D.h"
 
+#include "vtkSmartPointer.h"
+
 #include <vtkActor.h>
 #include <vtkProperty.h>
 #include <vtkType.h>
+#include <vtkProbeFilter.h>
+#include <vtkContourFilter.h>
+#include <vtkStripper.h>
+#include <vtkPointData.h>
+#include <vtkPolyData.h>
+#include <vtkColorTransferFunction.h>
+
+#include "newBaseSourcer.h"
 
 #include "ContourLabeler.h"
+
 
 
 void ParamVisualizer2D::ModeIsoLine() {
@@ -70,9 +81,11 @@ void ParamVisualizer2D::UpdateTimeStep(double t) {
 	}
 }
 
-ParamVisualizer2D::ParamVisualizer2D(const std::string & file, metaData & m, 
+ParamVisualizer2D::ParamVisualizer2D(const std::string & file, nbsMetadata & m, 
 	int param, vtkAlgorithmOutput * probingData,
-	vtkSmartPointer<vtkColorTransferFunction> contourColors,std::shared_ptr<ContourLabeler> labeler, double range[2], int numContours) :
+	vtkSmartPointer<vtkColorTransferFunction> contourColors,
+	std::shared_ptr<ContourLabeler> labeler, double range[2], int numContours) :
+
 	ParamVisualizerBase(file, m, param),
 	labeler(labeler),
 	probeFilter(vtkProbeFilter::New()),

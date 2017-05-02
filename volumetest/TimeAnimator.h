@@ -1,15 +1,18 @@
 #ifndef TIMEANIMATOR_H
 #define TIMEANIMATOR_H
 
-#include <vtkSliderRepresentation2D.h>
-#include <vtkRenderWindow.h>
+#include <algorithm>
+
 #include <vtkCommand.h>
-#include <vtkSliderWidget.h>
 
-#include "VisualizerManager.h"
-#include "newBaseSourcerMetaData.h"
+class vtkRenderWindow;
+class vtkSliderRepresentation2D;
+class vtkSliderWidget;
+class VisualizerManager;
+class TimeAnimCallback;
+class vtkSliderWidgetCallback;
 
-
+struct nbsMetadata;
 
 class TimeAnimator;
 
@@ -60,7 +63,7 @@ class TimeAnimator {
 	vtkSliderRepresentation2D * sliderRep;
 	vtkSliderWidget *slider;
 	VisualizerManager *vm;
-	metaData *meta;
+	nbsMetadata *meta;
 	int wrapCount;
 	TimeAnimCallback *timerCallback;
 	vtkSliderWidgetCallback *sliderCallback;
@@ -75,56 +78,11 @@ class TimeAnimator {
 	bool enabled;
 
 public:
-	TimeAnimator(vtkRenderWindow *renderWin, vtkSliderWidget *slider, VisualizerManager *visMan, metaData *metadata, double delay = 200) :
-		renWin(renderWin), slider(slider), sliderRep(vtkSliderRepresentation2D::SafeDownCast( slider->GetSliderRepresentation() ) ), vm(visMan),
-		meta(metadata), wrapCount(0), timerCallbackTag(0), enabled(false),
-		timerCallback(TimeAnimCallback::New()), sliderCallback(vtkSliderWidgetCallback::New()), animDelay(delay)
-	{
-		timeVal = sliderRep->GetValue();
-		timerCallback->setAnim(this);
-		sliderCallback->setAnim(this);
-		timerCallbackTag = renWin->GetInteractor()->AddObserver(vtkCommand::TimerEvent, timerCallback);
-		sliderCallbackTag = slider->AddObserver(vtkCommand::InteractionEvent, sliderCallback);
-	}
-	~TimeAnimator() {
-		renWin->GetInteractor()->RemoveObserver(timerCallbackTag);
-		slider->RemoveObserver(sliderCallbackTag);
-		timerCallback->Delete();
-		sliderCallback->Delete();
-	}
+	TimeAnimator(vtkRenderWindow *renderWin, vtkSliderWidget *slider, VisualizerManager *visMan, nbsMetadata *metadata, double delay = 200);
+	~TimeAnimator();
 
-	void TimeStep(double val) {
-		if (val < sliderRep->GetMinimumValue()) val = sliderRep->GetMinimumValue();
-		if (val > sliderRep->GetMaximumValue()) val = sliderRep->GetMaximumValue();
-		val = floor(val);
-		timeVal = val;
-
-		time_t time = meta->timeStepToEpoch(val);
-		sliderRep->SetTitleText(metaData::getTimeString(time).c_str());
-
-		sliderRep->SetValue(val);
-		vm->UpdateTimeStep(val);
-
-	}
-	inline void AnimateStep(bool wrap = true, char dir = 1) {
-
-		if (timeVal == meta->timeSteps) {
-			wrapCount++;
-		}
-		else wrapCount = 0;
-
-		if (wrapCount > 3 && wrap) {
-
-			wrapCount = 0;
-			timeVal = 0;
-
-		}
-		else timeVal = floor(timeVal + dir);
-
-		TimeStep(timeVal);
-
-		renWin->Render();
-	}
+	void TimeStep(double val);
+	void AnimateStep(bool wrap = true, char dir = 1);
 
 
 	inline bool IsEnabled() {
@@ -135,19 +93,9 @@ public:
 		return timeVal;
 	}
 
-	inline void StartAnim() {
+	void StartAnim();
 
-		renWin->AddObserver(vtkCommand::TimerEvent, timerCallback);
-		timerID = renWin->GetInteractor()->CreateRepeatingTimer(animDelay);
-
-
-		enabled = true;
-	}
-
-	inline void StopAnim() {
-		renWin->GetInteractor()->DestroyTimer(timerID);
-		enabled = false;
-	}
+	void StopAnim();
 
 	inline void RefreshTimer() {
 		if (enabled) {

@@ -1,23 +1,21 @@
 #ifndef NEWBASESOURCER_H
 #define NEWBASESOURCER_H
 
-#include "newBaseSourcerMetaData.h"
-
-#include <vtkImageAlgorithm.h>
-
-#include <NFmiQueryData.h>
-#include <NFmiFastQueryInfo.h>
-
-#include <NFmiArea.h>
+#include <memory>
 
 #include <vtkImageData.h>
+#include <vtkImageAlgorithm.h>
+
+
+class NFmiQueryData;
+class NFmiFastQueryInfo;
+struct nbsMetadata;
 
 //lukee sqd-tiedoston ja muuntaa sen vtkImageDataksi
 class newBaseSourcer : public vtkImageAlgorithm {
 
-	NFmiQueryData data;
-	NFmiFastQueryInfo dataInfo;
-	metaData *meta;
+
+	nbsMetadata *meta;
 
 
 
@@ -34,19 +32,7 @@ class newBaseSourcer : public vtkImageAlgorithm {
 
 	//muunnos epoch-ajasta newbasen aikaindekseiksi ja takaisin
 
-	inline void resetImage() {
-		assert(im);
-		int sizeX=meta->sizeX, sizeY=meta->sizeY;
-		float* p = static_cast<float*>(im->GetScalarPointer());
-		for (long iz = 0; iz < zRes; ++iz) {
-			for (long iy = 0; iy < sizeY; ++iy) {
-				for (long ix = 0; ix < sizeX; ++ix) {
-					p[ix + iy*sizeX + iz*sizeX*sizeY] = kFloatMissing;
-				}
-			}
-		}
-		
-	}
+	void resetImage();
 
 	void freeRes() {
 		if (im)
@@ -58,34 +44,17 @@ class newBaseSourcer : public vtkImageAlgorithm {
 
 public:
 	//etsii aikaindeksin annetulle epoch-ajalle
-	inline int nearestIndex(double time) {
-		for (auto iter = meta->timeIndex.begin(); iter != meta->timeIndex.end(); iter++) {
-			if (iter->first == time) return iter->second;
-			auto nextIter = iter;
-			nextIter++;
-			if (nextIter != meta->timeIndex.end() && nextIter->first > time) return iter->second;
-		}
-		if (meta->timeIndex.rbegin() != meta->timeIndex.rend()) return meta->timeIndex.rbegin()->second;
+	int nearestIndex(double time);
 
-		return 0;
-	}
-
-	newBaseSourcer(const std::string &file, metaData *meta, int param,int res=70) :
-		data(file), dataInfo(&data), meta(meta),
-		im(nullptr), heights(nullptr), 
-		param(param), prevTime(-1),zRes(res)
-	{
-		SetNumberOfInputPorts(0);
-		zHeight = meta->maxH;
-	}
+	newBaseSourcer(const std::string &file, nbsMetadata *meta, int param,int res=70);
 
 	void Delete() override {
 		freeRes();
 	}
 
 
-	inline double minT() { return meta->times.front(); }
-	inline double maxT() { return meta->times.back(); }
+	double minT();
+	double maxT();
 
 
 	//kertoo VTK:lle mitä dataa on saatavilla
@@ -99,10 +68,12 @@ public:
 		vtkInformationVector* outputVector);
 
 private:
-	~newBaseSourcer() override {
-	}
+	newBaseSourcer::~newBaseSourcer();
 	newBaseSourcer(const newBaseSourcer &copy) = delete;
 	void operator=(const newBaseSourcer &assign) = delete;
+
+	struct nb;
+	std::unique_ptr<nb> pimpl;
 };
 
 #endif /*NEWBASESOURCER_H*/

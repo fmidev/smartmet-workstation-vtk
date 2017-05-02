@@ -3,24 +3,15 @@
 
 #include <vtkSmartPointer.h>
 #include <vtkRenderer.h>
-#include <vtkRenderWindow.h>
-#include <vtkRenderWindowInteractor.h>
 
-#include <vtkXMLPolyDataReader.h>
-#include <vtkContourFilter.h>
-#include <vtkStripper.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkLabeledDataMapper.h>
-#include <vtkPlaneSource.h>
-#include <vtkLookupTable.h>
-#include <vtkProperty.h>
-#include <vtkActor.h>
+
 #include <vtkActor2D.h>
 
-#include <vtkCellArray.h>
 #include <vtkPoints.h>
 #include <vtkPointData.h>
-#include <vtkDataArray.h>
+
 #include <vtkDoubleArray.h>
 #include <vtkSelectVisiblePoints.h>
 

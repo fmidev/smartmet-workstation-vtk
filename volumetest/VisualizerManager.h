@@ -1,14 +1,20 @@
 #ifndef VISUALIZERMANAGER_H
 #define VISUALIZERMANAGER_H
 
-#include <vtkRenderer.h>
-#include <vtkRenderWindow.h>
+#include <memory>
+#include <vector>
+
+#include <vtkSmartPointer.h>
+
+#include "nbsMetadata.h"
 
 #include "ParamVisualizerBase.h"
 
-#include "newBaseSourcerMetaData.h"
+class vtkRenderer;
+class ContourLabeler;
 
-#include "ContourLabeler.h"
+struct nbsMetadata;
+class vtkPlanes;
 
 typedef size_t visID;
 
@@ -17,104 +23,41 @@ class VisualizerManager {
 	vtkSmartPointer<vtkRenderer> renderer;
 	std::shared_ptr<ContourLabeler> labeler;
 
-	metaData meta;
+	nbsMetadata meta;
 
 	double prevTime;
 
 
 public:
 
-	VisualizerManager(vtkSmartPointer<vtkRenderer> ren, float zHeight = 13000) :
-		renderer(ren),
-		visualizers(),
-		labeler( std::make_shared<ContourLabeler>(ren) ),
-		meta(),
-		prevTime(0)
-	{
-		meta.maxH = zHeight;
-	}
-	~VisualizerManager() {
-	}
-	inline metaData& GetMeta() {
+	VisualizerManager(vtkSmartPointer<vtkRenderer> ren, float zHeight = 13000);
+	~VisualizerManager();
+	inline nbsMetadata& GetMeta() {
 		return meta;
 	}
 
-	inline visID AddVisualizer(std::unique_ptr<ParamVisualizerBase> v) {
-		visID vid = visualizers.size();
-		if(v)
-		{
-			visualizers.push_back(std::move(v));
-
-			return vid;
-		}
-		else return -1;
-	}
+	visID AddVisualizer(std::unique_ptr<ParamVisualizerBase> v);
 
 	inline int GetVisNum() {
 		return visualizers.size();
 	}
 
-	inline void EnableVis(visID vid) {
-		if (vid<visualizers.size())
-			visualizers[vid]->EnableActor();
-		Update();
-	}
-	inline void DisableVis(visID vid) {
-		if (vid<visualizers.size())
-			visualizers[vid]->DisableActor();
-		Update();
-	}
-	inline void ToggleVis(visID vid) {
-		if (vid < visualizers.size())
-			if (visualizers[vid]->IsEnabled())
-				visualizers[vid]->DisableActor();
-			else
-				visualizers[vid]->EnableActor();
-		Update();
-	}
-	inline bool IsEnabled(visID vid) {
-		if (vid < visualizers.size())
-			return visualizers[vid]->IsEnabled();
-		return false;
-			
-	}
-	inline void SetCrop(visID vid,bool c) {
-		if (vid<visualizers.size())
-			visualizers[vid]->SetCropping(c);
-		Update();
-	}
+	void EnableVis(visID vid);
+	void DisableVis(visID vid);
+	void ToggleVis(visID vid);
+	bool IsEnabled(visID vid);
+	void SetCrop(visID vid,bool c);
 
-	inline void CropMappers(vtkPlanes* p) {
-		for (auto &vis : visualizers) {
-			vis->CropMapper(p);
-		}
-		Update();
-	}
+	void CropMappers(vtkPlanes* p);
 
-	inline void ToggleMode(visID vid) {
-		if(vid<visualizers.size() )
-			visualizers[vid]->ToggleMode();
-		Update();
-	}
+	void ToggleMode(visID vid);
 
-	inline void UpdateTimeStep(double t) {
-		labeler->Clear();
-		prevTime = t;
-		for (auto &vis : visualizers) {
-			if(vis->IsEnabled())
-				vis->UpdateTimeStep(t);
-			renderer->AddViewProp(vis->GetProp());
-		}
-		labeler->Update();
-		renderer->GetRenderWindow()->Render();
-	}
+	void UpdateTimeStep(double t);
 	inline void Update() {
 		UpdateTimeStep(prevTime);
 	}
-	inline int GetVisParam(visID vid) {
-		if (vid < visualizers.size())
-			return visualizers[vid]->param;
-	}
+	int GetVisParam(visID vid);
+
 	inline std::shared_ptr<ContourLabeler> GetLabeler() {
 		return labeler;
 	}

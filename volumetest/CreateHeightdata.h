@@ -1,15 +1,16 @@
 #ifndef CREATEHEIGHTDATA_H
 #define CREATEHEIGHTDATA_H
 
-#include "vtkPolyData.h"
-#include "vtkSmartPointer.h"
-#include "vtkPoints.h"
-#include "vtkDelaunay2D.h"
-
+#include <vtkPolyData.h>
+#include <vtkSmartPointer.h>
+#include <vtkPointData.h>
+#include <vtkPoints.h>
+#include <vtkDelaunay2D.h>
+#include <vtkFloatArray.h>
 
 #include <NFmiQueryData.h>
 #include <NFmiFastQueryInfo.h>
-#include "vtkFloatArray.h"
+
 
 inline vtkPolyData * CreateHeightdata(std::string file) {
 
