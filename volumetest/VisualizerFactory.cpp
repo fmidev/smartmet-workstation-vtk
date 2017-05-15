@@ -161,7 +161,7 @@ void VisualizerFactory::init() {
 		kFmiTemperature, { kFmiTemperature ,
 		blueToRedColor(-80,30),
 		{ -80,30 },
-		20
+		15
 		}));
 	config2D.insert(std::pair<int, Vis2DParams>(
 		kFmiHumidity, { kFmiHumidity ,
@@ -183,8 +183,8 @@ void VisualizerFactory::init() {
 		}));
 	config2D.insert(std::pair<int, Vis2DParams>(
 		kFmiPotentialTemperature, { kFmiPotentialTemperature ,
-		blueToRedColor(250,420),
-		{ 250,420 },
-		20
+		blueToRedColor(200,1500),
+		{ 200,1500 },
+		8
 		}));
 }

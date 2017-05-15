@@ -11,6 +11,7 @@ class vtkSliderWidget;
 class VisualizerManager;
 class TimeAnimCallback;
 class vtkSliderWidgetCallback;
+class vtkTextActor;
 
 struct nbsMetadata;
 
@@ -67,6 +68,8 @@ class TimeAnimator {
 	int wrapCount;
 	TimeAnimCallback *timerCallback;
 	vtkSliderWidgetCallback *sliderCallback;
+
+	vtkTextActor *timeText;
 
 	double animDelay;
 

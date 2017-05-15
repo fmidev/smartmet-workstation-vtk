@@ -1,9 +1,14 @@
 #include "TimeAnimator.h"
 
+#include <vtkSmartPointer.h>
 #include <vtkSliderRepresentation2D.h>
 #include <vtkRenderWindow.h>
+#include <vtkRendererCollection.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkSliderWidget.h>
+
+#include <vtkTextActor.h>
+#include <vtkTextProperty.h>
 
 #include "VisualizerManager.h"
 #include "nbsMetadata.h"
@@ -33,6 +38,25 @@ TimeAnimator::TimeAnimator(vtkRenderWindow *renderWin, vtkSliderWidget *slider, 
 	sliderCallback->setAnim(this);
 	timerCallbackTag = renWin->GetInteractor()->AddObserver(vtkCommand::TimerEvent, timerCallback);
 	sliderCallbackTag = slider->AddObserver(vtkCommand::InteractionEvent, sliderCallback);
+
+
+	vtkRenderer *ren = renWin->GetRenderers()->GetFirstRenderer();
+	int *winSize = renWin->GetSize();
+
+
+
+	timeText = vtkTextActor::New();
+	
+
+	timeText->GetTextProperty()->SetFontSize(10);
+
+	timeText->SetTextScaleModeToViewport();
+	timeText->SetDisplayPosition(winSize[0]-360, 35);
+
+	ren->AddActor2D(timeText);
+
+
+	RefreshTimer();
 }
 
 TimeAnimator::~TimeAnimator()
@@ -41,6 +65,8 @@ TimeAnimator::~TimeAnimator()
 	slider->RemoveObserver(sliderCallbackTag);
 	timerCallback->Delete();
 	sliderCallback->Delete();
+	renWin->GetRenderers()->GetFirstRenderer()->RemoveActor2D(timeText);
+	timeText->Delete();
 }
 
 void TimeAnimator::TimeStep(double val)
@@ -82,6 +108,12 @@ void TimeAnimator::StartAnim()
 	renWin->AddObserver(vtkCommand::TimerEvent, timerCallback);
 	timerID = renWin->GetInteractor()->CreateRepeatingTimer(animDelay);
 
+	std::ostringstream s;
+	s << "Animation: enabled ( " << animDelay << " ms )";
+	timeText->SetInput(s.str().c_str());
+
+	timeText->GetTextProperty()->SetColor(0.8, 0.8, 0.8);
+
 
 	enabled = true;
 }
@@ -89,5 +121,13 @@ void TimeAnimator::StartAnim()
 void TimeAnimator::StopAnim()
 {
 	renWin->GetInteractor()->DestroyTimer(timerID);
+
+	std::ostringstream s;
+	s << "Animation: disabled ( " << animDelay << " ms )";
+	timeText->SetInput(s.str().c_str());
+
+	timeText->GetTextProperty()->SetColor(0.2, 0.2, 0.2);
+
+
 	enabled = false;
 }

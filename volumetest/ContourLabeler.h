@@ -40,6 +40,7 @@ public:
 		labels->SetNumberOfComponents(1);
 		labels->SetName("Isovalues");
 
+		pointSelector->SetRenderer(ren);
 
 		labelMapper->SetInputConnection(pointSelector->GetOutputPort());
 		labelMapper->SetFieldDataName("Isovalues");
