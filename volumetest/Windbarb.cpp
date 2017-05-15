@@ -14,7 +14,7 @@
 #include <vtkGlyph3D.h>
 
 //windbarb for val in m/s
-vtkSmartPointer<vtkPolyData> CreateWindbarb(float val) {
+vtkSmartPointer<vtkPolyData> CreateWindbarb(float val, float size) {
 
 	auto append = vtkAppendPolyData::New();
 
@@ -124,7 +124,7 @@ vtkSmartPointer<vtkPolyData> CreateWindbarb(float val) {
 
 	transform->Translate(0, 0, -0.75);
 
-	transform->Scale(10,10,10);
+	transform->Scale(size, size, size);
 	transform->RotateY(90);
 	auto transformFilter = vtkTransformPolyDataFilter::New();
 	transformFilter->SetInputData(append->GetOutput());
@@ -151,7 +151,7 @@ vtkSmartPointer<vtkPolyData> CreateWindbarb(float val) {
 	return ret;
 }
 
-void GenerateBarbs(vtkGlyph3D *glyph) {
-	for (int i = 0; i < 30; ++i) glyph->SetSourceData(i, CreateWindbarb(i * 5));
+void GenerateBarbs(vtkGlyph3D *glyph,float size) {
+	for (int i = 0; i < 30; ++i) glyph->SetSourceData(i, CreateWindbarb(i * 5, size));
 	glyph->SetRange(0, 150);
 }

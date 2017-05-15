@@ -5,6 +5,6 @@
 
 class vtkGlyph3D;
 
-void GenerateBarbs(vtkGlyph3D *glyph);
+void GenerateBarbs(vtkGlyph3D *glyph,float size);
 
 #endif // WindbarbModeler_h

@@ -18,7 +18,7 @@
 #include "vtkScalarsToColors.h"
 
 void ParamVisualizerWindVec::ModeStreamline() {
-
+	//Reduce the amount of data loaded, but not as much as for glyphs
 	nbs->setSubSample(3);
 
 	cleaner->SetInputConnection(seedData);
@@ -40,7 +40,7 @@ void ParamVisualizerWindVec::ModeStreamline() {
 }
 void ParamVisualizerWindVec::ModeGlyph() {
 
-
+	//Set the spacing between glyphs
 	nbs->setSubSample(14);
 
 
@@ -71,7 +71,10 @@ ParamVisualizerWindVec::ParamVisualizerWindVec(const std::string &file, nbsMetad
 
 
 	glypher = vtkGlyph3D::New();
-	GenerateBarbs(glypher);
+	
+	//glyph size
+	GenerateBarbs(glypher,10);
+
 	glypher->OrientOn();
 	glypher->SetIndexModeToVector();
 	glypher->SetVectorModeToUseVector();
@@ -81,14 +84,19 @@ ParamVisualizerWindVec::ParamVisualizerWindVec(const std::string &file, nbsMetad
 
 	cleaner = vtkCleanPolyData::New();
 
-	cleaner->SetAbsoluteTolerance(25);
+
 	cleaner->SetToleranceIsAbsolute(true);
+
+	//Spacing between streamlines
+	cleaner->SetAbsoluteTolerance(25);
 
 	streamer = vtkStreamTracer::New();
 
 	streamer->SetSourceConnection(cleaner->GetOutputPort());
 	streamer->SetMaximumPropagation(400);
 	streamer->SetIntegrationDirectionToBoth();
+
+	//integration accuracy for streamlines
 	streamer->SetInitialIntegrationStep(0.4);
 	streamer->SetIntegratorTypeToRungeKutta4();
 
@@ -96,6 +104,8 @@ ParamVisualizerWindVec::ParamVisualizerWindVec(const std::string &file, nbsMetad
 	tuber->SetInputConnection(streamer->GetOutputPort());
 	tuber->SetInputArrayToProcess(1, 0, 0, vtkDataObject::FIELD_ASSOCIATION_POINTS, "ImageScalars");
 	tuber->SetVaryRadiusToVaryRadiusByVector();
+
+	//streamline width
 	tuber->SetRadius(1);
 	tuber->SetRadiusFactor(4);
 
@@ -104,6 +114,9 @@ ParamVisualizerWindVec::ParamVisualizerWindVec(const std::string &file, nbsMetad
 
 	map = vtkPolyDataMapper::New();
 	map->SetInputConnection(tuber->GetOutputPort());
+
+
+	//colors
 	map->SetScalarRange(0,70);
 	map->SetColorModeToMapScalars();
 	map->SetLookupTable(VisualizerFactory::blueToRedColor(0, 70) );
