@@ -93,7 +93,8 @@ void VisualizerManager::UpdateTimeStep(double t)
 			vis->UpdateTimeStep(t);
 		renderer->AddViewProp(vis->GetProp());
 	}
-	labeler->Update();
+	if(visualizers.size()>0)
+		labeler->Update();
 	renderer->GetRenderWindow()->Render();
 }
 

@@ -24,6 +24,8 @@ class ContourLabeler {
 	vtkSmartPointer<vtkDoubleArray> labels;
 
 	vtkSmartPointer<vtkPolyData> polyData;
+
+	vtkRenderer *ren;
 public:
 	ContourLabeler(vtkRenderer *ren) :
 		labelMapper(vtkSmartPointer<vtkLabeledDataMapper>::New()),
@@ -31,13 +33,12 @@ public:
 		pointSelector(vtkSmartPointer<vtkSelectVisiblePoints>::New()),
 		points(vtkSmartPointer<vtkPoints>::New()),
 		labels(vtkSmartPointer<vtkDoubleArray>::New()),
-		polyData(vtkSmartPointer<vtkPolyData>::New())
+		polyData(vtkSmartPointer<vtkPolyData>::New()),
+		ren(ren)
 	{
 
 		labels->SetNumberOfComponents(1);
 		labels->SetName("Isovalues");
-
-		pointSelector->SetRenderer(ren);
 
 
 		labelMapper->SetInputConnection(pointSelector->GetOutputPort());
@@ -47,11 +48,13 @@ public:
 
 
 		labelActor->SetMapper(labelMapper );
-		ren->AddActor( labelActor);
+		
 	}
 	inline void Clear() {
 		points->Reset();
 		labels->Reset();
+		ren->RemoveActor(labelActor);
+
 	}
 	inline void Add(double point[3], double label) {
 		points->InsertNextPoint( point );
@@ -65,6 +68,9 @@ public:
 
 		pointSelector->Update();
 		labelMapper->Update();
+
+
+		ren->AddActor(labelActor);
 	}
 };
 

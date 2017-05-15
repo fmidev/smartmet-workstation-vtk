@@ -13,21 +13,12 @@
 
 #include "nbsMetadata.h"
 
-#include "boost/date_time/posix_time/posix_time.hpp"
+#include "nbsImpl.h"
 
-
-struct newBaseSourcer::nb {
-
-	NFmiQueryData data;
-	NFmiFastQueryInfo dataInfo;
-	nb(const std::string &file) : data(file), dataInfo(&data) {}
-};
-
-
-newBaseSourcer::newBaseSourcer(const std::string &file, nbsMetadata *meta, int param, int res/*=70*/) :
-	pimpl(std::make_unique <nb>(file)), meta(meta),
+newBaseSourcer::newBaseSourcer(const std::string &file, nbsMetadata *meta, int param, int res, int sub) :
+	pimpl(std::make_unique <nbsImpl>(file)), meta(meta),
 	im(nullptr), heights(nullptr),
-	param(param), prevTime(-1), zRes(res)
+	param(param), prevTime(-1), zRes(res), subSample(sub)
 {
 	SetNumberOfInputPorts(0);
 	zHeight = meta->maxH;
@@ -80,7 +71,6 @@ int newBaseSourcer::RequestInformation(vtkInformation* vtkNotUsed(request),
 	outInfo->Set(vtkStreamingDemandDrivenPipeline::TIME_RANGE(), doubleRange, 2);
 	outInfo->Set(vtkStreamingDemandDrivenPipeline::TIME_STEPS(), &meta->times[0], meta->times.size());
 
-
 	outInfo->Set(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(), 0, meta->sizeX - 1, 0, meta->sizeY - 1, 0, zRes - 1);
 	return 1;
 }
@@ -92,21 +82,10 @@ int newBaseSourcer::RequestData(vtkInformation* vtkNotUsed(request),
 
 	float zScale = 1;
 
-	int sizeX = meta->sizeX;
-	int sizeY = meta->sizeY;
-	int sizeZ = meta->sizeZ;
+	int sizeX = meta->sizeX / subSample;
+	int sizeY = meta->sizeY / subSample;
+	int sizeZ = zRes / subSample;
 
-	//sizeZ = zRes;
-
-	if (!im) {
-		im = vtkImageData::New();
-		im->Initialize();
-		im->SetDimensions(sizeX, sizeY, zRes);
-		im->SetSpacing(2, 2, 2);
-		im->AllocateScalars(VTK_FLOAT, 1);
-
-		resetImage();
-	}
 
 	unsigned long time = 0;
 
@@ -135,18 +114,11 @@ int newBaseSourcer::RequestData(vtkInformation* vtkNotUsed(request),
 	//onko aika-askel jo muistissa
 	if (timeI != prevTime) {
 
-		resetImage();
+		ResetImage();
 
 		dataInfo.ResetTime();
 
 		float minVal = kMaxFloat, maxVal = kMinFloat;
-
-
-
-		heights;
-		if (heights == nullptr) {
-			heights = new float[sizeX*sizeY*sizeZ];
-		}
 
 		float maxHeight = -1;
 
@@ -154,128 +126,38 @@ int newBaseSourcer::RequestData(vtkInformation* vtkNotUsed(request),
 		auto t0 = std::chrono::system_clock::now();
 
 		//luetaan datapisteiden korkeudet
-		if (dataInfo.Param(kFmiGeopHeight)) {
-
-			dataInfo.TimeIndex(timeI);
-			int ix, iz = 0;
-
-			bool rising = dataInfo.HeightParamIsRising();
-
-			if (rising) dataInfo.ResetLevel();
-			else dataInfo.LastLevel();
-
-			do {
-				float h;
-				float totalH = 0;
-				ix = 0;
-				for (dataInfo.ResetLocation(); dataInfo.NextLocation(); ) {
-
-					int x = ix % sizeX;
-					int y = (ix / sizeX) % sizeY;
-					int z = iz;
-
-					float val = dataInfo.FloatValue();
-
-
-
-					if (val == kFloatMissing) {
-						val = 0;
-					}
-
-					if (val > maxHeight)
-						maxHeight = val;
-
-					h = (val ) / zHeight * float(sizeZ);
-
-					heights[x + y *sizeX + z*sizeX*sizeY] = h;
-					//totalH += h;
-					ix++;
-				}
-				//totalH /= sizeX*sizeY;
-				//cout << "Z: " << iz << ", h: " << totalH<<endl;
-				iz++;
-
-			} while ((rising && dataInfo.NextLevel()) || (!rising && dataInfo.PreviousLevel()));
-
-		}
-
-		cout << "MaxHeight for time " << timeI << " is " << maxHeight << std::endl;
-
-		//for (int i = 0; i < sizeZ; ++i)
-		//	cout << heights[40+40*sizeX+i*sizeX*sizeY] << ", ";
-
-		int highest = -1;
-
+		ReadHeights(timeI);
 
 		//luetaan parametri
-		if (dataInfo.Param(FmiParameterName(param))) {
-
-			dataInfo.TimeIndex(timeI);
-			int ix, iz = 0;
-
-			bool rising = dataInfo.HeightParamIsRising();
-
-			if (rising) dataInfo.ResetLevel();
-			else dataInfo.LastLevel();
-
-			float step = zHeight / zRes;
-
-			do {
-
-				//if (iz == zRes) break;
-
-				ix = 0;
-				for (dataInfo.ResetLocation(); dataInfo.NextLocation(); ) {
-					int x = ix % sizeX;
-					int y = (ix / sizeX) % sizeY;
-					int z = floor(double(iz)*zScale);
-					float pz = iz*step;
+		LoopParam(param,timeI,[&](int x, int y, int z) {
 					if (meta->hasHeight) {
-						z = heights[x + y*sizeX + z*sizeX*sizeY];
-						if (z >= zRes) z = zRes;
-					}
-					if (reqExtent) {
-						if (x<reqExtent[0] || x>reqExtent[1]
-							|| y<reqExtent[2] || y>reqExtent[3]
-							|| z<reqExtent[4] || z>reqExtent[5]) {
-							ix++;
-							continue;
-						}
-
+						z = getHeight(x, y, z);
+				
 					}
 
-					float val = dataInfo.FloatValue()*zScale;
+					float val = dataInfo.FloatValue();
 					if (val != kFloatMissing) {
 						//val = 0.0f; //voi myös piirtää laittamalla negatiiviseksi tjms
 						if (val > maxVal) maxVal = val;
 						if (val < minVal) minVal = val;
 					}
-					highest = z;
 
 
 					if (z < zRes) {
 
 						float* pixel = static_cast<float*>(im->GetScalarPointer(x, y, z));
 
-
-						pixel[0] = val;
+						if(pixel[0] != kFloatMissing)
+							pixel[0] += val;
+						else
+							pixel[0] = val;
 
 						if (pixel[0] > maxVal) maxVal = pixel[0];
 					}
-					ix++;
-				}
-				iz++;
-
-			} while ((rising && dataInfo.NextLevel()) || (!rising && dataInfo.PreviousLevel()));
-		}
-		else {
-			cout << "Failed to find param!" << std::endl;
-			return 0;
-		}
+				} );
 		float magnitude = maxVal - minVal;
 
 		cout << param << ": max: " << maxVal << " min: " << minVal << ", mag: " << magnitude << std::endl;
-		cout << "highest value at " << highest << std::endl;
 
 		auto t1 = std::chrono::system_clock::now();
 
@@ -390,12 +272,135 @@ int newBaseSourcer::RequestData(vtkInformation* vtkNotUsed(request),
 	return 1;
 }
 
-void newBaseSourcer::resetImage()
+bool newBaseSourcer::LoopParam(int param,int time, std::function<void(int,int,int)> f) {
+	NFmiFastQueryInfo &dataInfo = pimpl->dataInfo;
+
+	int sizeX = meta->sizeX / subSample;
+	int sizeY = meta->sizeY / subSample;
+
+	int sizeZ = zRes / subSample;
+
+	if (dataInfo.Param(FmiParameterName(param) ) ) {
+
+		dataInfo.TimeIndex(time);
+
+
+		bool rising = dataInfo.HeightParamIsRising();
+
+		if (rising) dataInfo.ResetLevel();
+		else dataInfo.LastLevel();
+
+
+		int ix, iz = 0;
+		do {
+
+			ix = 0;
+			for (dataInfo.ResetLocation(); dataInfo.NextLocation(); ) {
+				int x = (ix / subSample) % sizeX;
+				int y = (ix / subSample / sizeX) % sizeY;
+
+				f(x, y, iz / subSample);
+
+				int sx = 1;
+				while (sx < subSample && dataInfo.NextLocation() 
+				) { sx++; }
+				ix += sx;
+				if (ix / subSample >= sizeX*sizeY) break;
+			}
+			int sz = 1;
+			while (sz < subSample && ((rising && dataInfo.NextLevel()) || (!rising && dataInfo.PreviousLevel()))) { sz++; }
+			iz += sz;
+			if (iz / subSample >= sizeZ) break;
+		} while ((rising && dataInfo.NextLevel()) || (!rising && dataInfo.PreviousLevel()));
+		
+	}
+	else {
+		cout << "Failed to find param " << param << std::endl;
+		return false;
+	}
+	return true;
+}
+
+int newBaseSourcer::getHeight(int x, int y, int z) {
+
+	int sizeX = meta->sizeX / subSample;
+	int sizeY = meta->sizeY / subSample;
+	int sizeZ = zRes / subSample;
+
+	int ret = std::roundf(heights[x + y*sizeX + z*sizeX*sizeY]);
+
+	return ret;
+}
+
+
+//heights is same dimensions as newbase is, subsampled
+void newBaseSourcer::ReadHeights(int time) {
+
+
+	int sizeX = meta->sizeX / subSample;
+	int sizeY = meta->sizeY / subSample;
+	int sizeZ = zRes / subSample;
+
+	int dataZ = meta->sizeZ;
+
+	auto &dataInfo = pimpl->dataInfo;
+
+	if(heights==nullptr) AllocateHeights();
+
+	auto loop = [&](int x, int y, int z) {
+
+
+		float val = dataInfo.FloatValue();
+
+		if (val == kFloatMissing) {
+			val = 0;
+			cout << "Missing height at " << x << ", " << y << ", " << z << endl;
+		}
+
+		float h = (val) / zHeight * float(sizeZ);
+
+		heights[x + y *sizeX + z*sizeX*sizeY] = h;
+	};
+
+	if (!LoopParam(kFmiGeopHeight, time, loop)) {
+		cout << "Warning: kFmiGeopHeight not found, using kFmiGeomHeight" << endl;
+		if (!LoopParam(kFmiGeomHeight, time, loop)) {
+			cout << "Warning: kFmiGeomHeight not found, heightdata unavailable" << endl;
+		}
+	}
+}
+
+void newBaseSourcer::AllocateHeights() {
+	int sizeX = meta->sizeX / subSample;
+	int sizeY = meta->sizeY / subSample;
+	int sizeZ = zRes / subSample;
+
+	int dataZ = meta->sizeZ;
+
+	auto &dataInfo = pimpl->dataInfo;
+
+	if (heights != nullptr) delete heights;
+
+	heights = new float[sizeX*sizeY*dataZ];
+}
+
+void newBaseSourcer::ResetImage(bool realloc)
 {
-	assert(im);
-	int sizeX = meta->sizeX, sizeY = meta->sizeY;
+
+	int sizeX = meta->sizeX/subSample, sizeY = meta->sizeY / subSample, sizeZ = zRes/subSample;
+
+	if (realloc || !im) {
+		if (!im)
+			im = vtkImageData::New();
+
+		im->Initialize();
+		im->SetDimensions(sizeX, sizeY, sizeZ);
+		im->SetSpacing(2 * subSample, 2 * subSample, 2 * subSample);
+		im->AllocateScalars(VTK_FLOAT, 1);
+	}
+
 	float* p = static_cast<float*>(im->GetScalarPointer());
-	for (long iz = 0; iz < zRes; ++iz) {
+	for (long iz = 0; iz < sizeZ; ++iz) {
 		for (long iy = 0; iy < sizeY; ++iy) {
 			for (long ix = 0; ix < sizeX; ++ix) {
 				p[ix + iy*sizeX + iz*sizeX*sizeY] = kFloatMissing;

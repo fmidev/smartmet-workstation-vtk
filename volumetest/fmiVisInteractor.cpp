@@ -85,7 +85,7 @@ void fmiVisInteractor::OnKeyRelease()
 		}
 
 
-	cout << "Pressed key " << (ctrl ? "ctrl+" : std::string()) << ", sym " << s << endl;
+	// cout << "Pressed key " << (ctrl ? "ctrl+" : std::string()) << ", sym " << s << endl;
 }
 
 void fmiVisInteractor::OnChar()

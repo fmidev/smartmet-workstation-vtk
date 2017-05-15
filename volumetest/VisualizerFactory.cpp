@@ -25,6 +25,10 @@ vtkSmartPointer<vtkColorTransferFunction> VisualizerFactory::blueToRedColor(doub
 	return f;
 }
 
+vtkSmartPointer<vtkColorTransferFunction> VisualizerFactory::blueToRedColor(double* r) {
+	return blueToRedColor(r[0], r[1]);
+}
+
 vtkSmartPointer<vtkColorTransferFunction> VisualizerFactory::greenToRedColor(double min, double max)
 {
 	auto f = vtkSmartPointer<vtkColorTransferFunction>::New();
@@ -35,6 +39,9 @@ vtkSmartPointer<vtkColorTransferFunction> VisualizerFactory::greenToRedColor(dou
 	return f;
 }
 
+vtkSmartPointer<vtkColorTransferFunction> VisualizerFactory::greenToRedColor(double* r) {
+	return greenToRedColor(r[0], r[1]);
+}
 vtkSmartPointer<vtkPiecewiseFunction> VisualizerFactory::opacityFunction(double min, double max, double threshold, double maxAlpha/*=0.2*/, double minAlpha/*=0.0*/)
 {
 	auto f = vtkSmartPointer<vtkPiecewiseFunction>::New();

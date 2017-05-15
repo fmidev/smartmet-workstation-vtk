@@ -37,6 +37,7 @@ public:
 	int param;
 
 	ParamVisualizerBase(const std::string &file, nbsMetadata &m, int param);
+	ParamVisualizerBase(newBaseSourcer *nbs);
 	virtual ~ParamVisualizerBase();
 	void CropMapper(vtkPlanes* p);
 

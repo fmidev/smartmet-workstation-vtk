@@ -3,8 +3,13 @@
 #include <list>
 
 
+
 #include <vtkVersion.h>
 #include <vtkSmartPointer.h>
+
+#include <vtkOutputWindow.h>
+
+#include <vtkWin32OutputWindow.h>
 
 #include <vtkRenderer.h>
 #include <vtkRenderWindow.h>
@@ -46,6 +51,10 @@
 #include "CreateHeightdata.h"
 
 #include "TimeAnimator.h"
+
+#include "Windbarb.h"
+#include "ParamVisualizerWindVec.h"
+
 
 
 static std::string *newBaseFile;
@@ -120,17 +129,22 @@ int main(int argc, char *argv[])
 	//yleisiä tietoja newBasesta
 
 
-
 	//vtk boilerplatea
 	auto renWin = vtkSmartPointer<vtkRenderWindow>::New();
 	auto ren1 = vtkSmartPointer<vtkRenderer>::New();
-	ren1->SetBackground(0.1, 0.4, 0.2);
+	
+	//taustaväri
+	ren1->SetBackground(0.4, 0.4, 0.8);
 
 	renWin->AddRenderer(ren1);
 
 	//renWin->SetFullScreen(true);
 	renWin->SetSize(800, 800);
 
+	vtkWin32OutputWindow::SafeDownCast(vtkOutputWindow::GetInstance())->SendToStdErrOn();
+
+
+	
 
 	auto iren = vtkSmartPointer<vtkRenderWindowInteractor>::New();
 	iren->SetRenderWindow(renWin);
@@ -140,6 +154,7 @@ int main(int argc, char *argv[])
 	ren1->GetActiveCamera()->SetViewUp(0,0,1);
 
 	renWin->Render();
+
 
 	VisualizerFactory::init();
 
@@ -155,8 +170,6 @@ int main(int argc, char *argv[])
 	vm.GetMeta().init(file);
 
 
-
-
 	auto meta = vm.GetMeta();
 
 
@@ -169,7 +182,7 @@ int main(int argc, char *argv[])
 
 	//koordinaattiakselit
 	auto cubeAxesActor = vtkSmartPointer<vtkCubeAxesActor>::New();
-	double bounds[6] = { 0,meta.sizeX*2,0,meta.sizeY*2,0,70*2};
+	double bounds[6] = { 0,meta.sizeX*2,0,meta.sizeY*2,0,80*2};
 	cubeAxesActor->SetBounds(bounds);
 	cubeAxesActor->SetCamera(ren1->GetActiveCamera());
 
@@ -294,6 +307,28 @@ int main(int argc, char *argv[])
 
 	int *winSize = ren1->GetSize();
 
+
+	visID vid = vm.AddVisualizer(std::make_unique<ParamVisualizerWindVec>(file, meta, planeWidget->GetPolyDataAlgorithm()->GetOutputPort()));
+	paramVID.insert(std::pair<int, visID>(ParamVisualizerWindVec::PARAM_WINDVEC, vid));
+
+
+	auto t = vtkSmartPointer<vtkTextActor>::New();
+	std::ostringstream s;
+	s << int(vid + 1) << ": " << "Wind vectors";
+	t->SetInput(s.str().c_str());
+	textActs.push_back(t);
+
+	t->GetTextProperty()->SetColor(0.8, 0.8, 0.8);
+	
+
+	t->GetTextProperty()->SetFontSize(7);
+
+	t->SetTextScaleModeToViewport();
+	t->SetDisplayPosition(10, winSize[1] - 20 - 10 * vid);
+
+	ren1->AddActor2D(t);
+
+
 	for (auto &parampair : params3D) {
 		if (dataInfo.Param(FmiParameterName(parampair.first) ) ) {
 			visID vid = vm.AddVisualizer(VisualizerFactory::make3DVisualizer(file, meta, parampair.first));
@@ -307,13 +342,9 @@ int main(int argc, char *argv[])
 			t->SetInput(s.str().c_str());
 			textActs.push_back(t);
 
-			if (paramVID.size() > 1) {
-				vm.DisableVis(vid);
-				t->GetTextProperty()->SetColor(0.2, 0.2, 0.2);
-			}
-			else {
-				t->GetTextProperty()->SetColor(0.8, 0.8, 0.8);
-			}
+			vm.DisableVis(vid);
+			t->GetTextProperty()->SetColor(0.2, 0.2, 0.2);
+
 
 			t->GetTextProperty()->SetFontSize(7);
 
@@ -323,6 +354,9 @@ int main(int argc, char *argv[])
 			ren1->AddActor2D(t);
 		}
 	}
+
+	
+
 	for (auto &parampair : params2D) {
 		if (dataInfo.Param(FmiParameterName(parampair.first))) {
 			visID vid = vm.AddVisualizer(VisualizerFactory::make2DVisualizer(file, meta, planeWidget->GetPolyDataAlgorithm()->GetOutputPort(),vm.GetLabeler(), parampair.first));
@@ -391,6 +425,9 @@ int main(int argc, char *argv[])
 	slider->SetAnimationModeToJump();
 
 	slider->EnabledOn();
+
+
+
 
 
 	auto ta = TimeAnimator{ renWin,slider,&vm,&meta };

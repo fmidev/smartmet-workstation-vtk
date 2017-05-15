@@ -11,6 +11,11 @@ ParamVisualizerBase::ParamVisualizerBase(const std::string &file, nbsMetadata &m
 {
 
 }
+ParamVisualizerBase::ParamVisualizerBase(newBaseSourcer *nbs) :
+	nbs(nbs), meta( nbs->getMeta() ), activeMapper(nullptr),
+	filters(), prop(nullptr), crop(true), enabled(true), param(param)
+{
+}
 
 ParamVisualizerBase::~ParamVisualizerBase()
 {

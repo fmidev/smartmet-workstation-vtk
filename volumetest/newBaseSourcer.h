@@ -2,6 +2,7 @@
 #define NEWBASESOURCER_H
 
 #include <memory>
+#include <functional>
 
 #include <vtkImageData.h>
 #include <vtkImageAlgorithm.h>
@@ -13,7 +14,7 @@ struct nbsMetadata;
 
 //lukee sqd-tiedoston ja muuntaa sen vtkImageDataksi
 class newBaseSourcer : public vtkImageAlgorithm {
-
+protected:
 
 	nbsMetadata *meta;
 
@@ -29,12 +30,20 @@ class newBaseSourcer : public vtkImageAlgorithm {
 	int zRes;
 	float zHeight;
 
+	int subSample;
 
 	//muunnos epoch-ajasta newbasen aikaindekseiksi ja takaisin
 
-	void resetImage();
+	virtual void ResetImage(bool realloc = false);
+	void AllocateHeights();
 
-	void freeRes() {
+	bool LoopParam(int param, int time, std::function<void(int, int, int)> f );
+
+	int getHeight(int x, int y, int z);
+
+	void ReadHeights(int time);
+
+	inline void freeRes() {
 		if (im)
 			im->Delete();
 		if (heights)
@@ -46,7 +55,7 @@ public:
 	//etsii aikaindeksin annetulle epoch-ajalle
 	int nearestIndex(double time);
 
-	newBaseSourcer(const std::string &file, nbsMetadata *meta, int param,int res=70);
+	newBaseSourcer(const std::string &file, nbsMetadata *meta, int param,int res=80, int subSample = 1);
 
 	void Delete() override {
 		freeRes();
@@ -63,17 +72,29 @@ public:
 		vtkInformationVector* outputVector);
 	
 	//hakee VTK:lle dataa
-	int newBaseSourcer::RequestData(vtkInformation* vtkNotUsed(request),
+	virtual int newBaseSourcer::RequestData(vtkInformation* vtkNotUsed(request),
 		vtkInformationVector** vtkNotUsed(inputVector),
 		vtkInformationVector* outputVector);
 
-private:
-	newBaseSourcer::~newBaseSourcer();
+	void setSubSample(int s) {
+		subSample = s;
+		ResetImage(true);
+		AllocateHeights();
+		prevTime = -1;
+	}
+
+
+	inline nbsMetadata& getMeta() {
+		return *meta;
+	}
+
+protected:
+	virtual newBaseSourcer::~newBaseSourcer();
 	newBaseSourcer(const newBaseSourcer &copy) = delete;
 	void operator=(const newBaseSourcer &assign) = delete;
 
-	struct nb;
-	std::unique_ptr<nb> pimpl;
+	struct nbsImpl;
+	std::unique_ptr<nbsImpl> pimpl;
 };
 
 #endif /*NEWBASESOURCER_H*/

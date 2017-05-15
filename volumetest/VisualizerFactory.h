@@ -43,6 +43,10 @@ public:
 
 	static vtkSmartPointer<vtkColorTransferFunction> blueToRedColor(double min, double max);
 	static vtkSmartPointer<vtkColorTransferFunction> greenToRedColor(double min, double max);
+
+	static vtkSmartPointer<vtkColorTransferFunction> blueToRedColor(double * r);
+	static vtkSmartPointer<vtkColorTransferFunction> greenToRedColor(double * r);
+
 	static vtkSmartPointer<vtkPiecewiseFunction> opacityFunction(double min, double max, double threshold,
 																			double maxAlpha=0.2, double minAlpha=0.0);
 
