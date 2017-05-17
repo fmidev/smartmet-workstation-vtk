@@ -18,6 +18,7 @@
 
 #include <vtkStreamingDemandDrivenPipeline.h>
 #include <vtkBMPReader.h>
+#include <vtkPNGReader.h>
 #include <vtkTexture.h>
 #include <vtkTextureMapToPlane.h>
 
@@ -214,8 +215,8 @@ int main(int argc, char *argv[])
 
 	cout << "Loading map..." << endl;
 
-	auto mapReader = vtkSmartPointer<vtkBMPReader>::New();
-	mapReader->SetFileName("bottom.bmp");
+	auto mapReader = vtkSmartPointer<vtkPNGReader>::New();
+	mapReader->SetFileName("bottom_indexed.png");
 
 	mapReader->Update();
 
