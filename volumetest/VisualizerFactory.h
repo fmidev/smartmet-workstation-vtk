@@ -60,12 +60,12 @@ public:
 
 	static std::unique_ptr<ParamVisualizerBase> make2DVisualizer(const std::string &file, nbsMetadata &meta,
 		vtkAlgorithmOutput* probingData, int param,  vtkSmartPointer<vtkColorTransferFunction> contourColors,
-		std::shared_ptr<ContourLabeler> labeler, double range[2], int numContours = 10);
+		ContourLabeler & labeler, double range[2], int numContours = 10);
 
 	static std::unique_ptr<ParamVisualizerBase> make2DVisualizer(const std::string &file, nbsMetadata &meta,
-		vtkAlgorithmOutput* probingData, std::shared_ptr<ContourLabeler> labeler, Vis2DParams &p);
+		vtkAlgorithmOutput* probingData, ContourLabeler & labeler, Vis2DParams &p);
 
-	static std::unique_ptr<ParamVisualizerBase> make2DVisualizer(const std::string &file, nbsMetadata &meta, vtkAlgorithmOutput* probingData, std::shared_ptr<ContourLabeler> labeler, int param);
+	static std::unique_ptr<ParamVisualizerBase> make2DVisualizer(const std::string &file, nbsMetadata &meta, vtkAlgorithmOutput* probingData, ContourLabeler & labeler, int param);
 
 	static std::map<int, Vis3DParams> config3D;
 	static std::map<int, Vis2DParams> config2D;

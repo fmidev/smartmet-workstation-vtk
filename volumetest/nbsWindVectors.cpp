@@ -97,7 +97,7 @@ int nbsWindVectors::RequestData(vtkInformation* vtkNotUsed(request),
 
 		});
 
-		LoopParam(kFmiWindSpeedMS, timeI,
+		LoopParam(kFmiWindDirection, timeI,
 			[&](int x, int y, int z) {
 
 
@@ -106,6 +106,10 @@ int nbsWindVectors::RequestData(vtkInformation* vtkNotUsed(request),
 			}
 
 			float val = dataInfo.FloatValue();
+
+			val -= 90;
+
+		
 
 			if (z < sizeZ && val != kFloatMissing) {
 

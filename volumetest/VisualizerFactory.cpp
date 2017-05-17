@@ -68,17 +68,17 @@ std::unique_ptr<ParamVisualizerBase> VisualizerFactory::make3DVisualizer(const s
 	return nullptr;
 }
 
-std::unique_ptr<ParamVisualizerBase> VisualizerFactory::make2DVisualizer(const std::string &file, nbsMetadata &meta, vtkAlgorithmOutput* probingData, int param, vtkSmartPointer<vtkColorTransferFunction> contourColors, std::shared_ptr<ContourLabeler> labeler, double range[2], int numContours /*= 10*/)
+std::unique_ptr<ParamVisualizerBase> VisualizerFactory::make2DVisualizer(const std::string &file, nbsMetadata &meta, vtkAlgorithmOutput* probingData, int param, vtkSmartPointer<vtkColorTransferFunction> contourColors, ContourLabeler & labeler, double range[2], int numContours /*= 10*/)
 {
 	return std::make_unique<ParamVisualizer2D>(file, meta, param, probingData, contourColors, labeler, range, numContours);
 }
 
-std::unique_ptr<ParamVisualizerBase> VisualizerFactory::make2DVisualizer(const std::string &file, nbsMetadata &meta, vtkAlgorithmOutput* probingData, std::shared_ptr<ContourLabeler> labeler, Vis2DParams &p)
+std::unique_ptr<ParamVisualizerBase> VisualizerFactory::make2DVisualizer(const std::string &file, nbsMetadata &meta, vtkAlgorithmOutput* probingData, ContourLabeler & labeler, Vis2DParams &p)
 {
 	return make2DVisualizer(file, meta, probingData, p.param, p.contourColors, labeler, p.range, p.numContours);
 }
 
-std::unique_ptr<ParamVisualizerBase> VisualizerFactory::make2DVisualizer(const std::string &file, nbsMetadata &meta, vtkAlgorithmOutput* probingData, std::shared_ptr<ContourLabeler> labeler, int param)
+std::unique_ptr<ParamVisualizerBase> VisualizerFactory::make2DVisualizer(const std::string &file, nbsMetadata &meta, vtkAlgorithmOutput* probingData, ContourLabeler & labeler, int param)
 {
 	if (config2D.find(param) != config2D.end())
 		return make2DVisualizer(file, meta, probingData, labeler, config2D.find(param)->second);

@@ -115,6 +115,9 @@ void TimeAnimator::StartAnim()
 	timeText->GetTextProperty()->SetColor(0.8, 0.8, 0.8);
 
 
+	renWin->Render();
+
+
 	enabled = true;
 }
 
@@ -128,6 +131,7 @@ void TimeAnimator::StopAnim()
 
 	timeText->GetTextProperty()->SetColor(0.2, 0.2, 0.2);
 
+	renWin->Render();
 
 	enabled = false;
 }

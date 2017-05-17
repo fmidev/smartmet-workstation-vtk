@@ -28,7 +28,7 @@ protected:
 
 	vtkStripper* contourStripper;
 
-	std::shared_ptr<ContourLabeler> labeler;
+	ContourLabeler &labeler;
 
 	vtkActor *polyAct;
 
@@ -41,7 +41,7 @@ protected:
 
 public:
 	ParamVisualizer2D(const std::string &file, nbsMetadata &m, int param, vtkAlgorithmOutput* probingData,
-		vtkSmartPointer<vtkColorTransferFunction> contourColors, std::shared_ptr<ContourLabeler> labeler, double range[2], int numContours);
+		vtkSmartPointer<vtkColorTransferFunction> contourColors, ContourLabeler &labeler, double range[2], int numContours);
 	~ParamVisualizer2D();
 
 	virtual void UpdateTimeStep(double t) override;

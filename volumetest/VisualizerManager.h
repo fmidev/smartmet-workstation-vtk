@@ -21,7 +21,7 @@ typedef size_t visID;
 class VisualizerManager {
 	std::vector<std::unique_ptr<ParamVisualizerBase> > visualizers;
 	vtkSmartPointer<vtkRenderer> renderer;
-	std::shared_ptr<ContourLabeler> labeler;
+	std::unique_ptr<ContourLabeler> labeler;
 
 	nbsMetadata meta;
 
@@ -58,8 +58,8 @@ public:
 	}
 	int GetVisParam(visID vid);
 
-	inline std::shared_ptr<ContourLabeler> GetLabeler() {
-		return labeler;
+	inline ContourLabeler& GetLabeler() {
+		return *labeler;
 	}
 };
 

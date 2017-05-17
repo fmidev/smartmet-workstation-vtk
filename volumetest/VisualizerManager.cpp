@@ -12,7 +12,7 @@
 VisualizerManager::VisualizerManager(vtkSmartPointer<vtkRenderer> ren, float zHeight /*= 13000*/) :
 	renderer(ren),
 	visualizers(),
-	labeler(std::make_shared<ContourLabeler>(ren)),
+	labeler(std::make_unique<ContourLabeler>(ren)),
 	meta(),
 	prevTime(0)
 {

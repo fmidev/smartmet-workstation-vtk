@@ -33,7 +33,7 @@ void ParamVisualizer2D::ModeIsoLine() {
 
 void ParamVisualizer2D::ModeColorContour() {
 
-	contourFilter->RemoveAllInputConnections(0);
+	//contourFilter->RemoveAllInputConnections(0);
 
 	polyMap->RemoveAllInputConnections(0);
 	polyMap->AddInputConnection(probeFilter->GetOutputPort());
@@ -77,14 +77,14 @@ void ParamVisualizer2D::UpdateTimeStep(double t) {
 		double midPoint[3];
 		points->GetPoint(midPointId, midPoint);
 
-		labeler->Add(midPoint, scalars->GetTuple1(midPointId));
+		labeler.Add(midPoint, scalars->GetTuple1(midPointId));
 	}
 }
 
 ParamVisualizer2D::ParamVisualizer2D(const std::string & file, nbsMetadata & m, 
 	int param, vtkAlgorithmOutput * probingData,
 	vtkSmartPointer<vtkColorTransferFunction> contourColors,
-	std::shared_ptr<ContourLabeler> labeler, double range[2], int numContours) :
+	ContourLabeler &labeler, double range[2], int numContours) :
 
 	ParamVisualizerBase(file, m, param),
 	labeler(labeler),

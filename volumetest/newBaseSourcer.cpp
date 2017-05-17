@@ -355,6 +355,7 @@ void newBaseSourcer::ReadHeights(int time) {
 		if (val == kFloatMissing) {
 			val = 0;
 			cout << "Missing height at " << x << ", " << y << ", " << z << endl;
+			return false;
 		}
 
 		float h = (val) / zHeight * float(sizeZ);

@@ -120,14 +120,12 @@ protected:
 
 int main(int argc, char *argv[])
 {
+	cout << "Initializing VTK..." << endl;
 
 	//lisää aikasarjatuen?
 	auto *sdp = vtkStreamingDemandDrivenPipeline::New();
 	vtkAlgorithm::SetDefaultExecutivePrototype(sdp);
 	sdp->Delete();
-
-	//yleisiä tietoja newBasesta
-
 
 	//vtk boilerplatea
 	auto renWin = vtkSmartPointer<vtkRenderWindow>::New();
@@ -156,6 +154,8 @@ int main(int argc, char *argv[])
 	renWin->Render();
 
 
+	cout << "Initializing interface..." << endl;
+
 	VisualizerFactory::init();
 
 	std::string file = std::string( argc<2 ? 
@@ -165,7 +165,7 @@ int main(int argc, char *argv[])
 
 
 
-	auto vm = VisualizerManager(ren1);
+	VisualizerManager vm {ren1};
 
 	vm.GetMeta().init(file);
 
@@ -212,8 +212,12 @@ int main(int argc, char *argv[])
 
 	//luetaan kartta levyltä ja mapataan se tasolle
 
+	cout << "Loading map..." << endl;
+
 	auto mapReader = vtkSmartPointer<vtkBMPReader>::New();
 	mapReader->SetFileName("bottom.bmp");
+
+	mapReader->Update();
 
 	auto texture = vtkSmartPointer<vtkTexture>::New();
 	texture->SetInputConnection(mapReader->GetOutputPort());
@@ -249,6 +253,8 @@ int main(int argc, char *argv[])
 
 	ren1->AddActor(texturedPlane);
 
+	cout << "Initializing widgets..." << endl;
+
 	auto boxRep = vtkSmartPointer<vtkBoxRepresentation>::New();
 	boxRep->SetPlaceFactor(1.1);
 	boxRep->PlaceWidget(cubeAxesActor->GetBounds() );
@@ -281,6 +287,8 @@ int main(int argc, char *argv[])
 	planeWidget->GetHandleProperty()->SetPointSize(0.2);
 	planeWidget->GetSelectedHandleProperty()->SetPointSize(0.1);
 
+	
+	cout << "Initializing visualizers..." << endl;
 
 	std::map<int,std::string> params3D = {
 		std::pair<int,std::string>(kFmiWindSpeedMS,"kFmiWindSpeedMS"),
