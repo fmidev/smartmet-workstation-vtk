@@ -33,7 +33,7 @@ void ParamVisualizer2D::ModeIsoLine() {
 
 void ParamVisualizer2D::ModeColorContour() {
 
-	//contourFilter->RemoveAllInputConnections(0);
+	contourFilter->RemoveAllInputConnections(0);
 
 	polyMap->RemoveAllInputConnections(0);
 	polyMap->AddInputConnection(probeFilter->GetOutputPort());
@@ -92,7 +92,8 @@ ParamVisualizer2D::ParamVisualizer2D(const std::string & file, nbsMetadata & m,
 	contourFilter(vtkContourFilter::New()),
 	contourStripper(vtkStripper::New()),
 	polyMap(vtkPolyDataMapper::New()),
-	polyAct(vtkActor::New())
+	polyAct(vtkActor::New()),
+	mode(false)
 {
 
 	probeFilter->SetSourceConnection(nbs->GetOutputPort() );
@@ -113,7 +114,7 @@ ParamVisualizer2D::ParamVisualizer2D(const std::string & file, nbsMetadata & m,
 
 	SetProp(polyAct);
 
-	ModeColorContour();
+	ModeIsoLine();
 }
 
 ParamVisualizer2D::~ParamVisualizer2D() {

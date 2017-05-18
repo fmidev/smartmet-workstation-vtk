@@ -136,23 +136,21 @@ int newBaseSourcer::RequestData(vtkInformation* vtkNotUsed(request),
 					}
 
 					float val = dataInfo.FloatValue();
-					if (val != kFloatMissing) {
-						//val = 0.0f; //voi myös piirtää laittamalla negatiiviseksi tjms
-						if (val > maxVal) maxVal = val;
-						if (val < minVal) minVal = val;
-					}
-
 
 					if (z < zRes) {
 
 						float* pixel = static_cast<float*>(im->GetScalarPointer(x, y, z));
 
-						if(pixel[0] != kFloatMissing)
+						if (pixel[0] != kFloatMissing) {
+
 							pixel[0] += val;
+
+
+							if (pixel[0] > maxVal) maxVal = pixel[0];
+							if (pixel[0] < minVal) minVal = pixel[0];
+						}
 						else
 							pixel[0] = val;
-
-						if (pixel[0] > maxVal) maxVal = pixel[0];
 					}
 				} );
 		float magnitude = maxVal - minVal;

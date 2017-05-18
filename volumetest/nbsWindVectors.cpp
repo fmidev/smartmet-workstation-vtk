@@ -20,7 +20,7 @@
 
 
 nbsWindVectors::nbsWindVectors(const std::string &file, nbsMetadata *meta, int res, int subSample) :
-	newBaseSourcer(file, meta, -1, res,subSample)
+	newBaseSourcer(file, meta, 30000, res,subSample)
 {
 }
 
@@ -107,7 +107,7 @@ int nbsWindVectors::RequestData(vtkInformation* vtkNotUsed(request),
 
 			float val = dataInfo.FloatValue();
 
-			val -= 90;
+			val += 90;
 
 		
 
@@ -134,9 +134,13 @@ int nbsWindVectors::RequestData(vtkInformation* vtkNotUsed(request),
 				pixel[0] += speed * std::cos(val*degToRad);
 				pixel[1] += speed * std::sin(val*degToRad);
 
+				pixel[2] = 0;
 
 			}
 		});
+
+		/*
+
 		for (int ix = 0; ix < sizeX; ++ix)
 			for (int iy = 0; iy < sizeY; ++iy)
 				for (int iz = 0; iz < sizeZ; ++iz) {
@@ -145,6 +149,8 @@ int nbsWindVectors::RequestData(vtkInformation* vtkNotUsed(request),
 					if (pixel[2] != kFloatMissing)
 						pixel[2] = 0;
 				}
+
+		
 		LoopParam(kFmiVerticalVelocityMMS,timeI,
 			[&](int x, int y, int z) {
 
@@ -167,7 +173,7 @@ int nbsWindVectors::RequestData(vtkInformation* vtkNotUsed(request),
 
 
 		});
-
+		*/
 
 		auto t1 = std::chrono::system_clock::now();
 

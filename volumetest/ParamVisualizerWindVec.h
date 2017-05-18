@@ -6,24 +6,28 @@
 struct nbsMetadata;
 class vtkAlgorithmOutput;
 class vtkGlyph3D;
-class vtkCleanPolyData;
+class vtkExtractSelectedIds;
 class vtkStreamTracer;
 class vtkTubeFilter;
 class vtkPolyDataMapper;
 class vtkActor;
 class vtkPolyDataAlgorithm;
+class vtkProbeFilter;
+class vtkAssignAttribute;
 
 class ParamVisualizerWindVec : public ParamVisualizerBase {
 
+	//false = streamline
+	bool mode;
 
 	vtkAlgorithmOutput *seedData;
+	vtkAssignAttribute *assign;
 
-	//false = streamline
-	bool mode; 
+	vtkProbeFilter *probe;
 
 	vtkGlyph3D *glypher;
 
-	vtkCleanPolyData *cleaner;
+	vtkExtractSelectedIds *extract;
 	vtkStreamTracer *streamer;
 	vtkTubeFilter *tuber;
 

@@ -2,8 +2,6 @@
 
 #include <list>
 
-
-
 #include <vtkVersion.h>
 #include <vtkSmartPointer.h>
 
@@ -42,6 +40,9 @@
 
 #include <vtkLight.h>
 
+#include <NFmiQueryData.h>
+#include <NFmiFastQueryInfo.h>
+#include <NFmiParameterName.h>
 
 #include "fmiVisInteractor.h"
 
@@ -55,6 +56,7 @@
 
 #include "Windbarb.h"
 #include "ParamVisualizerWindVec.h"
+
 
 
 
@@ -230,6 +232,8 @@ int main(int argc, char *argv[])
 	planeScale[0] = volumeBounds[1] - volumeBounds[0];
 	planeScale[1] = volumeBounds[2] - volumeBounds[3];
 
+	cout << "Generating heightmap..." << endl;
+
 	auto planeData = CreateHeightdata(file);
 
 	auto texturePlane = vtkSmartPointer<vtkTextureMapToPlane>::New();
@@ -285,6 +289,7 @@ int main(int argc, char *argv[])
 	planeWidget->SetRepresentationToOutline();
 	planeWidget->SetNormalToZAxis(true);
 	planeWidget->SetProp3D(texturedPlane);
+	planeWidget->SetCenter(80, 80, 80);
 	planeWidget->GetHandleProperty()->SetPointSize(0.2);
 	planeWidget->GetSelectedHandleProperty()->SetPointSize(0.1);
 
@@ -351,7 +356,6 @@ int main(int argc, char *argv[])
 			t->SetInput(s.str().c_str());
 			textActs.push_back(t);
 
-			vm.DisableVis(vid);
 			t->GetTextProperty()->SetColor(0.2, 0.2, 0.2);
 
 
@@ -372,7 +376,7 @@ int main(int argc, char *argv[])
 			if (vid == -1) continue;
 			paramVID.insert(std::pair<int, visID>(parampair.first, vid));
 			vm.SetCrop(vid, false);
-			vm.DisableVis(vid);
+
 
 			auto t = vtkSmartPointer<vtkTextActor>::New();
 			std::ostringstream s;
@@ -393,6 +397,7 @@ int main(int argc, char *argv[])
 
 	style->setVisTexts(&textActs);
 
+	vm.EnableVis(0);
 
 	planeWidgetCallback *planeCallback = planeWidgetCallback::New();
 

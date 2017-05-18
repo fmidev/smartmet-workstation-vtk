@@ -25,7 +25,7 @@ visID VisualizerManager::AddVisualizer(std::unique_ptr<ParamVisualizerBase> v)
 	if (v)
 	{
 		visualizers.push_back(std::move(v));
-
+		visualizers[vid]->DisableActor();
 		return vid;
 	}
 	else return -1;
