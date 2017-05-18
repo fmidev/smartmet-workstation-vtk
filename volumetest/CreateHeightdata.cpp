@@ -41,7 +41,6 @@ vtkPolyData * CreateHeightdata(std::string file)
 		if (rising) dataInfo.ResetLevel();
 		else dataInfo.LastLevel();
 
-		do {
 			float h;
 			ix = 0;
 			for (dataInfo.ResetLocation(); dataInfo.NextLocation(); ) {
@@ -66,14 +65,9 @@ vtkPolyData * CreateHeightdata(std::string file)
 				ix++;
 			}
 
-			iz++;
-
-		} while ((rising && dataInfo.NextLevel()) || (!rising && dataInfo.PreviousLevel()));
+	
 
 	}
-
-
-
 
 
 	cout << "Triangulating... ";
@@ -88,7 +82,7 @@ vtkPolyData * CreateHeightdata(std::string file)
 	delaunay->SetInputData(inputPolyData);
 
 	//accuracy vs speed
-	delaunay->SetTolerance(0.01);
+	delaunay->SetTolerance(0.005);
 	
 	delaunay->Update();
 
