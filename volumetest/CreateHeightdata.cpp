@@ -31,43 +31,47 @@ vtkPolyData * CreateHeightdata(std::string file)
 
 	cout << "Reading heights..." << endl;
 
-	if (dataInfo.Param(kFmiGeopHeight)) {
+	if (!dataInfo.Param(kFmiGeopHeight) ) {
+		cout << "kFmiGeopHeight not found!" << endl;
 
-		dataInfo.TimeIndex(1);
-		int ix, iz = 0;
+		if (!dataInfo.Param(kFmiGeomHeight)) {
+			cout << "kFmiGeomHeight not found!!" << endl;
+		}
+	}
 
-		bool rising = dataInfo.HeightParamIsRising();
+	dataInfo.TimeIndex(1);
+	int ix, iz = 0;
 
-		if (rising) dataInfo.ResetLevel();
-		else dataInfo.LastLevel();
+	bool rising = dataInfo.HeightParamIsRising();
 
-			float h;
-			ix = 0;
-			for (dataInfo.ResetLocation(); dataInfo.NextLocation(); ) {
+	if (rising) dataInfo.ResetLevel();
+	else dataInfo.LastLevel();
 
-				int x = ix % sizeX;
-				int y = (ix / sizeX) % sizeY;
+		float h;
+		ix = 0;
+		for (dataInfo.ResetLocation(); dataInfo.NextLocation(); ) {
 
-				float val = dataInfo.FloatValue();
+			int x = ix % sizeX;
+			int y = (ix / sizeX) % sizeY;
 
-				if (val == kFloatMissing) {
-					val = 0;
-				}
+			float val = dataInfo.FloatValue();
 
-				points->InsertNextPoint(x * 2, y * 2, val * 2 / 13000 * 80); //VisualizerManager zHeight ja newBaseSourcer zRes, spacing
-
-
-				float tuple[3] = { 0.0, 0.0, 0.0 };
-				tuple[0] = float(x) / sizeX; tuple[1] = float(y) / sizeY; tuple[2] = 0.0;
-				textureCoordinates->InsertNextTuple(tuple);
-
-
-				ix++;
+			if (val == kFloatMissing) {
+				val = 0;
 			}
 
-	
+			points->InsertNextPoint(x * 2, y * 2, val * 2 / 13000 * 80); //VisualizerManager zHeight ja newBaseSourcer zRes, spacing
 
-	}
+
+			float tuple[3] = { 0.0, 0.0, 0.0 };
+			tuple[0] = float(x) / sizeX; tuple[1] = float(y) / sizeY; tuple[2] = 0.0;
+			textureCoordinates->InsertNextTuple(tuple);
+
+
+			ix++;
+		}
+
+
 
 
 	cout << "Triangulating... ";
