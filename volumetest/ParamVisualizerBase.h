@@ -10,7 +10,6 @@
 #include "nbsMetadata.h"
 
 class vtkAbstractMapper;
-class newBaseSourcer;
 class vtkAlgorithm;
 class vtkPlanes;
 
@@ -27,7 +26,7 @@ protected:
 
 	std::list<vtkAlgorithm* > filters;
 
-	newBaseSourcer* nbs;
+	vtkAlgorithm* nbs;
 
 	void SetActiveMapper(vtkAbstractMapper *m);
 	void SetProp(vtkProp *p);
@@ -37,7 +36,7 @@ public:
 	int param;
 
 	ParamVisualizerBase(const std::string &file, nbsMetadata &m, int param);
-	ParamVisualizerBase(newBaseSourcer *nbs);
+	ParamVisualizerBase(vtkAlgorithm *nbs, nbsMetadata &m, int param);
 	virtual ~ParamVisualizerBase();
 	void CropMapper(vtkPlanes* p);
 

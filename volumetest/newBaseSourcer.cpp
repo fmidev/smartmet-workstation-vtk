@@ -137,7 +137,8 @@ int newBaseSourcer::RequestData(vtkInformation* vtkNotUsed(request),
 
 					float val = dataInfo.FloatValue();
 
-					if (z < zRes) {
+					if (z >= sizeZ)
+						z = sizeZ - 1;
 
 						float* pixel = static_cast<float*>(im->GetScalarPointer(x, y, z));
 
@@ -151,7 +152,6 @@ int newBaseSourcer::RequestData(vtkInformation* vtkNotUsed(request),
 						}
 						else
 							pixel[0] = val;
-					}
 				} );
 		float magnitude = maxVal - minVal;
 

@@ -70,6 +70,8 @@ ParamVisualizer3D::ParamVisualizer3D(const std::string & file, nbsMetadata & m, 
 	contourFilter->ComputeScalarsOff();
 	contourFilter->SetValue(0, contourThreshold);
 
+	contourFilter->SetUseScalarTree(true);
+
 	polyMap->SetInputConnection(contourFilter->GetOutputPort());
 	polyMap->ScalarVisibilityOff();
 

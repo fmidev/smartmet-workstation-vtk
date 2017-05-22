@@ -14,7 +14,7 @@
 #include "ParamVisualizerBase.h"
 #include "ParamVisualizer2D.h"
 #include "ParamVisualizer3D.h"
-
+#include "ParamVisualizerSurf.h"
 
 vtkSmartPointer<vtkColorTransferFunction> VisualizerFactory::blueToRedColor(double min, double max)
 {
@@ -82,6 +82,24 @@ std::unique_ptr<ParamVisualizerBase> VisualizerFactory::make2DVisualizer(const s
 {
 	if (config2D.find(param) != config2D.end())
 		return make2DVisualizer(file, meta, probingData, labeler, config2D.find(param)->second);
+	else
+		return nullptr;
+}
+
+std::unique_ptr<ParamVisualizerBase> VisualizerFactory::makeSurfVisualizer(const std::string &file, nbsMetadata &meta,
+	int param, vtkSmartPointer<vtkColorTransferFunction> contourColors,
+	ContourLabeler & labeler, double range[2], int numContours) {
+	return std::make_unique<ParamVisualizerSurf>(file, meta, param, contourColors, labeler, range, numContours);
+}
+std::unique_ptr<ParamVisualizerBase> VisualizerFactory::makeSurfVisualizer(const std::string &file, nbsMetadata &meta,
+	ContourLabeler & labeler, Vis2DParams &p) {
+	return makeSurfVisualizer(file, meta, p.param, p.contourColors, labeler, p.range, p.numContours);
+}
+
+std::unique_ptr<ParamVisualizerBase> VisualizerFactory::makeSurfVisualizer(const std::string &file, nbsMetadata &meta,
+	ContourLabeler & labeler, int param) {
+	if (config2D.find(param) != config2D.end())
+		return makeSurfVisualizer(file, meta, labeler, config2D.find(param)->second);
 	else
 		return nullptr;
 }
@@ -157,11 +175,24 @@ void VisualizerFactory::init() {
 		}));
 
 
+
+	config2D.insert(std::pair<int, Vis2DParams>(
+		kFmiPressure, { kFmiPressure ,
+		blueToRedColor(0,1000),
+		{ 0,1000 },
+		12
+		}));
 	config2D.insert(std::pair<int, Vis2DParams>(
 		kFmiTemperature, { kFmiTemperature ,
 		blueToRedColor(-80,30),
 		{ -80,30 },
 		15
+		}));
+	config2D.insert(std::pair<int, Vis2DParams>(
+		kFmiPotentialTemperature, { kFmiPotentialTemperature ,
+		blueToRedColor(200,1500),
+		{ 200,1500 },
+		8
 		}));
 	config2D.insert(std::pair<int, Vis2DParams>(
 		kFmiHumidity, { kFmiHumidity ,
@@ -181,10 +212,18 @@ void VisualizerFactory::init() {
 		{ -200,200 },
 		8
 		}));
+
 	config2D.insert(std::pair<int, Vis2DParams>(
-		kFmiPotentialTemperature, { kFmiPotentialTemperature ,
-		blueToRedColor(200,1500),
-		{ 200,1500 },
+		kFmiTotalCloudCover, { kFmiTotalCloudCover ,
+		blueToRedColor(0,100),
+		{ 0,100 },
+		6
+		}));
+	config2D.insert(std::pair<int, Vis2DParams>(
+		kFmiPrecipitation1h, { kFmiPrecipitation1h ,
+		blueToRedColor(0,50),
+		{ 0,50 },
 		8
 		}));
+
 }

@@ -1,5 +1,5 @@
-#ifndef PARAMVISUALIZER2D_H
-#define PARAMVISUALIZER2D_H
+#ifndef PARAMVISUALIZERSURF_H
+#define PARAMVISUALIZERSURF_H
 
 #include <memory>
 #include <vtkSmartPointer.h>
@@ -7,28 +7,24 @@
 #include "ParamVisualizerBase.h"
 
 class vtkPolyDataMapper;
-class vtkProbeFilter;
+
 class vtkContourFilter;
 class vtkColorTransferFunction;
 class vtkStripper;
 class vtkActor;
-class vtkAlgorithmOutput;
-
+class vtkPolyData;
 class ContourLabeler;
 
-class ParamVisualizer2D : public ParamVisualizerBase {
+class ParamVisualizerSurf : public ParamVisualizerBase {
 protected:
 
+	vtkContourFilter *contour;
 
-
-	vtkPolyDataMapper *polyMap;
-	
-	vtkProbeFilter *probeFilter;
-	vtkContourFilter *contourFilter;
-
-	vtkStripper* contourStripper;
+	vtkStripper* stripper;
 
 	ContourLabeler &labeler;
+
+	vtkPolyDataMapper *polyMap;
 
 	vtkActor *polyAct;
 
@@ -40,9 +36,9 @@ protected:
 
 
 public:
-	ParamVisualizer2D(const std::string &file, nbsMetadata &m, int param, vtkAlgorithmOutput* probingData,
+	ParamVisualizerSurf(const std::string &file, nbsMetadata &m, int param,
 		vtkSmartPointer<vtkColorTransferFunction> contourColors, ContourLabeler &labeler, double range[2], int numContours);
-	~ParamVisualizer2D();
+	~ParamVisualizerSurf();
 
 	virtual void UpdateTimeStep(double t) override;
 
@@ -51,9 +47,11 @@ public:
 	virtual inline void ToggleMode() {
 
 		if (mode) {
+
 			ModeColorContour();
 		}
 		else {
+
 			ModeIsoLine();
 		}
 
@@ -61,4 +59,4 @@ public:
 	}
 };
 
-#endif /*PARAMVISUALIZER2D_H*/
+#endif /*PARAMVISUALIZERSURF_H*/

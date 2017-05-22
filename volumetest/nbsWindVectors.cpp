@@ -22,6 +22,8 @@
 nbsWindVectors::nbsWindVectors(const std::string &file, nbsMetadata *meta, int res, int subSample) :
 	newBaseSourcer(file, meta, 30000, res,subSample)
 {
+
+	ReadHeights(1);
 }
 
 nbsWindVectors::~nbsWindVectors() {}
@@ -73,7 +75,6 @@ int nbsWindVectors::RequestData(vtkInformation* vtkNotUsed(request),
 		auto t0 = std::chrono::system_clock::now();
 
 
-		ReadHeights(timeI);
 
 
 		LoopParam(kFmiWindSpeedMS, timeI,
@@ -182,7 +183,7 @@ int nbsWindVectors::RequestData(vtkInformation* vtkNotUsed(request),
 // 			cout << "z: " << i << " : " << x[0] << ',' << x[1] << ',' << x[2] << endl;
 // 
 // 		}
-// 		cout << "interpolating..." << endl;
+//		cout << "interpolating..." << endl;
 
 		unsigned int usedThreadCount = boost::thread::hardware_concurrency();
 		auto threads = std::list<std::shared_future<void>>();

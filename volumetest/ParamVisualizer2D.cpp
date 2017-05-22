@@ -47,7 +47,7 @@ void ParamVisualizer2D::ModeColorContour() {
 void ParamVisualizer2D::UpdateTimeStep(double t) {
 	ParamVisualizerBase::UpdateTimeStep(t);
 
-	if (mode) return;
+	if (!mode) return;
 
 	contourStripper->Update();
 
@@ -70,8 +70,7 @@ void ParamVisualizer2D::UpdateTimeStep(double t) {
 			continue;
 		}
 
-		// Compute the point id to hold the label
-		// Mid point or a random point
+
 		vtkIdType midPointId = indices[(numberOfPoints / 2)*(lineCount%2)];
 
 		double midPoint[3];
@@ -114,7 +113,7 @@ ParamVisualizer2D::ParamVisualizer2D(const std::string & file, nbsMetadata & m,
 
 	SetProp(polyAct);
 
-	ModeIsoLine();
+	ModeColorContour();
 }
 
 ParamVisualizer2D::~ParamVisualizer2D() {

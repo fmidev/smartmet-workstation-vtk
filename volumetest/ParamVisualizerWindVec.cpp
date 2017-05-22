@@ -9,6 +9,9 @@
 #include <vtkAssignAttribute.h>
 #include <vtkPointData.h>
 
+#include <vtkColorTransferFunction.h>
+#include <vtkScalarsToColors.h>
+#include <vtkTransform.h>
 #include <vtkGlyph3D.h>
 
 #include <vtkStreamTracer.h>
@@ -23,8 +26,6 @@
 #include "Windbarb.h"
 
 #include "VisualizerFactory.h"
-#include "vtkColorTransferFunction.h"
-#include "vtkScalarsToColors.h"
 
 void ParamVisualizerWindVec::ModeStreamline() {
 	
@@ -63,10 +64,10 @@ void ParamVisualizerWindVec::ModeGlyph() {
 
 
 ParamVisualizerWindVec::ParamVisualizerWindVec(const std::string &file, nbsMetadata &m, vtkAlgorithmOutput* seedData) :
-	ParamVisualizerBase(new nbsWindVectors(file, &m)), seedData(seedData), mode(false)
+	ParamVisualizerBase(new nbsWindVectors(file, &m),m,param), seedData(seedData), mode(false)
 {
 
-	nbs->setSubSample(3);
+	//nbs->setSubSample(3);
 	nbs->Update();
 
 	auto ids = vtkSmartPointer<vtkIdTypeArray>::New();
@@ -76,11 +77,12 @@ ParamVisualizerWindVec::ParamVisualizerWindVec(const std::string &file, nbsMetad
 
 	auto downScale = 10;
 
+
 	// Set values
 	for (unsigned int ix = 0; ix < width/downScale; ++ix)
 		for (unsigned int iy = 0; iy < width / downScale; ++iy)
 	{
-		ids->InsertNextValue(ix*downScale + width*iy*downScale);
+		ids->InsertNextValue(width / downScale + ix*downScale + (width / downScale / 2 +  iy*downScale)*width);
 	}
 
 	auto selectionNode = vtkSmartPointer<vtkSelectionNode>::New();
@@ -109,7 +111,10 @@ ParamVisualizerWindVec::ParamVisualizerWindVec(const std::string &file, nbsMetad
 
 	assign->Update();
 
-	assign->GetOutput()->PrintSelf(cout, vtkIndent());
+	auto transform = vtkSmartPointer<vtkTransform>::New();
+
+	transform->Translate(-7.5, 0, 0);
+	transform->Update();
 
 	glypher = vtkGlyph3D::New();
 
@@ -122,7 +127,7 @@ ParamVisualizerWindVec::ParamVisualizerWindVec(const std::string &file, nbsMetad
 	glypher->SetVectorModeToUseVector();
 	glypher->SetScaleModeToDataScalingOff();
 	glypher->SetColorModeToColorByScalar();
-
+	glypher->SetSourceTransform(transform);
 
 	streamer = vtkStreamTracer::New();
 
@@ -151,9 +156,9 @@ ParamVisualizerWindVec::ParamVisualizerWindVec(const std::string &file, nbsMetad
 
 
 	//colors
-	map->SetScalarRange(0,70);
+	map->SetScalarRange(0,150);
 	map->SetColorModeToMapScalars();
-	map->SetLookupTable(VisualizerFactory::blueToRedColor(0, 70) );
+	map->SetLookupTable(VisualizerFactory::blueToRedColor(0, 150) );
 
 	act = vtkActor::New();
 	act->SetMapper(map);

@@ -87,7 +87,9 @@ public:
 	inline nbsMetadata& getMeta() {
 		return *meta;
 	}
-
+	inline int getParam() {
+		return param;
+	}
 protected:
 	virtual newBaseSourcer::~newBaseSourcer();
 	newBaseSourcer(const newBaseSourcer &copy) = delete;

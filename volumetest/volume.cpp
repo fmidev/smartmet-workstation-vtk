@@ -44,20 +44,23 @@
 #include <NFmiFastQueryInfo.h>
 #include <NFmiParameterName.h>
 
+#include <vtkTransform.h>
+#include <vtkPolyDataNormals.h>
+#include <vtkTransformPolyDataFilter.h>
+
 #include "fmiVisInteractor.h"
 
 
 #include "VisualizerManager.h"
 #include "VisualizerFactory.h"
 
-#include "CreateHeightdata.h"
-
 #include "TimeAnimator.h"
 
 #include "Windbarb.h"
 #include "ParamVisualizerWindVec.h"
+#include "ParamVisualizerSurf.h"
 
-
+#include "nbsSurface.h"
 
 
 static std::string *newBaseFile;
@@ -166,7 +169,15 @@ int main(int argc, char *argv[])
 		argv[1]
 	);
 
+	std::string surfFile;
 
+	for (int i = 1; i < argc; i++) {
+		if (strcmp(argv[i], "-s") == 0) {
+			if (i < argc - 1)
+				surfFile = std::string{ argv[i + 1] };
+			else cout << "Usage: -s <surface data file>" << endl;
+		}
+	}
 
 	VisualizerManager vm {ren1};
 
@@ -223,7 +234,9 @@ int main(int argc, char *argv[])
 	mapReader->Update();
 
 	auto texture = vtkSmartPointer<vtkTexture>::New();
-	texture->SetInputConnection(mapReader->GetOutputPort());
+	texture->SetInputData(mapReader->GetOutput());
+	texture->SetInterpolate(true);
+	texture->Update();
 
 	double* volumeBounds = new double[6];
 	volumeBounds = cubeAxesActor->GetBounds();
@@ -232,29 +245,37 @@ int main(int argc, char *argv[])
 	planeScale[0] = volumeBounds[1] - volumeBounds[0];
 	planeScale[1] = volumeBounds[2] - volumeBounds[3];
 
-	cout << "Generating heightmap..." << endl;
 
-	auto planeData = CreateHeightdata(file);
+	auto mapNbs = new nbsSurface(file,&meta,1);
 
-	auto texturePlane = vtkSmartPointer<vtkTextureMapToPlane>::New();
-	texturePlane->SetInputData( planeData );
+	mapNbs->Update();
 
-	auto planeMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	auto mapTransform = vtkSmartPointer<vtkTransform>::New();
 
-	planeMapper->SetInputData(planeData);
+	mapTransform->Scale(1, 1, 0.9);
 
-	//double* planePos = new double[2];
-	//planePos[0] = planeBounds[1] / 2.0;
-	//planePos[1] = planeBounds[3] / 2.0;
+	auto mapTransformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+	
+	mapTransformFilter->SetInputData(mapNbs->GetOutput());
+	mapTransformFilter->SetTransform(mapTransform);
 
+	mapTransformFilter->Update();
+
+	auto normals = vtkSmartPointer<vtkPolyDataNormals>::New();
+	normals->SetInputData(mapTransformFilter->GetOutput());
+
+	normals->Update();
+
+	auto mapMap = vtkSmartPointer<vtkPolyDataMapper>::New();
+	mapMap->SetInputData(normals->GetOutput());
+	mapMap->SetScalarVisibility(false);
+	mapMap->Update();
 
 	auto texturedPlane = vtkSmartPointer<vtkActor>::New();
-	texturedPlane->SetMapper(planeMapper);
+	texturedPlane->SetMapper(mapMap);
 	texturedPlane->SetTexture(texture);
-
-	texturedPlane->SetMapper(planeMapper);
-	texturedPlane->SetDragable(false);
 	texturedPlane->SetPickable(false);
+	texturedPlane->SetDragable(false);
 
 	ren1->AddActor(texturedPlane);
 
@@ -288,8 +309,8 @@ int main(int argc, char *argv[])
 	planeWidget->SetResolution(80);
 	planeWidget->SetRepresentationToOutline();
 	planeWidget->SetNormalToZAxis(true);
-	planeWidget->SetProp3D(texturedPlane);
-	planeWidget->SetCenter(80, 80, 80);
+	planeWidget->SetPoint1(40, 0, 0);
+	planeWidget->SetPoint2(0, 40, 0);
 	planeWidget->GetHandleProperty()->SetPointSize(0.2);
 	planeWidget->GetSelectedHandleProperty()->SetPointSize(0.1);
 
@@ -312,6 +333,14 @@ int main(int argc, char *argv[])
 		std::pair<int,std::string>(kFmiWindSpeedMS,"kFmiWindSpeedMS"),
 		std::pair<int,std::string>(kFmiVerticalVelocityMMS,"kFmiVerticalVelocityMMS"),
 	};
+	std::map<int, std::string> paramsSurf = {
+		std::pair<int,std::string>(kFmiPressure,"kFmiPressure"),
+		std::pair<int,std::string>(kFmiTemperature,"kFmiTemperature"),
+		std::pair<int,std::string>(kFmiHumidity,"kFmiHumidity"),
+		std::pair<int,std::string>(kFmiWindSpeedMS,"kFmiWindSpeedMS"),
+		std::pair<int,std::string>(kFmiTotalCloudCover,"kFmiTotalCloudCover"),
+		std::pair<int,std::string>(kFmiPrecipitation1h,"kFmiPrecipitation1h"),
+	};
 	std::map<int, visID> paramVID;
 
 	std::vector<vtkSmartPointer<vtkTextActor> > textActs;
@@ -322,12 +351,37 @@ int main(int argc, char *argv[])
 	int *winSize = ren1->GetSize();
 
 
+
+	auto t = vtkSmartPointer<vtkTextActor>::New();
+	auto s = std::ostringstream{};
+
+	
+	int i = 0;
+	for (i = file.length() - 1; i >= 0; --i)
+		if (file[i] == '/' || file[i] == '\\') break;
+
+	s<<file.substr(i+1);
+
+	t->SetInput(s.str().c_str());
+
+	t->GetTextProperty()->SetColor(0.1, 0.1, 0.1);
+
+
+	t->GetTextProperty()->SetFontSize(8);
+
+	t->SetTextScaleModeToViewport();
+	t->SetDisplayPosition(10, winSize[1] - 20);
+
+	ren1->AddActor2D(t);
+
+
 	visID vid = vm.AddVisualizer(std::make_unique<ParamVisualizerWindVec>(file, meta, planeWidget->GetPolyDataAlgorithm()->GetOutputPort()));
 	paramVID.insert(std::pair<int, visID>(ParamVisualizerWindVec::PARAM_WINDVEC, vid));
 
 
-	auto t = vtkSmartPointer<vtkTextActor>::New();
-	std::ostringstream s;
+    t = vtkSmartPointer<vtkTextActor>::New();
+	s = std::ostringstream{};
+
 	s << int(vid + 1) << ": " << "Wind vectors";
 	t->SetInput(s.str().c_str());
 	textActs.push_back(t);
@@ -338,20 +392,26 @@ int main(int argc, char *argv[])
 	t->GetTextProperty()->SetFontSize(7);
 
 	t->SetTextScaleModeToViewport();
-	t->SetDisplayPosition(10, winSize[1] - 20 - 10 * vid);
+	t->SetDisplayPosition(10, winSize[1] - 40 - 10 * vid);
 
 	ren1->AddActor2D(t);
+
+	double range[2] = { -40,40 };
 
 
 	for (auto &parampair : params3D) {
 		if (dataInfo.Param(FmiParameterName(parampair.first) ) ) {
 			visID vid = vm.AddVisualizer(VisualizerFactory::make3DVisualizer(file, meta, parampair.first));
-			if (vid == -1) continue;
+			if (vid == -1)
+			{
+				cout << "Failed to construct visualizer for " << parampair.second << endl;
+				continue;
+			}
 			paramVID.insert(std::pair<int, visID>(parampair.first, vid));
 
 
-			auto t = vtkSmartPointer<vtkTextActor>::New();
-			std::ostringstream s;
+			t = vtkSmartPointer<vtkTextActor>::New();
+			s = std::ostringstream{};
 			s << int(vid+1) << ": " << parampair.second;
 			t->SetInput(s.str().c_str());
 			textActs.push_back(t);
@@ -362,7 +422,7 @@ int main(int argc, char *argv[])
 			t->GetTextProperty()->SetFontSize(7);
 
 			t->SetTextScaleModeToViewport();
-			t->SetDisplayPosition(10, winSize[1]-20 - 10 * vid);
+			t->SetDisplayPosition(10, winSize[1]-40 - 10 * vid);
 
 			ren1->AddActor2D(t);
 		}
@@ -373,13 +433,17 @@ int main(int argc, char *argv[])
 	for (auto &parampair : params2D) {
 		if (dataInfo.Param(FmiParameterName(parampair.first))) {
 			visID vid = vm.AddVisualizer(VisualizerFactory::make2DVisualizer(file, meta, planeWidget->GetPolyDataAlgorithm()->GetOutputPort(),vm.GetLabeler(), parampair.first));
-			if (vid == -1) continue;
+			if (vid == -1)
+			{
+				cout << "Failed to construct visualizer for " << parampair.second << endl;
+				continue;
+			}
 			paramVID.insert(std::pair<int, visID>(parampair.first, vid));
 			vm.SetCrop(vid, false);
 
 
-			auto t = vtkSmartPointer<vtkTextActor>::New();
-			std::ostringstream s;
+			t = vtkSmartPointer<vtkTextActor>::New();
+			s = std::ostringstream{};
 			s << int(vid+1) << ": " << parampair.second;
 			t->SetInput(s.str().c_str());
 			textActs.push_back(t);
@@ -388,12 +452,46 @@ int main(int argc, char *argv[])
 
 
 			t->SetTextScaleModeToViewport();
-			t->SetDisplayPosition(10, winSize[1]-20 - 10 * vid);
+			t->SetDisplayPosition(10, winSize[1]-40 - 10 * vid);
 			
 
 			ren1->AddActor2D(t);
 		}
 	}
+
+
+	if (surfFile.length() > 0) {
+
+		for (auto &parampair : paramsSurf) {
+			if (dataInfo.Param(FmiParameterName(parampair.first))) {
+				visID vid = vm.AddVisualizer(VisualizerFactory::makeSurfVisualizer(surfFile, meta, vm.GetLabeler(), parampair.first));
+				if (vid == -1)
+				{
+					cout << "Failed to construct visualizer for " << parampair.second << endl;
+					continue;
+				}
+				paramVID.insert(std::pair<int, visID>(parampair.first, vid));
+				vm.SetCrop(vid, false);
+
+
+				t = vtkSmartPointer<vtkTextActor>::New();
+				s = std::ostringstream{};
+				s << int(vid + 1) << ": " << parampair.second << " ( Surface )";
+				t->SetInput(s.str().c_str());
+				textActs.push_back(t);
+				t->GetTextProperty()->SetColor(0.2, 0.2, 0.2);
+				t->GetTextProperty()->SetFontSize(7);
+
+
+				t->SetTextScaleModeToViewport();
+				t->SetDisplayPosition(10, winSize[1] - 40 - 10 * vid);
+
+
+				ren1->AddActor2D(t);
+			}
+		}
+	}
+	else cout << "No surface file specified" << endl;
 
 	style->setVisTexts(&textActs);
 

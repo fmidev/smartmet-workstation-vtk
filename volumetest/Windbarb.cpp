@@ -46,7 +46,7 @@ vtkSmartPointer<vtkPolyData> CreateWindbarb(float val, float size) {
 
 	double z = 0;
 
-	val *= 2; // m/s to knots
+	val *= 0.5f; // m/s to knots
 
 	while (val >= 5.0f) {
 		if (val >= 50.0f) {
@@ -122,10 +122,9 @@ vtkSmartPointer<vtkPolyData> CreateWindbarb(float val, float size) {
 
 	auto transform = vtkTransform::New();
 
-	transform->Translate(0, 0, -0.75);
-
-	transform->Scale(size, size, size);
 	transform->RotateY(90);
+	transform->Scale(size, size, size);
+
 	auto transformFilter = vtkTransformPolyDataFilter::New();
 	transformFilter->SetInputData(append->GetOutput());
 
@@ -153,5 +152,5 @@ vtkSmartPointer<vtkPolyData> CreateWindbarb(float val, float size) {
 
 void GenerateBarbs(vtkGlyph3D *glyph,float size) {
 	for (int i = 0; i < 30; ++i) glyph->SetSourceData(i, CreateWindbarb(i * 5, size));
-	glyph->SetRange(0, 150);
+	glyph->SetRange(0, 80);
 }

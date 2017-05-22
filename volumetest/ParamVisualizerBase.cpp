@@ -12,8 +12,8 @@ ParamVisualizerBase::ParamVisualizerBase(const std::string &file, nbsMetadata &m
 	cout << "Initializing visualizer for param " << param << endl;
 }
 
-ParamVisualizerBase::ParamVisualizerBase(newBaseSourcer *nbs) :
-	nbs(nbs), meta( nbs->getMeta() ), activeMapper(nullptr),
+ParamVisualizerBase::ParamVisualizerBase( vtkAlgorithm *nbs, nbsMetadata &m, int param) :
+	nbs(nbs), meta( m ), activeMapper(nullptr),
 	filters(), prop(nullptr), crop(true), enabled(false), param(param)
 {
 
@@ -49,7 +49,7 @@ void ParamVisualizerBase::UpdateTimeStep(double t)
 {
 	nbs->UpdateTimeStep(t);
 	for (auto &filter : filters) {
-		cout << "Updating filter " << filter->GetClassName() << endl;
+		//cout << "Updating filter " << filter->GetClassName() << endl;
 		filter->UpdateTimeStep(t);
 	}
 }
