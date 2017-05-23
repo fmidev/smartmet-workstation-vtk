@@ -355,6 +355,10 @@ int main(int argc, char *argv[])
 	auto t = vtkSmartPointer<vtkTextActor>::New();
 	auto s = std::ostringstream{};
 
+	auto textSize = 14;
+	auto textVOff = winSize[1] - 50;
+	auto textVSpacing = -16;
+
 	
 	int i = 0;
 	for (i = file.length() - 1; i >= 0; --i)
@@ -367,10 +371,10 @@ int main(int argc, char *argv[])
 	t->GetTextProperty()->SetColor(0.1, 0.1, 0.1);
 
 
-	t->GetTextProperty()->SetFontSize(8);
+	t->GetTextProperty()->SetFontSize(20);
 
-	t->SetTextScaleModeToViewport();
-	t->SetDisplayPosition(10, winSize[1] - 20);
+	//t->SetTextScaleModeToViewport();
+	t->SetDisplayPosition(10, winSize[1] - 25);
 
 	ren1->AddActor2D(t);
 
@@ -389,10 +393,10 @@ int main(int argc, char *argv[])
 	t->GetTextProperty()->SetColor(0.8, 0.8, 0.8);
 	
 
-	t->GetTextProperty()->SetFontSize(7);
+	t->GetTextProperty()->SetFontSize(textSize);
 
-	t->SetTextScaleModeToViewport();
-	t->SetDisplayPosition(10, winSize[1] - 40 - 10 * vid);
+	//t->SetTextScaleModeToViewport();
+	t->SetDisplayPosition(10,textVOff + textVSpacing * vid);
 
 	ren1->AddActor2D(t);
 
@@ -419,10 +423,10 @@ int main(int argc, char *argv[])
 			t->GetTextProperty()->SetColor(0.2, 0.2, 0.2);
 
 
-			t->GetTextProperty()->SetFontSize(7);
+			t->GetTextProperty()->SetFontSize(textSize);
 
-			t->SetTextScaleModeToViewport();
-			t->SetDisplayPosition(10, winSize[1]-40 - 10 * vid);
+			//t->SetTextScaleModeToViewport();
+			t->SetDisplayPosition(10, textVOff + textVSpacing * vid);
 
 			ren1->AddActor2D(t);
 		}
@@ -448,17 +452,18 @@ int main(int argc, char *argv[])
 			t->SetInput(s.str().c_str());
 			textActs.push_back(t);
 			t->GetTextProperty()->SetColor(0.2, 0.2, 0.2);
-			t->GetTextProperty()->SetFontSize(7);
+			t->GetTextProperty()->SetFontSize(textSize);
 
 
-			t->SetTextScaleModeToViewport();
-			t->SetDisplayPosition(10, winSize[1]-40 - 10 * vid);
+			//t->SetTextScaleModeToViewport();
+			t->SetDisplayPosition(10, textVOff + textVSpacing * vid);
 			
 
 			ren1->AddActor2D(t);
 		}
 	}
 
+	surfFile = file;
 
 	if (surfFile.length() > 0) {
 
@@ -480,11 +485,11 @@ int main(int argc, char *argv[])
 				t->SetInput(s.str().c_str());
 				textActs.push_back(t);
 				t->GetTextProperty()->SetColor(0.2, 0.2, 0.2);
-				t->GetTextProperty()->SetFontSize(7);
+				t->GetTextProperty()->SetFontSize(textSize);
 
 
-				t->SetTextScaleModeToViewport();
-				t->SetDisplayPosition(10, winSize[1] - 40 - 10 * vid);
+				//t->SetTextScaleModeToViewport();
+				t->SetDisplayPosition(10, textVOff + textVSpacing * vid);
 
 
 				ren1->AddActor2D(t);
@@ -525,7 +530,7 @@ int main(int argc, char *argv[])
 
 
 	sliderRep->GetTitleProperty()->SetColor(0.2, 0.2, 0.9);
-	sliderRep->GetTitleProperty()->SetFontSize(10);
+	sliderRep->GetTitleProperty()->SetFontSize(16);
 	sliderRep->GetTitleProperty()->BoldOff();
 	sliderRep->GetTitleProperty()->ShadowOff();
 

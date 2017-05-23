@@ -48,10 +48,9 @@ TimeAnimator::TimeAnimator(vtkRenderWindow *renderWin, vtkSliderWidget *slider, 
 	timeText = vtkTextActor::New();
 	
 
-	timeText->GetTextProperty()->SetFontSize(10);
+	timeText->GetTextProperty()->SetFontSize(20);
 
-	timeText->SetTextScaleModeToViewport();
-	timeText->SetDisplayPosition(winSize[0]-360, 35);
+	timeText->SetDisplayPosition(winSize[0]-380, 35);
 
 	ren->AddActor2D(timeText);
 

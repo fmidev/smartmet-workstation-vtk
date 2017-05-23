@@ -115,7 +115,7 @@ void VisualizerFactory::init() {
 		greenToRedColor(0, 80),
 		opacityFunction(0, 80, 20),
 		{ 1,0,1 },
-		35,
+		50,
 		1
 		}));
 
