@@ -145,8 +145,8 @@ ParamVisualizerWindVec::ParamVisualizerWindVec(const std::string &file, nbsMetad
 	tuber->SetVaryRadiusToVaryRadiusByVector();
 
 	//streamline width
-	tuber->SetRadius(0.3);
-	tuber->SetRadiusFactor(6);
+	tuber->SetRadius(1);
+	tuber->SetRadiusFactor(4);
 
 	tuber->SetNumberOfSides(4);
 

@@ -84,6 +84,7 @@ void fmiVisInteractor::OnKeyRelease()
 			}
 		}
 
+	rwi->Render();
 
 	// cout << "Pressed key " << (ctrl ? "ctrl+" : std::string()) << ", sym " << s << endl;
 }

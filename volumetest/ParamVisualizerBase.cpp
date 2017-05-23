@@ -34,9 +34,14 @@ void ParamVisualizerBase::SetActiveMapper(vtkAbstractMapper *m)
 
 void ParamVisualizerBase::SetProp(vtkProp *p)
 {
-	if (prop) prop->SetVisibility(false);
+
+	bool vis = false;
+	if (prop){
+		vis = prop->GetVisibility();
+		prop->SetVisibility(false);
+	}
 	prop = p;
-	prop->SetVisibility(true);
+	prop->SetVisibility(vis);
 }
 
 void ParamVisualizerBase::CropMapper(vtkPlanes* p)
