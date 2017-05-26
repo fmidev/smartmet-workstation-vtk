@@ -1,6 +1,9 @@
 #include "ParamVisualizer3D.h"
 
 #include <vtkContourFilter.h>
+#include <vtkPolyDataNormals.h>;
+#include <vtkCleanPolyData.h>;
+
 #include <vtkSmartVolumeMapper.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProp.h>
@@ -22,8 +25,6 @@ void ParamVisualizer3D::ModeVolume() {
 
 	filters.clear();
 
-	filters.push_back(volMap);
-
 	SetActiveMapper(volMap);
 
 	SetProp(volAct);
@@ -36,7 +37,7 @@ void ParamVisualizer3D::ModeContour() {
 	filters.clear();
 
 	filters.push_back(contourFilter);
-	filters.push_back(polyMap);
+	filters.push_back(cleanFilter);
 
 	SetActiveMapper(polyMap);
 
@@ -48,13 +49,14 @@ ParamVisualizer3D::ParamVisualizer3D(const std::string & file, nbsMetadata & m, 
 	polyMap(vtkPolyDataMapper::New()),
 	volMap(vtkSmartVolumeMapper::New()),
 	contourFilter(vtkContourFilter::New()),
+	cleanFilter(vtkCleanPolyData::New()),
 	volProperty(vtkVolumeProperty::New()),
 	volAct(vtkVolume::New()),
 	polyAct(vtkActor::New())
 {
 	volMap->SetBlendModeToComposite();
 	volMap->SetRequestedRenderModeToGPU();
-	volMap->SetMaxMemoryInBytes(4e9);
+	volMap->SetMaxMemoryInBytes(2e9);
 
 	volProperty->ShadeOff();
 
@@ -72,13 +74,21 @@ ParamVisualizer3D::ParamVisualizer3D(const std::string & file, nbsMetadata & m, 
 
 	contourFilter->SetUseScalarTree(true);
 
-	polyMap->SetInputConnection(contourFilter->GetOutputPort());
+	cleanFilter->SetInputConnection(contourFilter->GetOutputPort());
+
+	polyMap->SetInputConnection(cleanFilter->GetOutputPort());
 	polyMap->ScalarVisibilityOff();
 
 	polyAct->SetMapper(polyMap);
 	polyAct->GetProperty()->SetColor(contourColor);
 	polyAct->GetProperty()->SetOpacity(contourOpacity);
+	polyAct->GetProperty()->FrontfaceCullingOff();
+	polyAct->GetProperty()->BackfaceCullingOff();
 
+	polyAct->SetBackfaceProperty(polyAct->GetProperty());
+	polyAct->GetBackfaceProperty()->SetOpacity(1);
+
+	mode = false;
 	ModeVolume();
 }
 

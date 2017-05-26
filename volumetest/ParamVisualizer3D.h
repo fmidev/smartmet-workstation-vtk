@@ -8,6 +8,7 @@
 class vtkPolyDataMapper;
 class vtkSmartVolumeMapper;
 class vtkContourFilter;
+class vtkCleanPolyData;
 class vtkColorTransferFunction;
 class vtkVolumeProperty;
 class vtkPiecewiseFunction;
@@ -20,7 +21,9 @@ class ParamVisualizer3D : public ParamVisualizerBase {
 protected:
 	vtkPolyDataMapper *polyMap;
 	vtkSmartVolumeMapper *volMap;
+
 	vtkContourFilter *contourFilter;
+	vtkCleanPolyData *cleanFilter;
 
 	vtkVolumeProperty *volProperty;
 

@@ -63,4 +63,5 @@ void ParamVisualizerBase::UpdateTimeStep(double t)
 		//cout << "Updating filter " << filter->GetClassName() << endl;
 		filter->UpdateTimeStep(t);
 	}
+	activeMapper->UpdateTimeStep(t);
 }

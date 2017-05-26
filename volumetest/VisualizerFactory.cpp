@@ -126,7 +126,7 @@ void VisualizerFactory::init() {
 		opacityFunction(0, 100, 20),
 		{ 0.6,0.6,0.6 },
 		50,
-		0.8
+		0.6
 		}));
 
 	config3D.insert(std::pair<int, Vis3DParams>(
