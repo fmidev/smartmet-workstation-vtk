@@ -1,7 +1,14 @@
 #include "VisualizerManager.h"
 
+
 #include <vtkRenderer.h>
 #include <vtkRenderWindow.h>
+
+#include <vtkScalarBarWidget.h>
+#include <vtkScalarBarActor.h>
+#include <vtkScalarBarRepresentation.h>
+#include <vtkScalarsToColors.h>
+#include <vtkColorTransferFunction.h>
 
 #include "ParamVisualizerBase.h"
 
@@ -9,14 +16,28 @@
 
 #include "ContourLabeler.h"
 
+
+#include "VisualizerFactory.h"
+
 VisualizerManager::VisualizerManager(vtkSmartPointer<vtkRenderer> ren, float zHeight /*= 13000*/) :
 	renderer(ren),
 	visualizers(),
 	labeler(std::make_unique<ContourLabeler>(ren)),
+	legend(vtkSmartPointer<vtkScalarBarWidget>::New()),
 	meta(),
 	prevTime(0)
 {
 	meta.maxH = zHeight;
+
+
+	legend->GetScalarBarRepresentation()->SetPosition(0.92, 0.1);
+	legend->GetScalarBarRepresentation()->SetPosition2(0.08, 0.8);
+	legend->GetScalarBarRepresentation()->SetAutoOrient(false);
+
+
+	legend->SetInteractor(ren->GetRenderWindow()->GetInteractor());
+
+
 }
 VisualizerManager::~VisualizerManager() {};
 visID VisualizerManager::AddVisualizer(std::unique_ptr<ParamVisualizerBase> v)
@@ -33,8 +54,17 @@ visID VisualizerManager::AddVisualizer(std::unique_ptr<ParamVisualizerBase> v)
 
 void VisualizerManager::EnableVis(visID vid)
 {
-	if (vid < visualizers.size())
+	if (vid < visualizers.size()) {
+
 		visualizers[vid]->EnableActor();
+
+		if (visualizers[vid]->getColor()) {
+			legend->GetScalarBarActor()->SetLookupTable( visualizers[vid]->getColor() );
+			legend->GetScalarBarActor()->GetLookupTable()->SetRange(visualizers[vid]->getRange());
+			legend->EnabledOn();
+		}
+
+	}
 	Update();
 }
 
@@ -49,10 +79,9 @@ void VisualizerManager::ToggleVis(visID vid)
 {
 	if (vid < visualizers.size())
 		if (visualizers[vid]->IsEnabled())
-			visualizers[vid]->DisableActor();
+			DisableVis(vid);
 		else
-			visualizers[vid]->EnableActor();
-	Update();
+			EnableVis(vid);
 }
 
 bool VisualizerManager::IsEnabled(visID vid)

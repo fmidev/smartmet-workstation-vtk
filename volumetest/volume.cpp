@@ -416,7 +416,7 @@ int main(int argc, char *argv[])
 
 			t = vtkSmartPointer<vtkTextActor>::New();
 			s = std::ostringstream{};
-			s << int(vid+1) << ": " << parampair.second;
+			s << int(vid+1) << ": " << parampair.second << " ( Volume )";
 			t->SetInput(s.str().c_str());
 			textActs.push_back(t);
 
@@ -448,7 +448,7 @@ int main(int argc, char *argv[])
 
 			t = vtkSmartPointer<vtkTextActor>::New();
 			s = std::ostringstream{};
-			s << int(vid+1) << ": " << parampair.second;
+			s << int(vid+1) << ": " << parampair.second<<" ( Planar )";
 			t->SetInput(s.str().c_str());
 			textActs.push_back(t);
 			t->GetTextProperty()->SetColor(0.2, 0.2, 0.2);
@@ -463,7 +463,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	surfFile = file;
+	//surfFile = file;
 
 	if (surfFile.length() > 0) {
 

@@ -87,6 +87,14 @@ void ParamVisualizerSurf::UpdateTimeStep(double t) {
 	}
 }
 
+
+vtkScalarsToColors  * ParamVisualizerSurf::getColor() {
+	return polyMap->GetLookupTable();
+}
+double * ParamVisualizerSurf::getRange() {
+	return polyMap->GetScalarRange();
+}
+
 ParamVisualizerSurf::ParamVisualizerSurf(const std::string & file, nbsMetadata & m,
 	int param, vtkSmartPointer<vtkColorTransferFunction> contourColors,
 	ContourLabeler &labeler, double range[2], int numContours) :
@@ -109,9 +117,9 @@ ParamVisualizerSurf::ParamVisualizerSurf(const std::string & file, nbsMetadata &
 
 	polyMap = vtkPolyDataMapper::New();
 
-	polyMap->SetScalarRange(-40, 40);
+	polyMap->SetScalarRange(range);
 	polyMap->SetColorModeToMapScalars();
-	polyMap->SetLookupTable(VisualizerFactory::blueToRedColor(-40, 40));
+	polyMap->SetLookupTable(contourColors);
 
 	polyMap->SelectColorArray("Scalars");
 

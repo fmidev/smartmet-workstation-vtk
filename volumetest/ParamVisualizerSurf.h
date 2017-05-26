@@ -42,6 +42,8 @@ public:
 
 	virtual void UpdateTimeStep(double t) override;
 
+	vtkScalarsToColors  * getColor();
+	double * getRange();
 
 
 	virtual inline void ToggleMode() {

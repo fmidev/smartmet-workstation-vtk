@@ -102,8 +102,9 @@ ParamVisualizer2D::ParamVisualizer2D(const std::string & file, nbsMetadata & m,
 
 	contourStripper->SetInputConnection(contourFilter->GetOutputPort());
 
-	polyMap->SetScalarRange(range[0], range[1]);
+
 	polyMap->SetLookupTable(contourColors);
+	polyMap->SetScalarRange(range[0], range[1]);
 
 	SetActiveMapper(polyMap);
 
@@ -114,6 +115,14 @@ ParamVisualizer2D::ParamVisualizer2D(const std::string & file, nbsMetadata & m,
 	SetProp(polyAct);
 
 	ModeColorContour();
+}
+
+
+vtkScalarsToColors  * ParamVisualizer2D::getColor() {
+	return polyMap->GetLookupTable();
+}
+double * ParamVisualizer2D::getRange() {
+	return polyMap->GetScalarRange();
 }
 
 ParamVisualizer2D::~ParamVisualizer2D() {

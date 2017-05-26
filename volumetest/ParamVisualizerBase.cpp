@@ -1,7 +1,13 @@
 #include "ParamVisualizerBase.h"
 
 #include <vtkAbstractMapper.h>
+
+
+#include "vtkColorTransferFunction.h"
+
+
 #include "newBaseSourcer.h"
+
 
 
 ParamVisualizerBase::ParamVisualizerBase(const std::string &file, nbsMetadata &m, int param) :

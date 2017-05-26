@@ -12,9 +12,12 @@
 
 class vtkRenderer;
 class ContourLabeler;
+class vtkPlanes;
+class vtkScalarBarWidget;
+
 
 struct nbsMetadata;
-class vtkPlanes;
+
 
 typedef size_t visID;
 
@@ -22,6 +25,8 @@ class VisualizerManager {
 	std::vector<std::unique_ptr<ParamVisualizerBase> > visualizers;
 	vtkSmartPointer<vtkRenderer> renderer;
 	std::unique_ptr<ContourLabeler> labeler;
+
+	vtkSmartPointer<vtkScalarBarWidget> legend;
 
 	nbsMetadata meta;
 

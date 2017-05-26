@@ -12,6 +12,7 @@
 class vtkAbstractMapper;
 class vtkAlgorithm;
 class vtkPlanes;
+class vtkScalarsToColors;
 
 class ParamVisualizerBase {
 private:
@@ -58,6 +59,9 @@ public:
 		if (prop) prop->SetVisibility(false);
 
 	}
+
+	virtual vtkScalarsToColors  * getColor() { return nullptr;  }
+	virtual double * getRange() { return nullptr; }
 
 	inline bool IsEnabled() {
 		return enabled;
