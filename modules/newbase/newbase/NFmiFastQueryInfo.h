@@ -8,6 +8,8 @@
 #ifndef NFMIFASTQUERYINFO_H
 #define NFMIFASTQUERYINFO_H
 
+#include <vector>
+
 #include "NFmiQueryInfo.h"
 #include "NFmiDataMatrix.h"
 
@@ -169,6 +171,10 @@ class _FMI_DLL NFmiFastQueryInfo : public NFmiQueryInfo
 
   // 12.09.2013 Anssi.R changed method to virtual to be able to override in NFmiMultiQueryInfo
   virtual void Values(NFmiDataMatrix<float> &theMatrix, const NFmiMetTime &theInterpolatedTime);
+
+  // 31.5.2017 Tavi high performance bulk query
+  bool GetValues(size_t startIndex, size_t step, size_t count, std::vector<float> &values) const noexcept;
+  bool GetLevelToVec(std::vector<float> &values) noexcept;
 
   void LandscapeValues(NFmiDataMatrix<float> &theMatrix,
                        const NFmiDataMatrix<float> &theDEMMatrix,
@@ -490,6 +496,8 @@ class _FMI_DLL NFmiFastQueryInfo : public NFmiQueryInfo
                                    const NFmiDataMatrix<float> &lapseRateMatrix,
                                    const NFmiDataMatrix<float> &maskMatrix);
 
+
+
  protected:
   size_t Index(void) const;
 
@@ -785,6 +793,39 @@ inline bool NFmiFastQueryInfo::FirstTime(void)
 inline float NFmiFastQueryInfo::IndexFloatValue(size_t theIndex) const
 {
   return itsRefRawData ? itsRefRawData->GetValue(theIndex) : kFloatMissing;
+}
+
+
+// ----------------------------------------------------------------------
+/*!
+* \param startIndex Undocumented
+* \param step Undocumented
+* \param count Undocumented
+* \param values Vector to fill (and resize to count elements) with values startIndex, startIndex+step, startIndex+step*2, ..., startIndex+step*(count-1) - current iterators are invalidated by the resizing!
+* \return false if out-of-range, true otherwise
+*/
+// ----------------------------------------------------------------------
+inline bool NFmiFastQueryInfo::GetValues(size_t startIndex, size_t step, size_t count, std::vector<float> &values) const noexcept
+{
+	return itsRefRawData ? itsRefRawData->GetValues(startIndex, step, count, values) : false;
+}
+
+
+
+inline bool NFmiFastQueryInfo::GetLevelToVec(std::vector<float> &values) noexcept
+{
+
+	FirstLocation();
+	size_t startIndex = Index();
+	size_t step = SizeTimes()*SizeLevels();
+	size_t count = SizeLocations();
+	
+	if(!GetValues(startIndex, step, count, values)) {
+		//std::cout << __FUNCTION__ << '(' << startIndex << ',' << step << ',' << count << ',' << &values << ") out of bounds!" << std::endl;
+		return false;
+	}
+
+	return true;
 }
 
 // ----------------------------------------------------------------------

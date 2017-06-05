@@ -46,6 +46,9 @@ typedef FooBar WriteLock;
 typedef boost::iostreams::mapped_file_params MappedFileParams;
 typedef boost::iostreams::mapped_file MappedFile;
 
+typedef std::vector<float> FloatVector;
+typedef std::vector<float>::iterator FloatIterator;
+
 using namespace std;
 
 // ----------------------------------------------------------------------
@@ -69,6 +72,10 @@ class NFmiRawData::Pimple
             bool fInitialize);
   size_t Size() const;
   float GetValue(size_t index) const;
+
+
+  bool GetValues(size_t startIndex, size_t step, size_t count, FloatVector &values) const noexcept;
+
   bool SetValue(size_t index, float value);
   void SetBinaryStorage(bool flag) const;
   bool IsBinaryStorageUsed() const;
@@ -439,6 +446,42 @@ float NFmiRawData::Pimple::GetValue(size_t index) const
   return ptr[index];
 }
 
+
+bool NFmiRawData::Pimple::GetValues(size_t startIndex, size_t step, size_t count, FloatVector &values) const noexcept
+{
+	if (startIndex < 0
+	|| startIndex + step*count >= itsSize)
+		return false;
+
+
+	try {
+
+		values.resize(count);
+
+
+		const float *ptr = reinterpret_cast<const float *>(itsMappedFile->const_data() + itsOffset);
+
+
+		{   ReadLock lock(itsMutex);
+
+		int i = 0;
+		std::generate (  values.begin(), values.end(), [&] { return ptr[startIndex + (i++)*step]; });
+
+
+		}
+
+
+	}
+	catch (std::exception e) {
+		cout << __FUNCTION__ << '(' << startIndex << ',' << step << ',' << count << ',' << &values << ')'
+			<< ": swallowed exception " << e.what() << endl;
+		return false;
+	}
+
+	return true;
+}
+
+
 // ----------------------------------------------------------------------
 /*!
  * \brief Set value
@@ -645,6 +688,15 @@ size_t NFmiRawData::Size() const { return itsPimple->Size(); }
 // ----------------------------------------------------------------------
 
 float NFmiRawData::GetValue(size_t index) const { return itsPimple->GetValue(index); }
+
+// ----------------------------------------------------------------------
+/*!
+* \brief Resizes values (invalidates iterators!!) to count and populates it with values at startIndex, startIndex+step, startIndex+step*2, ..., startIndex+step*count. Returns false if out-of-range, true otherwise.
+*/
+// ----------------------------------------------------------------------
+
+bool NFmiRawData::GetValues(size_t startIndex, size_t step, size_t count, std::vector<float> &values) const  noexcept { return itsPimple->GetValues(startIndex, step, count, values); }
+
 // ----------------------------------------------------------------------
 /*!
  * \brief Set value at given index

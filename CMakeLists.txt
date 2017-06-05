@@ -23,7 +23,7 @@ add_subdirectory(
 )
 
 add_subdirectory(
-	step1
+	testbed
 )
 
 add_subdirectory(

@@ -12,6 +12,7 @@
 #include <string>
 #include <iosfwd>
 #include <string>
+#include <vector>
 
 class _FMI_DLL NFmiRawData
 {
@@ -42,6 +43,7 @@ class _FMI_DLL NFmiRawData
 
   size_t Size() const;
   float GetValue(size_t index) const;
+  bool GetValues(size_t startIndex, size_t step, size_t count, std::vector<float> &values) const noexcept;
   bool SetValue(size_t index, float value);
 
   void SetBinaryStorage(bool flag) const;
