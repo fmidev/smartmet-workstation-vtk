@@ -52,15 +52,10 @@ int main(size_t argc, char* argv[] )
 
 	auto t1 = std::chrono::high_resolution_clock::now();
 
-	info.LastParam();
-	auto last = info.Param();
-	//info.PreviousParam();
-
 	auto pos = values.begin();
 
 	for (info.ResetParam(); info.NextParam(); )
 	{
-		if (info.Param() == last) break;
 		for (info.ResetLevel(); info.NextLevel(); )
 		{
 			for (info.ResetTime(); info.NextTime(); )

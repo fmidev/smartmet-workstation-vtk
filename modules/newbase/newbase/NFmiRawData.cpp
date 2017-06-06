@@ -450,7 +450,7 @@ float NFmiRawData::Pimple::GetValue(size_t index) const
 bool NFmiRawData::Pimple::GetValues(size_t startIndex, size_t step, size_t count, FloatVector &values) const noexcept
 {
 	if (startIndex < 0
-	|| startIndex + step*count >= itsSize)
+	|| startIndex + step*(count-1) >= itsSize)
 		return false;
 
 
