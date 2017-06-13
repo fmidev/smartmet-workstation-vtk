@@ -17,11 +17,12 @@
 
 newBaseSourcer::newBaseSourcer(const std::string &file, nbsMetadata *meta, int param, int res, int sub) :
 	pimpl(std::make_unique <nbsImpl>(file)), meta(meta),
-	im(nullptr), heights(nullptr),
+	im(nullptr), heights(),
 	param(param), prevTime(-1), zRes(res), subSample(sub)
 {
 	SetNumberOfInputPorts(0);
 	zHeight = meta->maxH;
+	ReadHeights(1);
 }
 
 newBaseSourcer::~newBaseSourcer() {}
@@ -126,16 +127,15 @@ int newBaseSourcer::RequestData(vtkInformation* vtkNotUsed(request),
 		auto t0 = std::chrono::system_clock::now();
 
 		//luetaan datapisteiden korkeudet
-		ReadHeights(timeI);
+
 
 		//luetaan parametri
-		LoopParam(param,timeI,[&](int x, int y, int z) {
+		LoopParam(param,timeI,[=,&maxVal,&minVal](int x, int y, int z, float val) {
 					if (meta->hasHeight) {
 						z = getHeight(x, y, z);
 				
 					}
 
-					float val = dataInfo.FloatValue();
 
 					if (z >= sizeZ)
 						z = sizeZ - 1;
@@ -165,7 +165,7 @@ int newBaseSourcer::RequestData(vtkInformation* vtkNotUsed(request),
 		//cout << "interpolating..." << endl;
 
 		unsigned int usedThreadCount = boost::thread::hardware_concurrency();
-		auto threads = std::list<std::shared_future<void>>();
+		auto threads = std::list<std::future<void>>();
 
 		int blockWidth = 3;
 
@@ -199,7 +199,7 @@ int newBaseSourcer::RequestData(vtkInformation* vtkNotUsed(request),
 				while (iter != threads.end())
 				{
 
-					if (iter->wait_for(std::chrono::milliseconds(2)) == std::future_status::ready) {
+					if (iter->valid() && iter->wait_for(std::chrono::milliseconds(1)) == std::future_status::ready) {
 						iter = threads.erase(iter);
 					}
 					else ++iter;
@@ -236,7 +236,7 @@ int newBaseSourcer::RequestData(vtkInformation* vtkNotUsed(request),
 						}
 					}
 				}
-			}).share() );
+			}) );
 		}
 		//for(int i=0;i<zRes;++i)
 		//	cout << "z: "<<i<<" : "<<static_cast<float*>(im->GetScalarPointer(40, 40, i))[0]<<endl;
@@ -270,47 +270,63 @@ int newBaseSourcer::RequestData(vtkInformation* vtkNotUsed(request),
 	return 1;
 }
 
-bool newBaseSourcer::LoopParam(int param,int time, std::function<void(int,int,int)> f) {
+bool newBaseSourcer::LoopParam(int param,int time, std::function<void(int, int, int,float)> f) {
 	NFmiFastQueryInfo &dataInfo = pimpl->dataInfo;
 
 	int sizeX = meta->sizeX / subSample;
 	int sizeY = meta->sizeY / subSample;
 
-	int sizeZ = zRes / subSample;
+	int sizeZ = meta->sizeZ / subSample;
 
 	if (dataInfo.Param(FmiParameterName(param) ) ) {
 
 		dataInfo.TimeIndex(time);
 
 
+
+		static std::vector<float> values;
+
+		dataInfo.GetCube(values);
+
+
 		bool rising = dataInfo.HeightParamIsRising();
 
-		if (rising) dataInfo.ResetLevel();
-		else dataInfo.LastLevel();
+		//if (rising) dataInfo.ResetLevel();
+		//else dataInfo.LastLevel();
 
+ 		int ix = 0, iz;
 
-		int ix, iz = 0;
+		//do {
+			//ix=0;
+			//for (dataInfo.ResetLocation(); dataInfo.NextLocation(); ) {
+			//do {
+
 		do {
+			iz = 0;
+			do {
 
-			ix = 0;
-			for (dataInfo.ResetLocation(); dataInfo.NextLocation(); ) {
 				int x = (ix / subSample) % sizeX;
 				int y = (ix / subSample / sizeX) % sizeY;
+				int z = iz / subSample;
 
-				f(x, y, iz / subSample);
+				float value;
 
-				int sx = 1;
-				while (sx < subSample && dataInfo.NextLocation() 
-				) { sx++; }
-				ix += sx;
-				if (ix / subSample >= sizeX*sizeY) break;
-			}
-			int sz = 1;
-			while (sz < subSample && ((rising && dataInfo.NextLevel()) || (!rising && dataInfo.PreviousLevel()))) { sz++; }
-			iz += sz;
-			if (iz / subSample >= sizeZ) break;
-		} while ((rising && dataInfo.NextLevel()) || (!rising && dataInfo.PreviousLevel()));
-		
+				if (rising) z = sizeZ-1 - z;
+
+				value = values[z + x*sizeZ + y*sizeZ*sizeX];
+
+				f(x, y, z, value);
+
+
+
+			iz += !rising ? subSample : -subSample;
+			} while (iz / subSample < sizeZ);
+
+			ix += subSample;
+			if (ix%sizeX < subSample)
+				ix -= ix%sizeX;
+		} while (ix / subSample < sizeX*sizeY);
+
 	}
 	else {
 		cout << "Failed to find param " << param << std::endl;
@@ -323,9 +339,15 @@ int newBaseSourcer::getHeight(int x, int y, int z) {
 
 	int sizeX = meta->sizeX / subSample;
 	int sizeY = meta->sizeY / subSample;
-	int sizeZ = zRes / subSample;
+	int sizeZ = meta->sizeZ / subSample;
 
-	int ret = std::roundf(heights[x + y*sizeX + z*sizeX*sizeY]);
+
+
+	bool rising = pimpl->dataInfo.HeightParamIsRising();
+
+	if (rising) z = sizeZ-1 - z;
+
+	int ret = std::roundf(heights[z + x*sizeZ + y*sizeZ*sizeX]);
 
 	return ret;
 }
@@ -343,30 +365,50 @@ void newBaseSourcer::ReadHeights(int time) {
 
 	auto &dataInfo = pimpl->dataInfo;
 
-	if(heights==nullptr) AllocateHeights();
-
-	auto loop = [&](int x, int y, int z) {
+	//if(heights==nullptr AllocateHeights();
 
 
-		float val = dataInfo.FloatValue();
+	if (dataInfo.Param(kFmiGeopHeight))
 
-		if (val == kFloatMissing) {
-			val = 0;
-			cout << "Missing height at " << x << ", " << y << ", " << z << endl;
-			return false;
-		}
-
-		float h = (val) / zHeight * float(sizeZ);
-
-		heights[x + y *sizeX + z*sizeX*sizeY] = h;
-	};
-
-	if (!LoopParam(kFmiGeopHeight, time, loop)) {
+		dataInfo.GetCube(heights);
+	else if (dataInfo.Param(kFmiGeomHeight)) {
 		cout << "Warning: kFmiGeopHeight not found, using kFmiGeomHeight" << endl;
-		if (!LoopParam(kFmiGeomHeight, time, loop)) {
-			cout << "Warning: kFmiGeomHeight not found, heightdata unavailable" << endl;
-		}
+
+		dataInfo.GetCube(heights);
 	}
+	else {
+		cout << "Warning: kFmiGeomHeight not found, heightdata unavailable" << endl;
+		return;
+	}
+
+	std::transform(begin(heights), end(heights), begin(heights), [=](float val) {
+		return val / zHeight * float(sizeZ);
+	});
+
+	dataZ += 0;
+
+// 	auto loop = [&](int x, int y, int z, float val) {
+// 
+// 
+// 		if (val == kFloatMissing) {
+// 			val = 0;
+// 			cout << "Missing height at " << x << ", " << y << ", " << z << endl;
+// 			return false;
+// 		}
+// 
+// 		float h = (val) / zHeight * float(sizeZ);
+// 
+// 		heights[x + y *sizeX + z*sizeX*sizeY] = h;
+// 		return true;
+// 	};
+
+// 
+// 	if (!LoopParam(kFmiGeopHeight, time, loop)) {
+// 		cout << "Warning: kFmiGeopHeight not found, using kFmiGeomHeight" << endl;
+// 		if (!LoopParam(kFmiGeomHeight, time, loop)) {
+// 			cout << "Warning: kFmiGeomHeight not found, heightdata unavailable" << endl;
+// 		}
+// 	}
 }
 
 void newBaseSourcer::AllocateHeights() {
@@ -378,9 +420,11 @@ void newBaseSourcer::AllocateHeights() {
 
 	auto &dataInfo = pimpl->dataInfo;
 
-	if (heights != nullptr) delete heights;
+	//if (heights != nullptr) delete heights;
 
-	heights = new float[sizeX*sizeY*dataZ];
+	//heights = new float[sizeX*sizeY*dataZ];
+
+	heights.resize(sizeX*sizeY*dataZ);
 }
 
 void newBaseSourcer::ResetImage(bool realloc)

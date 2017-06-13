@@ -74,7 +74,7 @@ class NFmiRawData::Pimple
   float GetValue(size_t index) const;
 
 
-  bool GetValues(size_t startIndex, size_t step, size_t count, FloatVector &values) const noexcept;
+  bool GetValues(size_t startIndex, size_t step, size_t count, FloatVector &values) const;
 
   bool SetValue(size_t index, float value);
   void SetBinaryStorage(bool flag) const;
@@ -447,36 +447,41 @@ float NFmiRawData::Pimple::GetValue(size_t index) const
 }
 
 
-bool NFmiRawData::Pimple::GetValues(size_t startIndex, size_t step, size_t count, FloatVector &values) const noexcept
+bool NFmiRawData::Pimple::GetValues(size_t startIndex, size_t step, size_t count, FloatVector &values) const
 {
-	if (startIndex < 0
-	|| startIndex + step*(count-1) >= itsSize)
+	if (startIndex + step*(count-1) >= itsSize)
 		return false;
 
 
-	try {
-
-		values.resize(count);
+	values.resize(count);
 
 
-		const float *ptr = reinterpret_cast<const float *>(itsMappedFile->const_data() + itsOffset);
+	const float *ptr = reinterpret_cast<const float *>(itsMappedFile->const_data() + itsOffset);
 
 
-		{   ReadLock lock(itsMutex);
+	{   ReadLock lock(itsMutex);
 
-		int i = 0;
-		std::generate (  values.begin(), values.end(), [&] { return ptr[startIndex + (i++)*step]; });
+	int i = 0;
+	std::generate (values.begin(), values.end(), 
+		[&]
+	{
+		if (ptr[startIndex + (i)*step] > 400)
+			int x = 0;
+		
+		return ptr[startIndex + (i++)*step];
+	} );
 
+	//C++17 (not supported yet), might enable additional compiler optimization
 
-		}
-
+	//std::generate(values.begin(), values.end(), [&] { return i++; });
+	//std::transform(std::execution::par_unseq,values.begin(),values.end(),
+	// [=] (const float &i) 
+	// { 
+	// 	return ptr[startIndex + i*step]; 
+	// });
 
 	}
-	catch (std::exception e) {
-		cout << __FUNCTION__ << '(' << startIndex << ',' << step << ',' << count << ',' << &values << ')'
-			<< ": swallowed exception " << e.what() << endl;
-		return false;
-	}
+
 
 	return true;
 }
@@ -695,7 +700,7 @@ float NFmiRawData::GetValue(size_t index) const { return itsPimple->GetValue(ind
 */
 // ----------------------------------------------------------------------
 
-bool NFmiRawData::GetValues(size_t startIndex, size_t step, size_t count, std::vector<float> &values) const  noexcept { return itsPimple->GetValues(startIndex, step, count, values); }
+bool NFmiRawData::GetValues(size_t startIndex, size_t step, size_t count, std::vector<float> &values) const { return itsPimple->GetValues(startIndex, step, count, values); }
 
 // ----------------------------------------------------------------------
 /*!

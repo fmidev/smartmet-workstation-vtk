@@ -173,8 +173,9 @@ class _FMI_DLL NFmiFastQueryInfo : public NFmiQueryInfo
   virtual void Values(NFmiDataMatrix<float> &theMatrix, const NFmiMetTime &theInterpolatedTime);
 
   // 31.5.2017 Tavi high performance bulk query
-  bool GetValues(size_t startIndex, size_t step, size_t count, std::vector<float> &values) const noexcept;
-  bool GetLevelToVec(std::vector<float> &values) noexcept;
+  bool GetValues(size_t startIndex, size_t step, size_t count, std::vector<float> &values) const;
+  bool GetLevelToVec(std::vector<float> &values);
+  bool GetCube(std::vector<float> &values);
 
   void LandscapeValues(NFmiDataMatrix<float> &theMatrix,
                        const NFmiDataMatrix<float> &theDEMMatrix,
@@ -805,27 +806,9 @@ inline float NFmiFastQueryInfo::IndexFloatValue(size_t theIndex) const
 * \return false if out-of-range, true otherwise
 */
 // ----------------------------------------------------------------------
-inline bool NFmiFastQueryInfo::GetValues(size_t startIndex, size_t step, size_t count, std::vector<float> &values) const noexcept
+inline bool NFmiFastQueryInfo::GetValues(size_t startIndex, size_t step, size_t count, std::vector<float> &values) const
 {
 	return itsRefRawData ? itsRefRawData->GetValues(startIndex, step, count, values) : false;
-}
-
-
-
-inline bool NFmiFastQueryInfo::GetLevelToVec(std::vector<float> &values) noexcept
-{
-
-	FirstLocation();
-	size_t startIndex = Index();
-	size_t step = SizeTimes()*SizeLevels();
-	size_t count = SizeLocations();
-	
-	if(!GetValues(startIndex, step, count, values)) {
-		//std::cout << __FUNCTION__ << '(' << startIndex << ',' << step << ',' << count << ',' << &values << ") out of bounds!" << std::endl;
-		return false;
-	}
-
-	return true;
 }
 
 // ----------------------------------------------------------------------

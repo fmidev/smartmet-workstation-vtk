@@ -2084,6 +2084,68 @@ void NFmiFastQueryInfo::Values(NFmiDataMatrix<float> &theMatrix,
   TimeIndex(oldTimeIndex);
 }
 
+bool NFmiFastQueryInfo::GetLevelToVec(std::vector<float> &values)
+{
+	FirstLocation();
+	size_t startIndex = Index();
+	size_t step = SizeTimes()*SizeLevels();
+	size_t count = SizeLocations();
+
+
+
+	if (!GetValues(startIndex, step, count, values)) {
+		//std::cout << __FUNCTION__ << '(' << startIndex << ',' << step << ',' << count << ',' << &values << ") out of bounds!" << std::endl;
+		return false;
+	}
+
+	if (IsSubParamUsed()) {
+		if (itsCombinedParamParser)
+		{
+			std::transform(rbegin(values), rend(values), begin(values),
+				[this](const float &fVal)
+			{
+				return SubValueFromFloat(fVal);
+			});
+		}
+		else throw(std::runtime_error("CombinedParamParser missing!"));
+	}
+
+	return true;
+}
+
+bool NFmiFastQueryInfo::GetCube(std::vector<float> &values)
+{
+	values.resize(SizeLocations()*SizeLevels());
+
+// 	bool rising = HeightParamIsRising();
+// 
+// 	if (rising) ResetLevel();
+// 	else LastLevel();
+
+
+	FirstLevel();
+	FirstLocation();
+	size_t startIndex = Index();
+	size_t step = SizeTimes();
+	size_t count = SizeLocations() * SizeLevels();
+
+	if (!GetValues(startIndex, step, count, values)) return false;
+
+	if (IsSubParamUsed()) {
+		if (itsCombinedParamParser)
+		{
+			std::transform(rbegin(values), rend(values), begin(values),
+				[this](const float &fVal)
+			{
+				return SubValueFromFloat(fVal);
+			});
+		}
+		else throw(std::runtime_error("CombinedParamParser is null!"));
+	}
+
+	return true;
+}
+
 // ----------------------------------------------------------------------
 /*!
  * Palauttaa kaikki hilan data-arvot annettuun datamatriisiin haluttuun

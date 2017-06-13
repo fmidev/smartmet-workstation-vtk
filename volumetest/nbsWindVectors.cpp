@@ -78,7 +78,7 @@ int nbsWindVectors::RequestData(vtkInformation* vtkNotUsed(request),
 
 
 		LoopParam(kFmiWindSpeedMS, timeI,
-			[&](int x, int y, int z) {
+			[=](int x, int y, int z,float val) {
 
 			if (meta->hasHeight) {
 				z = getHeight(x, y, z);
@@ -86,8 +86,6 @@ int nbsWindVectors::RequestData(vtkInformation* vtkNotUsed(request),
 
 			if (z < sizeZ) {
 
-
-				float val = dataInfo.FloatValue();
 
 
 				float* pixel = static_cast<float*>(im->GetScalarPointer(x, y, z));
@@ -99,14 +97,13 @@ int nbsWindVectors::RequestData(vtkInformation* vtkNotUsed(request),
 		});
 
 		LoopParam(kFmiWindDirection, timeI,
-			[&](int x, int y, int z) {
+			[&](int x, int y, int z, float val) {
 
 
 			if (meta->hasHeight) {
 				z = getHeight(x, y, z);
 			}
 
-			float val = dataInfo.FloatValue();
 
 			val += 90;
 
@@ -186,7 +183,7 @@ int nbsWindVectors::RequestData(vtkInformation* vtkNotUsed(request),
 //		cout << "interpolating..." << endl;
 
 		unsigned int usedThreadCount = boost::thread::hardware_concurrency();
-		auto threads = std::list<std::shared_future<void>>();
+		auto threads = std::list<std::future<void>>();
 
 		int blockWidth = 3;
 
@@ -220,7 +217,7 @@ int nbsWindVectors::RequestData(vtkInformation* vtkNotUsed(request),
 				while (iter != threads.end())
 				{
 
-					if (iter->wait_for(std::chrono::milliseconds(2)) == std::future_status::ready) {
+					if (iter->valid() && iter->wait_for(std::chrono::milliseconds(2)) == std::future_status::ready) {
 						iter = threads.erase(iter);
 					}
 					else ++iter;
@@ -281,7 +278,7 @@ int nbsWindVectors::RequestData(vtkInformation* vtkNotUsed(request),
 						}
 					}
 				}
-			}).share());
+			}) );
 		}
 // 		for (int i = 0; i < sizeZ; ++i) {
 // 			float *x = static_cast<float*>(im->GetScalarPointer(6, 6, i));

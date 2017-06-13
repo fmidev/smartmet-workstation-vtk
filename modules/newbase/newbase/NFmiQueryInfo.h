@@ -591,6 +591,10 @@ class _FMI_DLL NFmiQueryInfo
   // 1999.08.20/Marko
   virtual float SubParamFloatValue() const;
   virtual bool SubParamFloatValue(float theFloatData);
+
+  //Muuntaa floatin subvalueksi
+  float NFmiQueryInfo::SubValueFromFloat(float fValue);
+
   virtual float IndexFloatValue(
       size_t theIndex) const;  // palauttaa suoraan arvon ilman aliparametri tarkasteluja
   virtual bool IndexFloatValue(

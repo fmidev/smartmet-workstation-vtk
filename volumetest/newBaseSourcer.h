@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <functional>
+#include <vector>
 
 #include <vtkImageData.h>
 #include <vtkImageAlgorithm.h>
@@ -21,7 +22,8 @@ protected:
 
 
 	vtkImageData* im;
-	float* heights;
+//	float* heights;
+	std::vector<float> heights;
 
 	int param;
 
@@ -37,7 +39,7 @@ protected:
 	virtual void ResetImage(bool realloc = false);
 	void AllocateHeights();
 
-	bool LoopParam(int param, int time, std::function<void(int, int, int)> f );
+	bool LoopParam(int param, int time, std::function<void(int, int, int,float)> f );
 
 	int getHeight(int x, int y, int z);
 
@@ -46,8 +48,8 @@ protected:
 	inline void freeRes() {
 		if (im)
 			im->Delete();
-		if (heights)
-			delete[] heights;
+// 		if (heights)
+// 			delete[] heights;
 	}
 
 
