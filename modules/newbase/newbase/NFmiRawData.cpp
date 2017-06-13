@@ -465,9 +465,6 @@ bool NFmiRawData::Pimple::GetValues(size_t startIndex, size_t step, size_t count
 	std::generate (values.begin(), values.end(), 
 		[&]
 	{
-		if (ptr[startIndex + (i)*step] > 400)
-			int x = 0;
-		
 		return ptr[startIndex + (i++)*step];
 	} );
 
