@@ -23,10 +23,20 @@ add_subdirectory(
 )
 
 add_subdirectory(
+	fmivisbase
+)
+
+
+add_subdirectory(
 	testbed
 )
 
 add_subdirectory(
 	volumetest
 )
+
+add_subdirectory(
+	surfacevis
+)
+
 

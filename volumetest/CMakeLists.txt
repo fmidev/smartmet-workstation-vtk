@@ -28,18 +28,18 @@ add_executable(${PROJECT_NAME} MACOSX_BUNDLE ${SOURCE_FILES})
 if(VTK_LIBRARIES)
   target_link_libraries(${PROJECT_NAME} 
   ${VTK_LIBRARIES}
-  Newbase
+  fmivisbase
   )
 else()
   target_link_libraries(${PROJECT_NAME} 
   vtkHybrid
   vtkWidgets 
-  Newbase
+  fmivisbase
   )
 endif()
 
 target_include_directories(${PROJECT_NAME}
-	PUBLIC ${Newbase_INCLUDE_DIRS}
+	PUBLIC ${fmivisbase_INCLUDE_DIRS}
 	)
 
 
