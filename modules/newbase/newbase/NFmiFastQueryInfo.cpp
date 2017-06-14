@@ -2101,7 +2101,7 @@ bool NFmiFastQueryInfo::GetLevelToVec(std::vector<float> &values)
 	if (IsSubParamUsed()) {
 		if (itsCombinedParamParser)
 		{
-			std::transform(rbegin(values), rend(values), begin(values),
+			std::transform(rbegin(values), rend(values), rbegin(values),
 				[this](const float &fVal)
 			{
 				return SubValueFromFloat(fVal);
@@ -2134,7 +2134,7 @@ bool NFmiFastQueryInfo::GetCube(std::vector<float> &values)
 	if (IsSubParamUsed()) {
 		if (itsCombinedParamParser)
 		{
-			std::transform(rbegin(values), rend(values), begin(values),
+			std::transform(rbegin(values), rend(values), rbegin(values),
 				[this](const float &fVal)
 			{
 				return SubValueFromFloat(fVal);

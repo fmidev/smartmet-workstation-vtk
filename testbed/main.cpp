@@ -64,8 +64,10 @@ int main(size_t argc, char* argv[] )
 // 	auto values = std::vector<float>(
 // 		info.SizeParams()*info.SizeLocations()*info.SizeLevels()*info.SizeTimes(),0.0f );
 
+
+//cube
 	auto values = std::vector< std::vector<float> >{};
-	for (auto i = 0; i < info.SizeParams()*info.SizeTimes(); ++i)
+	for (auto i = 0; i < info.SizeTimes(); ++i)
 		values.emplace_back(info.SizeLocations()*info.SizeLevels(),0);
 
 	std::cout << std::fixed;
@@ -78,7 +80,7 @@ int main(size_t argc, char* argv[] )
 
 	auto pos = values.begin();
 
-	//info.Param(kFmiWindDirection);
+	info.Param(kFmiWindDirection);
 
 //  	for (info.ResetParam(); info.NextParam(); )
 //  	{
@@ -87,16 +89,16 @@ int main(size_t argc, char* argv[] )
 // 			for (info.ResetTime(); info.NextTime(); )
 // 			{
 // 
-// 				newGet(info,*pos);
+// 				newGet(info,values);
 // 				pos++;
 // 
 // 			}
 // 
 // 		}
-// 	}
+//	}
 
-	for (info.ResetParam(); info.NextParam(); )
-	{
+// 	for (info.ResetParam(); info.NextParam(); )
+// 	{
 			for (info.ResetTime(); info.NextTime(); )
 			{
 
@@ -104,7 +106,7 @@ int main(size_t argc, char* argv[] )
 				pos++;
 
 			}
-	}
+// 	}
 
 // 	int p = 0;
 // 	for (info.ResetParam(); info.NextParam(); )
