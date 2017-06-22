@@ -37,7 +37,7 @@ protected:
 
 public:
 	ParamVisualizerSurf(const std::string &file, nbsMetadata &m, int param,
-		vtkSmartPointer<vtkColorTransferFunction> contourColors, ContourLabeler &labeler, double range[2], int numContours);
+		vtkSmartPointer<vtkColorTransferFunction> contourColors, ContourLabeler &labeler, double range[2], int numContours, bool flat = false);
 	~ParamVisualizerSurf();
 
 	virtual void UpdateTimeStep(double t) override;

@@ -83,16 +83,16 @@ public:
 	//make visualizer
 	static std::unique_ptr<ParamVisualizerBase> VisualizerFactory::makeSurfVisualizer(const std::string &file, nbsMetadata &meta,
 		int param, vtkSmartPointer<vtkColorTransferFunction> contourColors,
-		ContourLabeler & labeler, double range[2], int numContours = 10);
+		ContourLabeler & labeler, double range[2], int numContours = 10, bool flat = false);
 
 
 	//make visualizer from packed arguments
 	static std::unique_ptr<ParamVisualizerBase> VisualizerFactory::makeSurfVisualizer(const std::string &file, nbsMetadata &meta,
-		ContourLabeler & labeler, Vis2DParams &p);
+		ContourLabeler & labeler, Vis2DParams &p, bool flat = false);
 
 	//make visualizer, fetching arguments based on param
 	static std::unique_ptr<ParamVisualizerBase> VisualizerFactory::makeSurfVisualizer(const std::string &file, nbsMetadata &meta,
-		 ContourLabeler & labeler, int param);
+		 ContourLabeler & labeler, int param, bool flat = false);
 
 
 

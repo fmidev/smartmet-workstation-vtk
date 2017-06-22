@@ -19,30 +19,37 @@
 #include <NFmiFastQueryInfo.h>
 
 #include "newBaseSourcer.h"
-#include "nbsImpl.h"
+#include "nbsSurfaceImpl.h"
 
 #include "nbsMetadata.h"
 
-struct nbsSurface::nbsImpl {
-
-	NFmiQueryData data;
-	NFmiFastQueryInfo dataInfo;
-	nbsImpl(const std::string &file) : data(file), dataInfo(&data) {}
-};
 
 
-nbsSurface::nbsSurface(const std::string &file, nbsMetadata *meta, int param,int zHeight) :
-	pimpl(std::make_unique <nbsImpl>(file)), param(param), meta(meta), zHeight(zHeight), prevTime(-1)
+
+nbsSurface::nbsSurface(const std::string &file, nbsMetadata *meta, int param,int zHeight,bool flat) :
+	pimpl(std::make_unique <nbsImpl>(file)), param(param), meta(meta), zHeight(zHeight), prevTime(-1), flat (flat)
 {
 
 	SetNumberOfInputPorts(0);
 	inputPolyData = vtkPolyData::New();
-	delaunay = vtkDelaunay2D::New();
+
+	points = vtkSmartPointer<vtkPoints>::New();
+
+	textureCoordinates = vtkSmartPointer<vtkFloatArray>::New();
+	textureCoordinates->SetNumberOfComponents(3);
+	textureCoordinates->SetName("TextureCoordinates");
+
+	scalars = vtkSmartPointer<vtkFloatArray>::New();
+
+	scalars->SetNumberOfComponents(1);
+	scalars->SetName("Scalars");
+
+	loadPoints();
 }
 
 nbsSurface::~nbsSurface() {
 	inputPolyData->Delete();
-	delaunay->Delete();
+
 }
 
 
@@ -80,6 +87,81 @@ int nbsSurface::nearestIndex(double time)
 	return 0;
 }
 
+bool nbsSurface::loadPoints() {
+
+
+
+	int sizeX = meta->sizeX;
+	int sizeY = meta->sizeY;
+	int sizeZ = 1;
+
+	NFmiFastQueryInfo &dataInfo = pimpl->dataInfo;
+
+
+	points->Resize(sizeX*sizeY);
+
+	if (flat) {
+		for (int x = 0; x < sizeX; ++x)
+			for (int y = 0; y < sizeY; ++y)
+			{
+				points->InsertNextPoint(x * 2, y * 2, 0.1); //spacing
+
+				float tuple[3] = { float(x) / sizeX,float(y) / sizeY, 0.0 };
+				textureCoordinates->InsertNextTuple(tuple);
+			}
+	}
+	else {
+
+		if (!dataInfo.Param(kFmiGeopHeight)) {
+			cout << "kFmiGeopHeight not found!" << endl;
+
+			if (!dataInfo.Param(kFmiGeomHeight)) {
+				cout << "kFmiGeomHeight not found!!" << endl;
+				return false;
+			}
+		}
+
+
+		static std::vector<float> values;
+
+		dataInfo.GetLevelToVec(values);
+
+		for (int x = 0; x < sizeX; ++x)
+			for (int y = 0; y < sizeY; ++y)
+			{
+				points->InsertNextPoint(x * 2, y * 2, values[x + y*sizeX] * 2 / zHeight * 80); //VisualizerManager zHeight ja newBaseSourcer zRes, spacing
+
+				float tuple[3] = { float(x) / sizeX,float(y) / sizeY, 0.0 };
+				textureCoordinates->InsertNextTuple(tuple);
+			}
+	}
+
+	cout << "Triangulating... ";
+
+	inputPolyData->SetPoints(points);
+
+	static vtkSmartPointer<vtkDelaunay2D> delaunay = nullptr;
+	if (!delaunay) {
+
+		delaunay = vtkSmartPointer<vtkDelaunay2D>::New();
+
+		// Triangulate the grid points
+		delaunay->SetInputData(inputPolyData);
+
+		//accuracy vs speed
+		delaunay->SetTolerance(0.005);
+
+		delaunay->Update();
+	}
+
+	// Add the grid points to a polydata object
+	inputPolyData->ShallowCopy(delaunay->GetOutput());
+
+	inputPolyData->GetPointData()->SetTCoords(textureCoordinates);
+
+	return true;
+}
+
 
 
 int nbsSurface::RequestData(vtkInformation* vtkNotUsed(request),
@@ -90,14 +172,6 @@ int nbsSurface::RequestData(vtkInformation* vtkNotUsed(request),
 	int sizeX = meta->sizeX;
 	int sizeY = meta->sizeY;
 	int sizeZ = 1;
-
-
-	auto points = vtkSmartPointer<vtkPoints>::New();
-
-
-	auto textureCoordinates = vtkSmartPointer<vtkFloatArray>::New();
-	textureCoordinates->SetNumberOfComponents(3);
-	textureCoordinates->SetName("TextureCoordinates");
 
 
 	unsigned long time = 0;
@@ -134,91 +208,41 @@ int nbsSurface::RequestData(vtkInformation* vtkNotUsed(request),
 		float maxHeight = -1;
 
 
+		dataInfo.TimeIndex(timeI);
 		auto t0 = std::chrono::system_clock::now();
 
 
-		if (!dataInfo.Param(kFmiGeopHeight)) {
-			cout << "kFmiGeopHeight not found!" << endl;
+		static std::vector<float> values;
 
-			if (!dataInfo.Param(kFmiGeomHeight)) {
-				cout << "kFmiGeomHeight not found!!" << endl;
-			}
-		}
+		scalars->Reset();
 
-		dataInfo.TimeIndex(timeI);
-		int ix, iz = 0;
-
-		bool rising = dataInfo.HeightParamIsRising();
-
-		if (rising) dataInfo.ResetLevel();
-		else dataInfo.LastLevel();
-
-		float h;
-		ix = 0;
-		for (dataInfo.ResetLocation(); dataInfo.NextLocation(); ) {
-
-			int x = ix % sizeX;
-			int y = (ix / sizeX) % sizeY;
-
-			float val = dataInfo.FloatValue();
-
-			if (val == kFloatMissing) {
-				val = 0;
-			}
-
-			points->InsertNextPoint(x * 2, y * 2, val * 2 / zHeight * 80); //VisualizerManager zHeight ja newBaseSourcer zRes, spacing
-
-
-			float tuple[3] = { 0.0, 0.0, 0.0 };
-			tuple[0] = float(x) / sizeX; tuple[1] = float(y) / sizeY; tuple[2] = 0.0;
-			textureCoordinates->InsertNextTuple(tuple);
-
-
-			ix++;
-		}
-
-
-		auto scalars = vtkSmartPointer<vtkFloatArray>::New();
-
-		scalars->SetNumberOfComponents(1);
-		scalars->SetName("Scalars");
 
 		if (dataInfo.Param(FmiParameterName(param))) {
 
+			if (dataInfo.HeightParamIsRising()) dataInfo.FirstLevel();
+			else dataInfo.LastLevel();
 
+			dataInfo.GetLevelToVec(values);
 
-			for (dataInfo.ResetLocation(); dataInfo.NextLocation(); ) {
+			for (int x = 0; x < sizeX; ++x)
+				for (int y = 0; y < sizeY; ++y)
+				{
 
-				int x = ix % sizeX;
-				int y = (ix / sizeX) % sizeY;
+					float val = values[x + y*sizeX];
 
-				float val = dataInfo.FloatValue();
+					if (val == kFloatMissing) {
+						val = 0;
+					}
 
-				if (val == kFloatMissing) {
-					val = 0;
+					scalars->InsertNextTuple1(val);
+
 				}
-
-				scalars->InsertNextTuple1(val);
-
-				ix++;
-			}
 		}
 
-		cout << "Triangulating... ";
 
-		// Add the grid points to a polydata object
-		inputPolyData->SetPoints(points);
-		inputPolyData->GetPointData()->SetTCoords(textureCoordinates);
+
 		inputPolyData->GetPointData()->SetScalars(scalars);
 		inputPolyData->GetPointData()->SetActiveAttribute("Scalars", 0);
-
-		// Triangulate the grid points
-		delaunay->SetInputData(inputPolyData);
-
-		//accuracy vs speed
-		delaunay->SetTolerance(0.005);
-
-		delaunay->Update();
 
 		cout << "Done" << endl;
 
@@ -227,7 +251,7 @@ int nbsSurface::RequestData(vtkInformation* vtkNotUsed(request),
 	else cout << "Reused time " << prevTime << std::endl;
 
 	//siirretään imagedata ulostuloon
-	ds->DeepCopy(delaunay->GetOutput() );
+	ds->ShallowCopy( inputPolyData );
 
 	//kerrotaan mitä dataa löytyi
 	ds->GetInformation()->Set(vtkDataObject::DATA_TIME_STEP(), dataInfo.Time().EpochTime());

@@ -12,12 +12,9 @@
 #include "VisualizerManager.h"
 #include "TimeAnimator.h"
 
-void fmiVisInteractor::OnKeyRelease()
+void fmiVisInteractorBase::OnKeyRelease(std::string &s,bool ctrl)
 {
-	vtkRenderWindowInteractor *rwi = this->Interactor;
 
-	bool ctrl = rwi->GetControlKey();
-	auto s = std::string(rwi->GetKeySym());
 
 	double val = ta->GetTime();
 
@@ -84,17 +81,6 @@ void fmiVisInteractor::OnKeyRelease()
 			}
 		}
 
-	rwi->Render();
 
 	// cout << "Pressed key " << (ctrl ? "ctrl+" : std::string()) << ", sym " << s << endl;
-}
-
-void fmiVisInteractor::OnChar()
-{
-	vtkRenderWindowInteractor *rwi = this->Interactor;
-	char k = rwi->GetKeyCode();
-
-
-	if (k != 'l' && k != 'f' && k != 's' && (k < 0 && k>9)) //disable latlon-sphere, fly-to, stereo
-		this->Superclass::OnChar();
 }

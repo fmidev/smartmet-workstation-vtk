@@ -97,9 +97,9 @@ double * ParamVisualizerSurf::getRange() {
 
 ParamVisualizerSurf::ParamVisualizerSurf(const std::string & file, nbsMetadata & m,
 	int param, vtkSmartPointer<vtkColorTransferFunction> contourColors,
-	ContourLabeler &labeler, double range[2], int numContours) :
+	ContourLabeler &labeler, double range[2], int numContours, bool flat) :
 
-	ParamVisualizerBase(new nbsSurface(file, &m,param),m,param),
+	ParamVisualizerBase(new nbsSurface(file, &m,param,13000,flat),m,param),
 	labeler(labeler), mode(false)
 {
 	nbs->Update();

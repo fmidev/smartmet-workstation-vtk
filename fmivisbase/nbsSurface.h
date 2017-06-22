@@ -2,6 +2,9 @@
 #define nbsSurface_h
 
 #include "vtkPolyDataAlgorithm.h"
+#include <vtkFloatArray.h>
+#include <vtksmartpointer.h>
+#include <vtkPoints.h>
 
 #include "nbsImpl.h"
 
@@ -12,8 +15,7 @@ class vtkPolyData;
 struct nbsMetadata;
 
 class nbsSurface : public vtkPolyDataAlgorithm {
-
-	vtkDelaunay2D *delaunay;
+protected:
 	vtkPolyData *inputPolyData;
 
 	nbsMetadata *meta;
@@ -24,8 +26,19 @@ class nbsSurface : public vtkPolyDataAlgorithm {
 
 	float zHeight;
 
+	bool flat;
+
+	bool nbsSurface::loadPoints();
+
+	vtkSmartPointer<vtkFloatArray> textureCoordinates;
+
+
+	vtkSmartPointer<vtkFloatArray> scalars;
+
+	vtkSmartPointer<vtkPoints> points;
+
 public:
-	nbsSurface(const std::string &file, nbsMetadata *meta,int param,int zHeight = 13000);
+	nbsSurface(const std::string &file, nbsMetadata *meta,int param,int zHeight = 13000, bool flat = false);
 
 	int RequestInformation(vtkInformation* vtkNotUsed(request),
 		vtkInformationVector** vtkNotUsed(inputVector),

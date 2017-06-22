@@ -88,18 +88,18 @@ std::unique_ptr<ParamVisualizerBase> VisualizerFactory::make2DVisualizer(const s
 
 std::unique_ptr<ParamVisualizerBase> VisualizerFactory::makeSurfVisualizer(const std::string &file, nbsMetadata &meta,
 	int param, vtkSmartPointer<vtkColorTransferFunction> contourColors,
-	ContourLabeler & labeler, double range[2], int numContours) {
-	return std::make_unique<ParamVisualizerSurf>(file, meta, param, contourColors, labeler, range, numContours);
+	ContourLabeler & labeler, double range[2], int numContours,bool flat) {
+	return std::make_unique<ParamVisualizerSurf>(file, meta, param, contourColors, labeler, range, numContours,flat);
 }
 std::unique_ptr<ParamVisualizerBase> VisualizerFactory::makeSurfVisualizer(const std::string &file, nbsMetadata &meta,
-	ContourLabeler & labeler, Vis2DParams &p) {
-	return makeSurfVisualizer(file, meta, p.param, p.contourColors, labeler, p.range, p.numContours);
+	ContourLabeler & labeler, Vis2DParams &p,bool flat) {
+	return makeSurfVisualizer(file, meta, p.param, p.contourColors, labeler, p.range, p.numContours,flat);
 }
 
 std::unique_ptr<ParamVisualizerBase> VisualizerFactory::makeSurfVisualizer(const std::string &file, nbsMetadata &meta,
-	ContourLabeler & labeler, int param) {
+	ContourLabeler & labeler, int param, bool flat) {
 	if (config2D.find(param) != config2D.end())
-		return makeSurfVisualizer(file, meta, labeler, config2D.find(param)->second);
+		return makeSurfVisualizer(file, meta, labeler, config2D.find(param)->second,flat);
 	else
 		return nullptr;
 }
