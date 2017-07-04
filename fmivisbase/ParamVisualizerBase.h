@@ -71,7 +71,7 @@ public:
 		return prop;
 	}
 
-	virtual void ToggleMode() = 0;
+	virtual void ToggleMode() {};
 };
 
 #endif /* PARAMVISUALIZERBASE_H */

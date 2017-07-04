@@ -8,6 +8,7 @@
 #include <vtkRenderWindowInteractor.h>
 #include <VisualizerFactory.h>
 #include <VisualizerManager.h>
+#include <vtkImageMapper3D.h>
 #include <fmiVisInteractor.h>
 #include <vtkPNGReader.h>
 #include <vtkTexture.h>
@@ -17,6 +18,7 @@
 #include <vtkPolyDataMapper.h>
 #include <vtkPolyDataNormals.h>
 #include <vtkActor.h>
+#include <vtkImageActor.h>
 #include <vtkTextActor.h>
 #include <vtkTextProperty.h>
 #include <vtkBoxRepresentation.h>
@@ -28,12 +30,49 @@
 
 
 #include "ParamVisualizerWindVec2D.h"
+#include "ParamVisualizerIcon.h"
+#include "ParamVisualizerText.h"
+#include "TextImageLayer.h"
+
+using namespace std::string_literals;
+
+visID addVis(std::unique_ptr<ParamVisualizerBase> &&vis, std::string printName,
+			VisualizerManager &vm, std::map<int, visID> &paramVID,
+			std::vector<vtkSmartPointer<vtkTextActor> > &textActs, vtkRenderer *ren,
+			int textSize, double textVOff, double textVSpacing) {
+
+
+	visID vid = vm.AddVisualizer(std::move(vis) );
+	if (vid >= 0) {
+		paramVID.insert(std::pair<int, visID>(ParamVisualizerWindVec2D::PARAM_WINDVEC, vid));
+
+
+		auto t = vtkSmartPointer<vtkTextActor>::New();
+		auto s = std::ostringstream{};
+
+		s << int(vid + 1) << ": " << printName;
+		t->SetInput(s.str().c_str());
+		textActs.push_back(t);
+
+		t->GetTextProperty()->SetColor(0.2, 0.2, 0.2);
+
+
+		t->GetTextProperty()->SetFontSize(textSize);
+
+		//t->SetTextScaleModeToViewport();
+		t->SetDisplayPosition(10, textVOff + textVSpacing * vid);
+
+		ren->AddActor2D(t);
+	}
+	return vid;
+}
+
 
 int main(size_t argc, char* argv[])
 {
 	cout << "Initializing VTK..." << endl;
 
-	vtkObject::GlobalWarningDisplayOff(); 
+	vtkObject::GlobalWarningDisplayOff();
 
 	//lisää aikasarjatuen?
 	auto *sdp = vtkStreamingDemandDrivenPipeline::New();
@@ -93,6 +132,17 @@ int main(size_t argc, char* argv[])
 
 	mapReader->Update();
 
+// 	TextImageLayer tl{ 512, 512 };
+// 
+// 	tl.SetColor(1, 0, 0);
+// 	tl.SetSize(32);
+// 
+// 	tl.AddText("zero"s, 0, 0);
+// 	tl.AddText("up"s, 0, 100);
+// 	tl.AddText("left"s, 100, 0);
+// 
+// 	tl.GetImage()->PrintSelf(cout, vtkIndent());
+
 	auto texture = vtkSmartPointer<vtkTexture>::New();
 	texture->SetInputData(mapReader->GetOutput());
 	texture->SetInterpolate(true);
@@ -105,7 +155,7 @@ int main(size_t argc, char* argv[])
 	planeScale[1] = volumeBounds[2] - volumeBounds[3];
 
 
-	auto mapNbs = new nbsSurface(file, &meta, 1,13000,true);
+	auto mapNbs = new nbsSurface(file, &meta, 1, 13000, true);
 
 	mapNbs->Update();
 
@@ -162,7 +212,6 @@ int main(size_t argc, char* argv[])
 
 	t->GetTextProperty()->SetColor(0.1, 0.1, 0.1);
 
-
 	t->GetTextProperty()->SetFontSize(20);
 
 	//t->SetTextScaleModeToViewport();
@@ -171,54 +220,34 @@ int main(size_t argc, char* argv[])
 	ren1->AddActor2D(t);
 
 
-	visID vid = vm.AddVisualizer(std::make_unique<ParamVisualizerWindVec2D>(file, meta) );
-	paramVID.insert(std::pair<int, visID>(ParamVisualizerWindVec2D::PARAM_WINDVEC, vid));
 
 
-	t = vtkSmartPointer<vtkTextActor>::New();
-	s = std::ostringstream{};
+	 addVis(std::make_unique<ParamVisualizerWindVec2D>(file, meta), "Wind Vectors"s,
+						vm, paramVID, textActs,ren1, textSize, textVOff, textVSpacing);
 
-	s << int(vid + 1) << ": " << "Wind vectors";
-	t->SetInput(s.str().c_str());
-	textActs.push_back(t);
+	 auto iconMapping = [](double in) {
+		 return static_cast<int> ((100.0-in) / 100.01 * 3.0);
+	 };
 
-	t->GetTextProperty()->SetColor(0.8, 0.8, 0.8);
+	 addVis(std::make_unique<ParamVisualizerIcon>(file, meta, kFmiTotalCloudCover,iconMapping), "Total Cloud Cover (Icon)",
+		 vm, paramVID, textActs, ren1, textSize, textVOff, textVSpacing);
 
-
-	t->GetTextProperty()->SetFontSize(textSize);
-
-	//t->SetTextScaleModeToViewport();
-	t->SetDisplayPosition(10, textVOff + textVSpacing * vid);
-
-	ren1->AddActor2D(t);
-
+	 addVis(std::make_unique<ParamVisualizerText>(file,meta,kFmiTotalCloudCover), "Total Cloud Cover (Text)",
+						vm, paramVID, textActs, ren1, textSize, textVOff, textVSpacing);
 
 	for (auto &parampair : paramsSurf) {
 		if (dataInfo.Param(FmiParameterName(parampair.first))) {
-			vid = vm.AddVisualizer(VisualizerFactory::makeSurfVisualizer(file, meta, vm.GetLabeler(), parampair.first,true));
+			s = std::ostringstream{};
+			s << parampair.second << "(Surface)"s;
+
+			visID vid = addVis(VisualizerFactory::makeSurfVisualizer(file, meta, vm.GetLabeler(), parampair.first,true),s.str(),
+													vm, paramVID, textActs, ren1, textSize, textVOff, textVSpacing);
 			if (vid == -1)
 			{
 				cout << "Failed to construct visualizer for " << parampair.second << endl;
 				continue;
 			}
-			paramVID.insert(std::pair<int, visID>(parampair.first, vid));
 			vm.SetCrop(vid, false);
-
-
-			t = vtkSmartPointer<vtkTextActor>::New();
-			s = std::ostringstream{};
-			s << int(vid + 1) << ": " << parampair.second << " ( Surface )";
-			t->SetInput(s.str().c_str());
-			textActs.push_back(t);
-			t->GetTextProperty()->SetColor(0.2, 0.2, 0.2);
-			t->GetTextProperty()->SetFontSize(textSize);
-
-
-			//t->SetTextScaleModeToViewport();
-			t->SetDisplayPosition(10, textVOff + textVSpacing * vid);
-
-
-			ren1->AddActor2D(t);
 		}
 	}
 

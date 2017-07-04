@@ -102,10 +102,11 @@ ParamVisualizerWindVec2D::ParamVisualizerWindVec2D(const std::string &file, nbsM
 
 
 	// Set values
+
+	for (unsigned int iy = 0; iy < width / downScale; ++iy)
 	for (unsigned int ix = 0; ix < width / downScale; ++ix)
-		for (unsigned int iy = 0; iy < width / downScale; ++iy)
 		{
-			ids->InsertNextValue(width / downScale + ix*downScale + (width / downScale / 2 + iy*downScale)*width);
+			ids->InsertNextValue(width / downScale + iy*downScale + (width / downScale / 2 + ix*downScale)*width);
 		}
 
 	auto selectionNode = vtkSmartPointer<vtkSelectionNode>::New();

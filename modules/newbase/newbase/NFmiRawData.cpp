@@ -455,9 +455,13 @@ bool NFmiRawData::Pimple::GetValues(size_t startIndex, size_t step, size_t count
 
 	values.resize(count);
 
+	const float *ptr;
 
-	const float *ptr = reinterpret_cast<const float *>(itsMappedFile->const_data() + itsOffset);
 
+
+
+	if (itsData) ptr = itsData;
+	else ptr = reinterpret_cast<const float *>(itsMappedFile->const_data() + itsOffset);
 
 	{   ReadLock lock(itsMutex);
 
