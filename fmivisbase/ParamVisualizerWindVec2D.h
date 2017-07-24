@@ -17,8 +17,14 @@ class vtkAssignAttribute;
 
 class ParamVisualizerWindVec2D : public ParamVisualizerBase {
 
-	//false = streamline
-	bool mode;
+	enum MODE 
+	{ 
+		mode_stream = 0,
+		mode_barb = 1,
+		mode_arrow = 2,
+
+		mode_count
+	} mode;
 
 	vtkAssignAttribute *assign;
 
@@ -34,6 +40,7 @@ class ParamVisualizerWindVec2D : public ParamVisualizerBase {
 
 	void ModeStreamline();
 	void ModeGlyph();
+	void ModeArrow();
 
 public:
 	static const int PARAM_WINDVEC = 30000;
@@ -43,14 +50,15 @@ public:
 
 	virtual inline void ToggleMode() {
 
-		if (mode) {
-			ModeStreamline();
-		}
-		else {
+		if (mode==mode_stream) {
 			ModeGlyph();
 		}
+		else if(mode==mode_barb){
+			ModeArrow(); 
+		}
+		else if (mode == mode_arrow)
+			ModeStreamline();
 
-		mode = !mode;
 	}
 
 };

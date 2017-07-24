@@ -34,6 +34,10 @@
 #include "ParamVisualizerText.h"
 #include "TextImageLayer.h"
 
+#include "ParamVisualizerArrayText.h"
+
+#include "HatchSource.h"
+
 using namespace std::string_literals;
 
 visID addVis(std::unique_ptr<ParamVisualizerBase> &&vis, std::string printName,
@@ -137,14 +141,15 @@ int main(size_t argc, char* argv[])
 // 	tl.SetColor(1, 0, 0);
 // 	tl.SetSize(32);
 // 
-// 	tl.AddText("zero"s, 0, 0);
-// 	tl.AddText("up"s, 0, 100);
-// 	tl.AddText("left"s, 100, 0);
-// 
-// 	tl.GetImage()->PrintSelf(cout, vtkIndent());
+//  	tl.AddText("zero"s, 0, 0);
+//   	tl.AddText("up"s, 0, 375);
+//   	tl.AddText("right"s, 350, 0);
+ 
+//  	tl.GetImage()->PrintSelf(cout, vtkIndent());
 
 	auto texture = vtkSmartPointer<vtkTexture>::New();
 	texture->SetInputData(mapReader->GetOutput());
+//	texture->SetInputData(tl.GetImage());
 	texture->SetInterpolate(true);
 	texture->Update();
 
@@ -158,6 +163,7 @@ int main(size_t argc, char* argv[])
 	auto mapNbs = new nbsSurface(file, &meta, 1, 13000, true);
 
 	mapNbs->Update();
+
 
 
 	auto mapMap = vtkSmartPointer<vtkPolyDataMapper>::New();
@@ -232,7 +238,7 @@ int main(size_t argc, char* argv[])
 	 addVis(std::make_unique<ParamVisualizerIcon>(file, meta, kFmiTotalCloudCover,iconMapping), "Total Cloud Cover (Icon)",
 		 vm, paramVID, textActs, ren1, textSize, textVOff, textVSpacing);
 
-	 addVis(std::make_unique<ParamVisualizerText>(file,meta,kFmiTotalCloudCover), "Total Cloud Cover (Text)",
+	 addVis(std::make_unique<ParamVisualizerArrayText>(file,meta,kFmiTotalCloudCover,VisualizerFactory::greenToRedColor(0,100)), "Total Cloud Cover (Text)",
 						vm, paramVID, textActs, ren1, textSize, textVOff, textVSpacing);
 
 	for (auto &parampair : paramsSurf) {

@@ -18,22 +18,23 @@
 #include "VisualizerFactory.h"
 
 #include "nbsSurface.h"
+#include "vtkAppendPolyData.h"
 
-
+#include <vtkImplicitSelectionLoop.h>
+#include <vtkClipPolyData.h>
+#include "HatchSource.h"
+#include <vtkTransform.h>
+#include <vtkTransformPolyDataFilter.h>
 
 void ParamVisualizerSurf::ModeIsoLine() {
 
 
 	contour->SetInputConnection(nbs->GetOutputPort());
 	
-	polyMap->RemoveAllInputConnections(0);
+	append->RemoveAllInputConnections(0);
 
-	polyMap->AddInputConnection(contour->GetOutputPort());
-
-
-	filters.clear();
-
-	filters.push_back(contour);
+	stripper->AddInputConnection(contour->GetOutputPort());
+	//append->SetInputConnection(0,contour->GetOutputPort());
 
 }
 
@@ -41,50 +42,99 @@ void ParamVisualizerSurf::ModeColorContour() {
 
 	contour->RemoveAllInputConnections(0);
 
-	polyMap->RemoveAllInputConnections(0);
+	append->RemoveAllInputConnections(0);
+	stripper->RemoveAllInputConnections(0);
 
-
-	polyMap->SetInputConnection(nbs->GetOutputPort());
-
-	filters.clear();
-
+	append->SetInputConnection(0,nbs->GetOutputPort());
 
 }
 
 void ParamVisualizerSurf::UpdateTimeStep(double t) {
-	ParamVisualizerBase::UpdateTimeStep(t);
+	nbs->UpdateTimeStep(t);
 
-	if (!mode) return;
+	if (mode) {
 
-	stripper->Update();
 
-	vtkPoints *points =
-		stripper->GetOutput()->GetPoints();
-	vtkCellArray *cells =
-		stripper->GetOutput()->GetLines();
-	vtkDataArray *scalars =
-		stripper->GetOutput()->GetPointData()->GetScalars();
+		append->RemoveAllInputs();
 
-	vtkIdType *indices;
-	vtkIdType numberOfPoints;
-	unsigned int lineCount = 0;
-	for (cells->InitTraversal();
-		cells->GetNextCell(numberOfPoints, indices);
-		lineCount++)
-	{
-		if (numberOfPoints < 10)
+		auto dummy = vtkSmartPointer<vtkPolyData>::New();
+		append->SetInputData(0, dummy);
+
+		//append->SetInputConnection(0, contour->GetOutputPort());
+
+
+		stripper->Update();
+
+		vtkPoints *points =
+			stripper->GetOutput()->GetPoints();
+		vtkCellArray *cells =
+			stripper->GetOutput()->GetLines();
+		vtkDataArray *scalars =
+			stripper->GetOutput()->GetPointData()->GetScalars();
+
+		vtkIdType *indices;
+		vtkIdType numberOfPoints;
+		unsigned int lineCount = 0;
+		for (cells->InitTraversal();
+			cells->GetNextCell(numberOfPoints, indices);
+			lineCount++)
 		{
-			continue;
+
+			vtkIdType midPointId = indices[(numberOfPoints / 2)*(lineCount % 2)];
+
+			auto val = scalars->GetTuple1(midPointId);
+
+			if (numberOfPoints > 10)
+			{
+
+				double midPoint[3];
+				points->GetPoint(midPointId, midPoint);
+
+				//labeler.Add(midPoint, val);
+
+			}
+
+			if (abs(val - 20) < 0.01) {
+
+				auto line = vtkSmartPointer<vtkPoints>::New();
+				auto idList = vtkSmartPointer<vtkIdList>::New();
+
+				for (int i = 0; i < numberOfPoints; i++)
+					idList->InsertNextId(indices[i]);
+				points->GetPoints(idList, line);
+
+				loop->SetLoop(line);
+
+				clip->SetClipFunction(loop);
+				clip->Update();
+
+				auto data = vtkSmartPointer<vtkPolyData>::New();
+
+				data->Allocate(1);
+
+				data->SetPoints(points);
+
+				data->InsertNextCell(VTK_POLY_LINE,idList);
+
+ 				//data->ShallowCopy(clip->GetOutput());
+
+				auto dataScalars = vtkSmartPointer<vtkFloatArray>::New();
+				dataScalars->SetNumberOfComponents(1);
+				for (int i = 0; i < data->GetNumberOfPoints(); ++i)
+					dataScalars->InsertNextTuple1(double(i)/data->GetNumberOfPoints()*200);
+
+				data->GetPointData()->SetScalars(dataScalars);
+
+				append->AddInputData(data);
+			}
+
+
 		}
 
-
-		vtkIdType midPointId = indices[(numberOfPoints / 2)*(lineCount % 2)];
-
-		double midPoint[3];
-		points->GetPoint(midPointId, midPoint);
-
-		labeler.Add(midPoint, scalars->GetTuple1(midPointId));
 	}
+
+	if(append->GetTotalNumberOfInputConnections())
+		polyMap->UpdateTimeStep(t);
 }
 
 
@@ -99,11 +149,25 @@ ParamVisualizerSurf::ParamVisualizerSurf(const std::string & file, nbsMetadata &
 	int param, vtkSmartPointer<vtkColorTransferFunction> contourColors,
 	ContourLabeler &labeler, double range[2], int numContours, bool flat) :
 
-	ParamVisualizerBase(new nbsSurface(file, &m,param,13000,flat),m,param),
+	ParamVisualizerBase(new nbsSurface(file, &m,param,13000,flat,true),m,param),
 	labeler(labeler), mode(false)
 {
 	nbs->Update();
 
+	hatch = HatchSource::New();
+	hatch->Generate(m.sizeX * 2, m.sizeY * 2, 20);
+
+	loop = vtkImplicitSelectionLoop::New();
+
+	loop->AutomaticNormalGenerationOff();
+	loop->SetNormal(0, 0, 1);
+
+	clip = vtkClipPolyData::New();
+
+	//clip->InsideOutOn();
+	//clip->GenerateClippedOutputOn();
+
+	clip->AddInputConnection(hatch->GetOutputPort());
 
 	contour = vtkContourFilter::New();
 
@@ -112,10 +176,15 @@ ParamVisualizerSurf::ParamVisualizerSurf(const std::string & file, nbsMetadata &
 
 	stripper = vtkStripper::New();
 
+	//stripper->SetJoinContiguousSegments(1);
+
 	stripper->SetInputConnection(contour->GetOutputPort());
 
+	append = vtkAppendPolyData::New();
 
 	polyMap = vtkPolyDataMapper::New();
+
+	polyMap->AddInputConnection(append->GetOutputPort());
 
 	polyMap->SetScalarRange(range);
 	polyMap->SetColorModeToMapScalars();
@@ -138,8 +207,12 @@ ParamVisualizerSurf::ParamVisualizerSurf(const std::string & file, nbsMetadata &
 }
 
 ParamVisualizerSurf::~ParamVisualizerSurf() {
+	hatch->Delete();
+	loop->Delete();
+	clip->Delete();
 	contour->Delete();
 	stripper->Delete();
+	append->Delete();
 	polyMap->Delete();
 	polyAct->Delete();
 }

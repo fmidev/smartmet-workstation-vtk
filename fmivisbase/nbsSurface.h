@@ -27,8 +27,9 @@ protected:
 	float zHeight;
 
 	bool flat;
+	bool pad;
 
-	bool nbsSurface::loadPoints();
+	bool loadPoints();
 
 	vtkSmartPointer<vtkFloatArray> textureCoordinates;
 
@@ -38,7 +39,7 @@ protected:
 	vtkSmartPointer<vtkPoints> points;
 
 public:
-	nbsSurface(const std::string &file, nbsMetadata *meta,int param,int zHeight = 13000, bool flat = false);
+	nbsSurface(const std::string &file, nbsMetadata *meta,int param,int zHeight = 13000, bool flat = false, bool pad = false);
 
 	int RequestInformation(vtkInformation* vtkNotUsed(request),
 		vtkInformationVector** vtkNotUsed(inputVector),

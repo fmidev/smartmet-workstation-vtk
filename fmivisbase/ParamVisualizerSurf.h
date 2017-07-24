@@ -14,15 +14,25 @@ class vtkStripper;
 class vtkActor;
 class vtkPolyData;
 class ContourLabeler;
+class vtkAppendPolyData;
+class vtkClipPolyData;
+class HatchSource;
+class vtkImplicitSelectionLoop;
 
 class ParamVisualizerSurf : public ParamVisualizerBase {
 protected:
+
+	HatchSource *hatch;
+	vtkClipPolyData *clip;
+	vtkImplicitSelectionLoop *loop;
 
 	vtkContourFilter *contour;
 
 	vtkStripper* stripper;
 
 	ContourLabeler &labeler;
+
+	vtkAppendPolyData *append;
 
 	vtkPolyDataMapper *polyMap;
 

@@ -99,7 +99,6 @@ ParamVisualizerBase(new nbsSurface(file, &m, param, 13000, true), m, param), map
 
 	extract->Update();
 
-	extract->GetOutput()->PrintSelf(cout, vtkIndent());
 
 
 
@@ -122,7 +121,6 @@ ParamVisualizerBase(new nbsSurface(file, &m, param, 13000, true), m, param), map
 
 	glypher->Update();
 
-	glypher->GetOutput()->PrintSelf(cout, vtkIndent());
 
 	 auto mapReader = vtkSmartPointer<vtkPNGReader>::New();
 	 mapReader->SetFileName("icons.png");

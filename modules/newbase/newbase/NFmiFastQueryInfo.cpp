@@ -2146,6 +2146,84 @@ bool NFmiFastQueryInfo::GetCube(std::vector<float> &values)
 	return true;
 }
 
+bool NFmiFastQueryInfo::GetInterpolatedLevel(std::vector<float> &values, const NFmiMetTime &time) {
+
+	auto oldTime = TimeIndex();
+
+	values.resize( SizeLocations() );
+	std::fill(begin(values), end(values), kFloatMissing);
+	static std::vector<float> nextValues(SizeLocations(), kFloatMissing);
+
+	NFmiTimeCache timeCache = CalcTimeCache(time);
+
+	TimeIndex(timeCache.itsTimeIndex1);
+	GetLevelToVec(values);
+
+
+
+	TimeIndex(timeCache.itsTimeIndex2);
+	GetLevelToVec(nextValues);
+
+	NFmiDataIdent &param = Param();
+	FmiInterpolationMethod interp = param.GetParam()->InterpolationMethod();
+	FmiParameterName parId = static_cast<FmiParameterName>(param.GetParamIdent());
+
+	std::transform(values.begin(), values.end(), nextValues.begin(), values.begin(),
+		[&](const float &a, const float &b) {
+		return CachedTimeInterpolatedValue(a, b, timeCache, interp, parId);
+	});
+
+
+	TimeIndex(oldTime);
+
+	return true;
+}
+
+bool NFmiFastQueryInfo::GetInterpolatedCube(std::vector<float> &values, const NFmiMetTime &time) {
+
+	auto oldTime = TimeIndex();
+
+	values.resize(SizeLocations()*SizeLevels());
+	std::fill(begin(values), end(values), kFloatMissing);
+	static std::vector<float> nextValues(SizeLocations()*SizeLevels() , kFloatMissing );
+
+	NFmiTimeCache timeCache = CalcTimeCache(time);
+	NFmiDataIdent &param = Param();
+	FmiInterpolationMethod interp = param.GetParam()->InterpolationMethod();
+	FmiParameterName parId = static_cast<FmiParameterName>(param.GetParamIdent());
+
+	if (interp == kNoneInterpolation || interp == kNearestPoint) {
+		if (timeCache.itsOffset <= 0.5) {
+			TimeIndex(timeCache.itsTimeIndex1);
+			GetCube(values);
+		}
+		else {
+			TimeIndex(timeCache.itsTimeIndex2);
+			GetCube(values);
+		}
+	}
+	else {
+
+		TimeIndex(timeCache.itsTimeIndex1);
+		GetCube(values);
+
+		TimeIndex(timeCache.itsTimeIndex2);
+		GetCube(nextValues);
+
+
+
+		std::transform(values.begin(), values.end(), nextValues.begin(), values.begin(),
+			[&](const float &a, const float &b) {
+			return CachedTimeInterpolatedValue(a, b, timeCache, interp, parId);
+		});
+
+	}
+
+	TimeIndex(oldTime);
+
+	return true;
+}
+
 // ----------------------------------------------------------------------
 /*!
  * Palauttaa kaikki hilan data-arvot annettuun datamatriisiin haluttuun

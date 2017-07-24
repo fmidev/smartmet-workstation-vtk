@@ -10,7 +10,6 @@ GLOB SOURCE_FILES
 	*.h
 )
 
-message(${BOOST_LIB_DIR})
 link_directories(
 	${BOOST_LIB_DIR}
 	)

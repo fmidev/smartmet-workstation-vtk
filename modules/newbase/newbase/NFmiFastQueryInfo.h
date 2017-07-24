@@ -177,6 +177,9 @@ class _FMI_DLL NFmiFastQueryInfo : public NFmiQueryInfo
   bool GetLevelToVec(std::vector<float> &values);
   bool GetCube(std::vector<float> &values);
 
+  bool GetInterpolatedLevel(std::vector<float> &values, const NFmiMetTime &time);
+  bool GetInterpolatedCube(std::vector<float> &values, const NFmiMetTime &t);
+
   void LandscapeValues(NFmiDataMatrix<float> &theMatrix,
                        const NFmiDataMatrix<float> &theDEMMatrix,
                        const NFmiDataMatrix<bool> &theWaterFlagMatrix);

@@ -5,28 +5,26 @@
 
 
 #include "ParamVisualizerBase.h"
-#include "TextImageLayer.h"
 
+
+class vtkVectorText;
 class vtkPolyDataMapper;
 class vtkActor;
 class vtkAppendPolyData;
 class vtkTransformPolyDataFilter;
-class vtkTexture;
 
+class ParamVisualizerPolyText : public ParamVisualizerBase {
 
-class ParamVisualizerText : public ParamVisualizerBase {
-
-	TextImageLayer tl;
+	vtkVectorText *vt;
 	vtkTransformPolyDataFilter *tf;
 	vtkAppendPolyData *ap;
 
-	vtkTexture *texture;
 	vtkPolyDataMapper *map;
 	vtkActor *act;
 
 public:
-	ParamVisualizerText(const std::string &file, nbsMetadata &m, int param);
-	~ParamVisualizerText();
+	ParamVisualizerPolyText(const std::string &file, nbsMetadata &m, int param);
+	~ParamVisualizerPolyText();
 
 	void UpdateTimeStep(double t) override;
 

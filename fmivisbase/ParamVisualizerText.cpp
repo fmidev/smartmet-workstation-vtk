@@ -1,4 +1,4 @@
- #include "ParamVisualizerText.h"
+#include "ParamVisualizerText.h"
 
 #include <vtkCellData.h>
 #include <vtkVectorText.h>
@@ -10,26 +10,38 @@
 #include <vtkTransformPolyDataFilter.h>
 #include <vtkTransform.h>
 #include <vtkFloatArray.h>
+#include <vtkTexture.h>
 
 #include "nbsSurface.h"
+#include "TextImageLayer.h"
+#include "vtkScalarsToColors.h"
 
 ParamVisualizerText::ParamVisualizerText(const std::string &file, nbsMetadata &m, int param) :
 	ParamVisualizerBase(new nbsSurface(file, &m, param, 13000, true), m, param),
-	vt(vtkVectorText::New()),
+	tl(1024,1024),
 	tf(vtkTransformPolyDataFilter::New()),
 	ap(vtkAppendPolyData::New()),
-	map(vtkPolyDataMapper::New()) ,
+	texture(vtkTexture::New()),
+	map(vtkPolyDataMapper::New()),
 	act(vtkActor::New())
 {
 	nbs->Update();
 
-	map->AddInputConnection(ap->GetOutputPort());
 
-	map->SetScalarModeToUseCellData();
-	map->SetColorModeToMapScalars();
+	map->SetInputConnection(nbs->GetOutputPort());
+	map->SetScalarVisibility(false);
+	map->Update();
+
+	texture->SetInterpolate(true);
+
+	act->SetMapper(map);
+	act->SetTexture(texture);
+	act->SetPickable(false);
+	act->SetDragable(false);
 
 	act->SetMapper(map);
 
+	tl.SetSize(25);
 
 	SetActiveMapper(act->GetMapper());
 
@@ -42,7 +54,6 @@ ParamVisualizerText::~ParamVisualizerText()
 	act->Delete();
 	map->Delete();
 	ap->Delete();
-	vt->Delete();
 }
 
 void ParamVisualizerText::UpdateTimeStep(double t)
@@ -52,7 +63,7 @@ void ParamVisualizerText::UpdateTimeStep(double t)
 	int sizeY = meta.sizeY;
 
 	nbs->UpdateTimeStep(t);
-	
+
 	vtkPolyData * input = vtkPolyData::SafeDownCast(nbs->GetOutputDataObject(0));
 
 
@@ -62,63 +73,42 @@ void ParamVisualizerText::UpdateTimeStep(double t)
 
 	auto pos = vtkSmartPointer<vtkTransform>::New();
 
-	ap->RemoveAllInputs();
 
-	int ix = 0, iy = 0;
-	int step = 3;
+	int ix = 0, iy = sizeY-1;
+	int stepX = 5, stepY = 5;
 
-	while (iy < sizeY) {
+	auto s = std::ostringstream{};
+
+	while (iy >= 0) {
 		ix = 0;
 		while (ix < sizeX) {
 
 			int i = iy + sizeY*ix;
 
-			auto s = std::ostringstream{};
 
 			auto val = inputScalars->GetTuple1(i);
 
+			auto len = 1 + floor( log10(val) );
+			if (val <= 1) len = 1;
 			s << val;
+			for(int i=0;i<4-len; i++) 
+				s << " ";
 
-			vt->SetText(s.str().c_str());
-			vt->Update();
+			//double col[3] = { 0,0,0 };
 
-			double v[3];
+			//map->GetLookupTable()->GetColor(val/100.0, col);
 
-			input->GetPoint(i, v);
-
-			pos->Identity();
-
-
-			pos->Translate(v);
-			pos->Translate(0,0,2);
-			pos->Scale(step*0.75, step*0.75, 1);
-
-			tf->SetTransform(pos);
+			//tl.SetColor(col[0], col[1],col[2]);
 
 
-			tf->SetInputData(vt->GetOutput());
-			tf->Update();
-
-			auto data = vtkSmartPointer<vtkPolyData>::New();
-
-			auto scalar = vtkSmartPointer<vtkFloatArray>::New();
-
-			scalar->SetNumberOfComponents(1);
-
-			for(int i=0;i<tf->GetOutput()->GetNumberOfCells();i++)
-				scalar->InsertNextTuple1(val / 100);
-
-			data->ShallowCopy(tf->GetOutput());
-			data->GetCellData()->SetScalars(scalar);
-
-			ap->AddInputData(data);
-			ix += step;
+			ix += stepX;
 		}
-		iy += step;
+		iy -= stepY;
+		if (iy >= 0)
+			s << "\n";
 	}
-
-	ap->Update();
-	ap->GetOutput()->PrintSelf(cout, vtkIndent());
-
+	tl.AddText(s.str(), 0,0);
+	texture->SetInputData(tl.GetImage());
 	map->Update();
+	tl.Clear();
 }

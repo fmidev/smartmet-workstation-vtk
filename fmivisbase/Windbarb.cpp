@@ -46,7 +46,7 @@ vtkSmartPointer<vtkPolyData> CreateWindbarb(float val, float size) {
 
 	double z = 0;
 
-	val *= 0.5f; // m/s to knots
+	val *= 2.0f; // m/s to knots
 
 	while (val >= 5.0f) {
 		if (val >= 50.0f) {

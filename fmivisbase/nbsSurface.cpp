@@ -26,8 +26,8 @@
 
 
 
-nbsSurface::nbsSurface(const std::string &file, nbsMetadata *meta, int param,int zHeight,bool flat) :
-	pimpl(std::make_unique <nbsImpl>(file)), param(param), meta(meta), zHeight(zHeight), prevTime(-1), flat (flat)
+nbsSurface::nbsSurface(const std::string &file, nbsMetadata *meta, int param,int zHeight,bool flat, bool pad) :
+	pimpl(std::make_unique <nbsImpl>(file)), param(param), meta(meta), zHeight(zHeight), prevTime(-1), flat (flat), pad(pad)
 {
 
 	SetNumberOfInputPorts(0);
@@ -95,18 +95,33 @@ bool nbsSurface::loadPoints() {
 	int sizeY = meta->sizeY;
 	int sizeZ = 1;
 
+	int gridX = sizeX;
+	int gridY = sizeY;
+
+	if (pad) {
+		gridX += 2; 
+		gridY += 2;
+	}
+
 	NFmiFastQueryInfo &dataInfo = pimpl->dataInfo;
 
 
-	points->Resize(sizeX*sizeY);
+	float spacing = 2;
+
+
+	points->Resize(gridX*gridY);
 
 	if (flat) {
-		for (int x = 0; x < sizeX; ++x)
-			for (int y = 0; y < sizeY; ++y)
+		for (int x = 0; x < gridX; ++x)
+			for (int y = 0; y < gridY; ++y)
 			{
-				points->InsertNextPoint(x * 2, y * 2, 0.1); //spacing
+				points->InsertNextPoint(x * spacing - (pad ? spacing : 0),
+					y * spacing - (pad ? spacing : 0), 0.1);
 
-				float tuple[3] = { float(x) / sizeX,float(y) / sizeY, 0.0 };
+				float tuple[3] = { std::min((float)x / gridX, 1.0f),
+					std::min((float)y / gridY, 1.0f) + 0,
+					0.1 };
+
 				textureCoordinates->InsertNextTuple(tuple);
 			}
 	}
@@ -126,12 +141,18 @@ bool nbsSurface::loadPoints() {
 
 		dataInfo.GetLevelToVec(values);
 
-		for (int x = 0; x < sizeX; ++x)
-			for (int y = 0; y < sizeY; ++y)
+		for (int x = 0; x < gridX; ++x)
+			for (int y = 0; y < gridY; ++y)
 			{
-				points->InsertNextPoint(x * 2, y * 2, values[x + y*sizeX] * 2 / zHeight * 80); //VisualizerManager zHeight ja newBaseSourcer zRes, spacing
+				points->InsertNextPoint(x * spacing - ( pad ? spacing : 0),
+										y * spacing - (pad ? spacing : 0),
+									values[x + y*sizeX] * spacing / zHeight * 80); //VisualizerManager zHeight ja newBaseSourcer zRes
 
-				float tuple[3] = { float(x) / sizeX,float(y) / sizeY, 0.0 };
+
+				float tuple[3] = { std::min((float)x / gridX, 1.0f),
+					std::min((float)y / gridY, 1.0f) + 0,
+					0.1 };
+
 				textureCoordinates->InsertNextTuple(tuple);
 			}
 	}
@@ -173,6 +194,14 @@ int nbsSurface::RequestData(vtkInformation* vtkNotUsed(request),
 	int sizeY = meta->sizeY;
 	int sizeZ = 1;
 
+
+	int gridX = sizeX;
+	int gridY = sizeY;
+
+	if (pad) {
+		gridX += 2;
+		gridY += 2;
+	}
 
 	unsigned long time = 0;
 
@@ -228,7 +257,19 @@ int nbsSurface::RequestData(vtkInformation* vtkNotUsed(request),
 				for (int y = 0; y < sizeY; ++y)
 				{
 
-					float val = values[x + y*sizeX];
+					float val;
+
+					if (pad) {
+
+						if ((x == 0 || x == gridX-3 )
+							|| (y == 0 || y == gridY-3 ))
+							val = kFloatMissing;
+						else
+							val = values[x-1 + (y-1)*sizeX];
+
+					}
+					else 
+						val = values[x + y*sizeX];
 
 					if (val == kFloatMissing) {
 						val = 0;

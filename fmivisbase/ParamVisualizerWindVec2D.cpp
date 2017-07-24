@@ -67,6 +67,24 @@ void ParamVisualizerWindVec2D::ModeStreamline() {
 }
 void ParamVisualizerWindVec2D::ModeGlyph() {
 
+	glypher->AddInputConnection(assign->GetOutputPort());
+
+	streamer->RemoveAllInputConnections(0);
+
+	map->RemoveAllInputConnections(0);
+
+	map->AddInputConnection(glypher->GetOutputPort());
+
+	act->SetTexture(nullptr);
+
+	filters.clear();
+
+	filters.push_back(extract);
+	filters.push_back(assign);
+	filters.push_back(glypher);
+}
+
+void ParamVisualizerWindVec2D::ModeArrow() { 
 
 	glypher->AddInputConnection(assign->GetOutputPort());
 
@@ -85,9 +103,8 @@ void ParamVisualizerWindVec2D::ModeGlyph() {
 	filters.push_back(glypher);
 }
 
-
 ParamVisualizerWindVec2D::ParamVisualizerWindVec2D(const std::string &file, nbsMetadata &m) :
-	ParamVisualizerBase(new nbsSurfaceWind(file, &m), m, param), mode(false)
+	ParamVisualizerBase(new nbsSurfaceWind(file, &m), m, param), mode(mode_stream)
 {
 
 	//nbs->setSubSample(3);
