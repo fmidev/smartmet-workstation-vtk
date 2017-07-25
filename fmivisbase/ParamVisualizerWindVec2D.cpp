@@ -20,12 +20,13 @@
 #include <vtkTubeFilter.h>
 #include <vtkMaskPoints.h>
 #include <vtkActor.h>
+#include <vtkProperty.h>
 
 #include <vtkSelectionNode.h>
 #include <vtkSelection.h>
 #include <vtkExtractSelectedIds.h>
 
-#include "Windbarb.h"
+#include "Glyphs.h"
 
 #include "VisualizerFactory.h"
 #include "nbsSurfaceWind.h"
@@ -34,6 +35,8 @@
 
 
 void ParamVisualizerWindVec2D::ModeStreamline() {
+
+	mode = mode_stream;
 
 	streamer->AddInputConnection(nbs->GetOutputPort());
 
@@ -65,9 +68,14 @@ void ParamVisualizerWindVec2D::ModeStreamline() {
 	filters.push_back(streamer);
 	filters.push_back(ribbon);
 }
-void ParamVisualizerWindVec2D::ModeGlyph() {
+void ParamVisualizerWindVec2D::ModeBarb() {
 
+	mode = mode_barb;
+
+	glypher->RemoveAllInputConnections(0);
 	glypher->AddInputConnection(assign->GetOutputPort());
+	glypher->SetIndexModeToVector();
+	SetSourceBarb(glypher, 10);
 
 	streamer->RemoveAllInputConnections(0);
 
@@ -86,7 +94,12 @@ void ParamVisualizerWindVec2D::ModeGlyph() {
 
 void ParamVisualizerWindVec2D::ModeArrow() { 
 
+	mode = mode_arrow;
+
+	glypher->RemoveAllInputConnections(0);
 	glypher->AddInputConnection(assign->GetOutputPort());
+	glypher->SetIndexModeToOff();
+	SetSourceArrow(glypher, 10);
 
 	streamer->RemoveAllInputConnections(0);
 
@@ -158,12 +171,9 @@ ParamVisualizerWindVec2D::ParamVisualizerWindVec2D(const std::string &file, nbsM
 
 	glypher = vtkGlyph3D::New();
 
-	//glyph size
-	GenerateBarbs(glypher, 10);
-
 
 	glypher->OrientOn();
-	glypher->SetIndexModeToVector();
+
 	glypher->SetVectorModeToUseVector();
 	glypher->SetScaleModeToDataScalingOff();
 	glypher->SetColorModeToColorByScalar();
@@ -199,10 +209,10 @@ ParamVisualizerWindVec2D::ParamVisualizerWindVec2D(const std::string &file, nbsM
  	map->SetColorModeToMapScalars();
  	map->SetLookupTable(VisualizerFactory::blueToRedColor(0, 150));
 
+
 	act = vtkActor::New();
 	act->SetMapper(map);
-
-
+	act->GetProperty()->LightingOff();
 
 	SetActiveMapper(map);
 	SetProp(act);

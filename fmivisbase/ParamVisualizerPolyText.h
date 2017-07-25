@@ -1,5 +1,5 @@
-#ifndef ParamVisualizerText_h__
-#define ParamVisualizerText_h__
+#ifndef ParamVisualizerPolyText_h__
+#define ParamVisualizerPolyText_h__
 
 #include <vtkSmartPointer.h>
 
@@ -30,4 +30,4 @@ public:
 
 };
 
-#endif // ParamVisualizerText_h__
+#endif // ParamVisualizerPolyText_h__

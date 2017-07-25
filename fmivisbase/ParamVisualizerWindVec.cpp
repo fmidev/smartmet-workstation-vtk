@@ -23,7 +23,7 @@
 #include <vtkSelection.h>
 #include <vtkExtractSelectedIds.h>
 
-#include "Windbarb.h"
+#include "Glyphs.h"
 
 #include "VisualizerFactory.h"
 
@@ -119,7 +119,7 @@ ParamVisualizerWindVec::ParamVisualizerWindVec(const std::string &file, nbsMetad
 	glypher = vtkGlyph3D::New();
 
 	//glyph size
-	GenerateBarbs(glypher, 10);
+	SetSourceBarb(glypher, 10);
 
 
 	glypher->OrientOn();

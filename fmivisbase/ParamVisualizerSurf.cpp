@@ -34,7 +34,7 @@ void ParamVisualizerSurf::ModeIsoLine() {
 	append->RemoveAllInputConnections(0);
 
 	stripper->AddInputConnection(contour->GetOutputPort());
-	//append->SetInputConnection(0,contour->GetOutputPort());
+	append->SetInputConnection(0,contour->GetOutputPort());
 
 }
 
@@ -53,14 +53,6 @@ void ParamVisualizerSurf::UpdateTimeStep(double t) {
 	nbs->UpdateTimeStep(t);
 
 	if (mode) {
-
-
-		append->RemoveAllInputs();
-
-		auto dummy = vtkSmartPointer<vtkPolyData>::New();
-		append->SetInputData(0, dummy);
-
-		//append->SetInputConnection(0, contour->GetOutputPort());
 
 
 		stripper->Update();
@@ -90,11 +82,11 @@ void ParamVisualizerSurf::UpdateTimeStep(double t) {
 				double midPoint[3];
 				points->GetPoint(midPointId, midPoint);
 
-				//labeler.Add(midPoint, val);
+				labeler.Add(midPoint, val);
 
 			}
-
-			if (abs(val - 20) < 0.01) {
+		
+			/*if (abs(val - 20) < 0.01) {
 
 				auto line = vtkSmartPointer<vtkPoints>::New();
 				auto idList = vtkSmartPointer<vtkIdList>::New();
@@ -126,10 +118,10 @@ void ParamVisualizerSurf::UpdateTimeStep(double t) {
 				data->GetPointData()->SetScalars(dataScalars);
 
 				append->AddInputData(data);
-			}
+			}*/
 
 
-		}
+		} 
 
 	}
 
@@ -149,7 +141,7 @@ ParamVisualizerSurf::ParamVisualizerSurf(const std::string & file, nbsMetadata &
 	int param, vtkSmartPointer<vtkColorTransferFunction> contourColors,
 	ContourLabeler &labeler, double range[2], int numContours, bool flat) :
 
-	ParamVisualizerBase(new nbsSurface(file, &m,param,13000,flat,true),m,param),
+	ParamVisualizerBase(new nbsSurface(file, &m,param,13000,flat),m,param),
 	labeler(labeler), mode(false)
 {
 	nbs->Update();

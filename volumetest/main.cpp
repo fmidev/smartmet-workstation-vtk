@@ -56,7 +56,7 @@
 
 #include "TimeAnimator.h"
 
-#include "Windbarb.h"
+#include "Glyphs.h"
 #include "ParamVisualizerWindVec.h"
 #include "ParamVisualizerSurf.h"
 

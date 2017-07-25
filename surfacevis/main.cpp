@@ -28,6 +28,7 @@
 #include <vtkLight.h>
 
 
+#include "HatchSource.h"
 
 #include "ParamVisualizerWindVec2D.h"
 #include "ParamVisualizerIcon.h"
@@ -36,7 +37,8 @@
 
 #include "ParamVisualizerArrayText.h"
 
-#include "HatchSource.h"
+#include "ParamVisualizerPolyText.h"
+#include "ParamVisualizerText.h"
 
 using namespace std::string_literals;
 
@@ -238,9 +240,12 @@ int main(size_t argc, char* argv[])
 	 addVis(std::make_unique<ParamVisualizerIcon>(file, meta, kFmiTotalCloudCover,iconMapping), "Total Cloud Cover (Icon)",
 		 vm, paramVID, textActs, ren1, textSize, textVOff, textVSpacing);
 
-	 addVis(std::make_unique<ParamVisualizerArrayText>(file,meta,kFmiTotalCloudCover,VisualizerFactory::greenToRedColor(0,100)), "Total Cloud Cover (Text)",
+	 addVis(std::make_unique<ParamVisualizerArrayText>(file,meta,kFmiTotalCloudCover,VisualizerFactory::greenToRedColor(0,100)), "Total Cloud Cover (ArrayText)",
 						vm, paramVID, textActs, ren1, textSize, textVOff, textVSpacing);
-
+	 addVis(std::make_unique<ParamVisualizerPolyText>(file, meta, kFmiTotalCloudCover), "Total Cloud Cover (Polytext)",
+		 vm, paramVID, textActs, ren1, textSize, textVOff, textVSpacing);
+	 addVis(std::make_unique<ParamVisualizerText>(file, meta, kFmiTotalCloudCover), "Total Cloud Cover (Text)",
+		 vm, paramVID, textActs, ren1, textSize, textVOff, textVSpacing);
 	for (auto &parampair : paramsSurf) {
 		if (dataInfo.Param(FmiParameterName(parampair.first))) {
 			s = std::ostringstream{};

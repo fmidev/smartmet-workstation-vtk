@@ -39,7 +39,7 @@ class ParamVisualizerWindVec2D : public ParamVisualizerBase {
 	vtkActor *act;
 
 	void ModeStreamline();
-	void ModeGlyph();
+	void ModeBarb();
 	void ModeArrow();
 
 public:
@@ -51,7 +51,7 @@ public:
 	virtual inline void ToggleMode() {
 
 		if (mode==mode_stream) {
-			ModeGlyph();
+			ModeBarb();
 		}
 		else if(mode==mode_barb){
 			ModeArrow(); 
