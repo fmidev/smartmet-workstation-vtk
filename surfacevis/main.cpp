@@ -78,8 +78,6 @@ int main(size_t argc, char* argv[])
 {
 	cout << "Initializing VTK..." << endl;
 
-	vtkObject::GlobalWarningDisplayOff();
-
 	//lisää aikasarjatuen?
 	auto *sdp = vtkStreamingDemandDrivenPipeline::New();
 	vtkAlgorithm::SetDefaultExecutivePrototype(sdp);
@@ -246,6 +244,7 @@ int main(size_t argc, char* argv[])
 		 vm, paramVID, textActs, ren1, textSize, textVOff, textVSpacing);
 	 addVis(std::make_unique<ParamVisualizerText>(file, meta, kFmiTotalCloudCover), "Total Cloud Cover (Text)",
 		 vm, paramVID, textActs, ren1, textSize, textVOff, textVSpacing);
+
 	for (auto &parampair : paramsSurf) {
 		if (dataInfo.Param(FmiParameterName(parampair.first))) {
 			s = std::ostringstream{};

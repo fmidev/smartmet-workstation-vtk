@@ -116,6 +116,21 @@ void ParamVisualizerWindVec2D::ModeArrow() {
 	filters.push_back(glypher);
 }
 
+
+void ParamVisualizerWindVec2D::UpdateTimeStep(double t)
+{
+
+	vtkObject::GlobalWarningDisplayOff();
+
+	ParamVisualizerBase::UpdateTimeStep(t);
+
+
+	vtkObject::GlobalWarningDisplayOn();
+
+
+}
+
+
 ParamVisualizerWindVec2D::ParamVisualizerWindVec2D(const std::string &file, nbsMetadata &m) :
 	ParamVisualizerBase(new nbsSurfaceWind(file, &m), m, param), mode(mode_stream)
 {
@@ -197,7 +212,9 @@ ParamVisualizerWindVec2D::ParamVisualizerWindVec2D(const std::string &file, nbsM
 	ribbon->SetInputConnection(streamer->GetOutputPort());
 
 	ribbon->SetInputArrayToProcess(0, 0, 0, vtkDataObject::FIELD_ASSOCIATION_POINTS, "Scalars");
-	ribbon->SetUseDefaultNormal(true);
+	ribbon->UseDefaultNormalOn();
+	ribbon->SetDefaultNormal(0, 0, 1);
+
 	ribbon->SetVaryWidth(true);
 	ribbon->SetWidthFactor(2.5);
 	ribbon->SetGenerateTCoordsToNormalizedLength () ;

@@ -48,6 +48,8 @@ public:
 	ParamVisualizerWindVec2D(const std::string &file, nbsMetadata &m);
 	~ParamVisualizerWindVec2D();
 
+	virtual void UpdateTimeStep(double t) override;
+
 	virtual inline void ToggleMode() {
 
 		if (mode==mode_stream) {
