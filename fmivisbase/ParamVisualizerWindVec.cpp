@@ -93,17 +93,17 @@ ParamVisualizerWindVec::ParamVisualizerWindVec(const std::string &file, nbsMetad
 	auto selection = vtkSmartPointer<vtkSelection>::New();
 	selection->AddNode(selectionNode);
 
-	extract = vtkExtractSelectedIds::New();
+	extract = vtkSmartPointer<vtkExtractSelectedIds>::New();
 	extract->SetInputConnection(0, seedData );
 
 	extract->SetInputData(1, selection);
 
-	probe = vtkProbeFilter::New();
+	probe = vtkSmartPointer<vtkProbeFilter>::New();
 	probe->SetPassPointArrays(true);
 	probe->SetInputConnection(extract->GetOutputPort());
 	probe->SetSourceConnection(nbs->GetOutputPort());
 
-	assign = vtkAssignAttribute::New();
+	assign = vtkSmartPointer<vtkAssignAttribute>::New();
 
 	assign->SetInputConnection(probe->GetOutputPort());
 
@@ -116,7 +116,7 @@ ParamVisualizerWindVec::ParamVisualizerWindVec(const std::string &file, nbsMetad
 	transform->Translate(-7.5, 0, 0);
 	transform->Update();
 
-	glypher = vtkGlyph3D::New();
+	glypher = vtkSmartPointer<vtkGlyph3D>::New();
 
 	//glyph size
 	SetSourceBarb(glypher, 10);
@@ -129,7 +129,7 @@ ParamVisualizerWindVec::ParamVisualizerWindVec(const std::string &file, nbsMetad
 	glypher->SetColorModeToColorByScalar();
 	glypher->SetSourceTransform(transform);
 
-	streamer = vtkStreamTracer::New();
+	streamer = vtkSmartPointer<vtkStreamTracer>::New();
 
 	streamer->SetSourceConnection(extract->GetOutputPort());
 	streamer->SetMaximumPropagation(400);
@@ -139,7 +139,7 @@ ParamVisualizerWindVec::ParamVisualizerWindVec(const std::string &file, nbsMetad
 	streamer->SetInitialIntegrationStep(0.5);
 	streamer->SetIntegratorTypeToRungeKutta4();
 
-	tuber = vtkTubeFilter::New();
+	tuber = vtkSmartPointer<vtkTubeFilter>::New();
 	tuber->SetInputConnection(streamer->GetOutputPort());
 	tuber->SetInputArrayToProcess(1, 0, 0, vtkDataObject::FIELD_ASSOCIATION_POINTS, "ImageScalars");
 	tuber->SetVaryRadiusToVaryRadiusByVector();
@@ -151,7 +151,7 @@ ParamVisualizerWindVec::ParamVisualizerWindVec(const std::string &file, nbsMetad
 	tuber->SetNumberOfSides(4);
 
 
-	map = vtkPolyDataMapper::New();
+	map = vtkSmartPointer<vtkPolyDataMapper>::New();
 	map->SetInputConnection(tuber->GetOutputPort());
 
 
@@ -160,21 +160,11 @@ ParamVisualizerWindVec::ParamVisualizerWindVec(const std::string &file, nbsMetad
 	map->SetColorModeToMapScalars();
 	map->SetLookupTable(VisualizerFactory::blueToRedColor(0, 150) );
 
-	act = vtkActor::New();
+	act = vtkSmartPointer<vtkActor>::New();
 	act->SetMapper(map);
 
 	SetActiveMapper(map);
 	SetProp(act);
 
 	ModeStreamline();
-}
-
-ParamVisualizerWindVec::~ParamVisualizerWindVec() {
-	probe->Delete();
-	glypher->Delete();
-	extract->Delete();
-	streamer->Delete();
-	tuber->Delete();
-	map->Delete();
-	act->Delete();
 }

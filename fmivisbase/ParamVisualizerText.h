@@ -17,16 +17,16 @@ class vtkTexture;
 class ParamVisualizerText : public ParamVisualizerBase {
 
 	TextImageLayer tl;
-	vtkTransformPolyDataFilter *tf;
-	vtkAppendPolyData *ap;
+	vtkSmartPointer<vtkTransformPolyDataFilter> tf;
+	vtkSmartPointer<vtkAppendPolyData> ap;
 
-	vtkTexture *texture;
-	vtkPolyDataMapper *map;
-	vtkActor *act;
+	vtkSmartPointer<vtkTexture> texture;
+	vtkSmartPointer<vtkPolyDataMapper> map;
+	vtkSmartPointer<vtkActor> act;
 
 public:
 	ParamVisualizerText(const std::string &file, nbsMetadata &m, int param);
-	~ParamVisualizerText();
+
 
 	void UpdateTimeStep(double t) override;
 

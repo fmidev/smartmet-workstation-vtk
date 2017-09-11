@@ -26,6 +26,10 @@
 #include <vtkTransform.h>
 #include <vtkTransformPolyDataFilter.h>
 
+#include <vtkDecimatePolylineFilter.h>
+#include <vtkContourTriangulator.h>
+#include <vtkCleanPolyData.h>
+
 void ParamVisualizerSurf::ModeIsoLine() {
 
 
@@ -34,7 +38,7 @@ void ParamVisualizerSurf::ModeIsoLine() {
 	append->RemoveAllInputConnections(0);
 
 	stripper->AddInputConnection(contour->GetOutputPort());
-	append->SetInputConnection(0,contour->GetOutputPort());
+
 
 }
 
@@ -49,11 +53,67 @@ void ParamVisualizerSurf::ModeColorContour() {
 
 }
 
+
+
+void debugLines(vtkAppendPolyData* append,vtkPoints* points, vtkIdList *idList) {
+	auto data = vtkSmartPointer<vtkPolyData>::New();
+
+	// 				loop->SetLoop(line);
+	// 
+	// 				clip->SetClipFunction(loop);
+	// 				clip->Update();
+
+
+	data->Allocate(1);
+
+	data->SetPoints(points);
+
+	data->InsertNextCell(VTK_POLY_LINE, idList);
+
+	//data->ShallowCopy(clip->GetOutput());
+
+	auto dataScalars = vtkSmartPointer<vtkFloatArray>::New();
+	dataScalars->SetNumberOfComponents(1);
+	for (int i = 0; i < data->GetNumberOfPoints(); ++i)
+		dataScalars->InsertNextTuple1(double(i) / data->GetNumberOfPoints() * 200);
+
+	data->GetPointData()->SetScalars(dataScalars);
+
+	append->AddInputData(data);
+}
+
+
+void TriangulateContour(vtkSmartPointer<vtkPoints> line, vtkSmartPointer<vtkIdList> lineList,
+	vtkSmartPointer<vtkDecimatePolylineFilter> decimate, vtkSmartPointer<vtkContourTriangulator> triangulate, vtkSmartPointer<vtkAppendPolyData> append)
+{
+
+	auto data = vtkSmartPointer<vtkPolyData>::New();
+
+	data->Allocate(1);
+
+	data->SetPoints(line);
+
+	data->InsertNextCell(VTK_POLY_LINE, lineList);
+
+
+	decimate->SetInputData(data);
+	decimate->Update();
+
+	triangulate->SetInputData(decimate->GetOutput());
+
+	triangulate->Update();
+
+	data->ShallowCopy(triangulate->GetOutput());
+	append->AddInputData(data);
+}
+
 void ParamVisualizerSurf::UpdateTimeStep(double t) {
-	nbs->UpdateTimeStep(t);
+	UpdateNBS(t);
 
 	if (mode) {
 
+		append->RemoveAllInputs();
+		append->SetInputConnection(0, contour->GetOutputPort());
 
 		stripper->Update();
 
@@ -86,7 +146,8 @@ void ParamVisualizerSurf::UpdateTimeStep(double t) {
 
 			}
 		
-			/*if (abs(val - 20) < 0.01) {
+			if (abs(val - 60) < 0.01) {
+
 
 				auto line = vtkSmartPointer<vtkPoints>::New();
 				auto idList = vtkSmartPointer<vtkIdList>::New();
@@ -95,30 +156,17 @@ void ParamVisualizerSurf::UpdateTimeStep(double t) {
 					idList->InsertNextId(indices[i]);
 				points->GetPoints(idList, line);
 
-				loop->SetLoop(line);
+				auto lineList = vtkSmartPointer<vtkIdList>::New();
+				for (int i = 0; i < numberOfPoints; i++)
+					lineList->InsertNextId(i);
+				lineList->InsertNextId(0);
 
-				clip->SetClipFunction(loop);
-				clip->Update();
 
-				auto data = vtkSmartPointer<vtkPolyData>::New();
+				TriangulateContour(line, lineList, decimate, triangulate, append);
+ 
+				debugLines(append, points, idList);
 
-				data->Allocate(1);
-
-				data->SetPoints(points);
-
-				data->InsertNextCell(VTK_POLY_LINE,idList);
-
- 				//data->ShallowCopy(clip->GetOutput());
-
-				auto dataScalars = vtkSmartPointer<vtkFloatArray>::New();
-				dataScalars->SetNumberOfComponents(1);
-				for (int i = 0; i < data->GetNumberOfPoints(); ++i)
-					dataScalars->InsertNextTuple1(double(i)/data->GetNumberOfPoints()*200);
-
-				data->GetPointData()->SetScalars(dataScalars);
-
-				append->AddInputData(data);
-			}*/
+			}
 
 
 		} 
@@ -141,7 +189,7 @@ ParamVisualizerSurf::ParamVisualizerSurf(const std::string & file, nbsMetadata &
 	int param, vtkSmartPointer<vtkColorTransferFunction> contourColors,
 	ContourLabeler &labeler, double range[2], int numContours, bool flat) :
 
-	ParamVisualizerBase(new nbsSurface(file, &m,param,13000,flat),m,param),
+	ParamVisualizerBase(new nbsSurface(file, &m,param,13000,flat,true),m,param),
 	labeler(labeler), mode(false)
 {
 	nbs->Update();
@@ -184,6 +232,16 @@ ParamVisualizerSurf::ParamVisualizerSurf(const std::string & file, nbsMetadata &
 
 	polyMap->SelectColorArray("Scalars");
 
+	triangulate = vtkSmartPointer<vtkContourTriangulator>::New();
+
+	clean = vtkSmartPointer<vtkCleanPolyData>::New();
+	decimate = vtkSmartPointer<vtkDecimatePolylineFilter>::New();
+
+	//decimate->AddInputConnection(clean->GetOutputPort());
+
+
+	decimate->SetTargetReduction(0.9);
+
 
 	SetActiveMapper(polyMap);
 
@@ -191,7 +249,9 @@ ParamVisualizerSurf::ParamVisualizerSurf(const std::string & file, nbsMetadata &
 
 	polyAct->SetMapper(polyMap);
 
-	//polyAct->GetProperty()->ShadingOff();
+	//polyAct->GetProperty()->SetOpacity(0.4);
+
+	polyAct->GetProperty()->SetBackfaceCulling(false);
 
 	SetProp(polyAct);
 

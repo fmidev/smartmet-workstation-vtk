@@ -56,7 +56,7 @@ void ParamVisualizerArrayText::UpdateTimeStep(double t)
 	int sizeX = meta.sizeX;
 	int sizeY = meta.sizeY;
 
-	nbs->UpdateTimeStep(t);
+	UpdateNBS(t);
 
 	vtkPolyData * input = vtkPolyData::SafeDownCast(nbs->GetOutputDataObject(0));
 

@@ -6,7 +6,7 @@
 #include <NFmiQueryData.h>
 #include <NFmiFastQueryInfo.h>
 
-struct newBaseSourcer::nbsImpl {
+struct newBaseSourcerBase::nbsImpl {
 
 	NFmiQueryData data;
 	NFmiFastQueryInfo dataInfo;

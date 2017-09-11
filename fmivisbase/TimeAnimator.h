@@ -5,6 +5,8 @@
 
 #include <vtkCommand.h>
 
+#include <vtkSmartPointer.h>
+
 class vtkRenderWindow;
 class vtkSliderRepresentation2D;
 class vtkSliderWidget;
@@ -61,8 +63,8 @@ protected:
 class TimeAnimator {
 
 	vtkRenderWindow *renWin;
-	vtkSliderRepresentation2D * sliderRep;
-	vtkSliderWidget *slider;
+	vtkSmartPointer<vtkSliderRepresentation2D> sliderRep;
+	vtkSmartPointer<vtkSliderWidget> slider;
 	VisualizerManager *vm;
 	nbsMetadata *meta;
 	int wrapCount;

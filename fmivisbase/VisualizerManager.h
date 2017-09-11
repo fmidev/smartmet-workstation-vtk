@@ -10,6 +10,9 @@
 
 #include "ParamVisualizerBase.h"
 
+
+
+
 class vtkRenderer;
 class ContourLabeler;
 class vtkPlanes;
@@ -23,20 +26,21 @@ typedef size_t visID;
 
 class VisualizerManager {
 	std::vector<std::unique_ptr<ParamVisualizerBase> > visualizers;
-	vtkSmartPointer<vtkRenderer> renderer;
+	vtkRenderer *renderer;
 	std::unique_ptr<ContourLabeler> labeler;
 
 	vtkSmartPointer<vtkScalarBarWidget> legend;
 
-	nbsMetadata meta;
+	nbsMetadata &meta;
 
 	double prevTime;
 
 
 public:
 
-	VisualizerManager(vtkSmartPointer<vtkRenderer> ren, float zHeight = 13000);
+	VisualizerManager(vtkRenderer *ren,nbsMetadata &m, float zHeight = 13000);
 	~VisualizerManager();
+
 	inline nbsMetadata& GetMeta() {
 		return meta;
 	}

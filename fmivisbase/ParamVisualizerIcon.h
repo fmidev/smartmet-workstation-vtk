@@ -25,17 +25,17 @@ class ParamVisualizerIcon : public ParamVisualizerBase {
 protected:
 
 
-	vtkExtractSelectedIds *extract;
+	vtkSmartPointer<vtkExtractSelectedIds> extract;
 
-	vtkProgrammableAttributeDataFilter *attribs;
+	vtkSmartPointer<vtkProgrammableAttributeDataFilter> attribs;
 
-	vtkIconGlyphFilter *glypher;
+	vtkSmartPointer<vtkIconGlyphFilter> glypher;
 
-	vtkPolyDataMapper *polyMap;
+	vtkSmartPointer<vtkPolyDataMapper> polyMap;
 
 	iconMapping mapping;
 
-	vtkActor *polyAct;
+	vtkSmartPointer<vtkActor> polyAct;
 
 	//false = color
 	bool mode;
@@ -43,7 +43,6 @@ protected:
 	friend void AttributeCallback(void* arg);
 public:
 	ParamVisualizerIcon(const std::string &file, nbsMetadata &m, int param, iconMapping mapping);
-	~ParamVisualizerIcon();
 
 	virtual inline void ToggleMode() { }
 };

@@ -15,19 +15,23 @@
 
 ParamVisualizerPolyText::ParamVisualizerPolyText(const std::string &file, nbsMetadata &m, int param) :
 	ParamVisualizerBase(new nbsSurface(file, &m, param, 13000, true), m, param),
-	vt(vtkVectorText::New()),
-	tf(vtkTransformPolyDataFilter::New()),
-	ap(vtkAppendPolyData::New()),
-	map(vtkPolyDataMapper::New()) ,
-	act(vtkActor::New())
+	vt(vtkSmartPointer<vtkVectorText>::New()),
+	tf(vtkSmartPointer<vtkTransformPolyDataFilter>::New()),
+	ap(vtkSmartPointer<vtkAppendPolyData>::New())
+	
 {
 	nbs->Update();
+
+	map = vtkSmartPointer<vtkPolyDataMapper>::New();
 
 	map->AddInputConnection(ap->GetOutputPort());
 
 	map->SetScalarModeToUseCellData();
 	map->SetColorModeToMapScalars();
 
+
+
+	act = vtkSmartPointer<vtkActor>::New();
 	act->SetMapper(map);
 
 
@@ -37,13 +41,6 @@ ParamVisualizerPolyText::ParamVisualizerPolyText(const std::string &file, nbsMet
 
 }
 
-ParamVisualizerPolyText::~ParamVisualizerPolyText()
-{
-	act->Delete();
-	map->Delete();
-	ap->Delete();
-	vt->Delete();
-}
 
 void ParamVisualizerPolyText::UpdateTimeStep(double t)
 {
@@ -51,7 +48,7 @@ void ParamVisualizerPolyText::UpdateTimeStep(double t)
 	int sizeX = meta.sizeX;
 	int sizeY = meta.sizeY;
 
-	nbs->UpdateTimeStep(t);
+	UpdateNBS(t);
 	
 	vtkPolyData * input = vtkPolyData::SafeDownCast(nbs->GetOutputDataObject(0));
 

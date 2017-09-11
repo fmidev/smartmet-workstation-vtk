@@ -1,6 +1,8 @@
 #ifndef ParamVisualizerWindVec_h
 #define ParamVisualizerWindVec_h
 
+#include <vtkSmartPointer.h>
+
 #include "ParamVisualizerBase.h"
 
 struct nbsMetadata;
@@ -20,20 +22,20 @@ class ParamVisualizerWindVec : public ParamVisualizerBase {
 	//false = streamline
 	bool mode;
 
-	vtkAlgorithmOutput *seedData;
-	vtkAssignAttribute *assign;
+	vtkSmartPointer<vtkAlgorithmOutput> seedData;
+	vtkSmartPointer<vtkAssignAttribute> assign;
 
-	vtkProbeFilter *probe;
+	vtkSmartPointer<vtkProbeFilter> probe;
 
-	vtkGlyph3D *glypher;
+	vtkSmartPointer<vtkGlyph3D> glypher;
 
-	vtkExtractSelectedIds *extract;
-	vtkStreamTracer *streamer;
-	vtkTubeFilter *tuber;
+	vtkSmartPointer<vtkExtractSelectedIds> extract;
+	vtkSmartPointer<vtkStreamTracer> streamer;
+	vtkSmartPointer<vtkTubeFilter> tuber;
 
-	vtkPolyDataMapper *map;
+	vtkSmartPointer<vtkPolyDataMapper> map;
 
-	vtkActor *act;
+	vtkSmartPointer<vtkActor> act;
 
 	void ModeStreamline();
 	void ModeGlyph();
@@ -42,7 +44,6 @@ public:
 	static const int PARAM_WINDVEC = 30000;
 
 	ParamVisualizerWindVec(const std::string &file, nbsMetadata &m, vtkAlgorithmOutput* seedData);
-	~ParamVisualizerWindVec();
 
 	virtual inline void ToggleMode() {
 

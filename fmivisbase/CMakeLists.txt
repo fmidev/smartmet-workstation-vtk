@@ -36,3 +36,5 @@ target_include_directories(${PROJECT_NAME}
 set(${PROJECT_NAME}_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}
                                  ${Newbase_INCLUDE_DIRS}
     CACHE INTERNAL "${PROJECT_NAME}: Include Directories" FORCE)
+	
+set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)

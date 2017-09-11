@@ -18,6 +18,9 @@ class vtkAppendPolyData;
 class vtkClipPolyData;
 class HatchSource;
 class vtkImplicitSelectionLoop;
+class vtkContourTriangulator;
+class vtkDecimatePolylineFilter;
+class vtkCleanPolyData;
 
 class ParamVisualizerSurf : public ParamVisualizerBase {
 protected:
@@ -32,7 +35,12 @@ protected:
 
 	ContourLabeler &labeler;
 
+
 	vtkAppendPolyData *append;
+
+	vtkSmartPointer<vtkContourTriangulator> triangulate;
+	vtkSmartPointer<vtkDecimatePolylineFilter> decimate;
+	vtkSmartPointer<vtkCleanPolyData> clean;
 
 	vtkPolyDataMapper *polyMap;
 

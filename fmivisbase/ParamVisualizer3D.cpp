@@ -1,8 +1,8 @@
 #include "ParamVisualizer3D.h"
 
 #include <vtkContourFilter.h>
-#include <vtkPolyDataNormals.h>;
-#include <vtkCleanPolyData.h>;
+#include <vtkPolyDataNormals.h>
+#include <vtkCleanPolyData.h>
 
 #include <vtkSmartVolumeMapper.h>
 #include <vtkPolyDataMapper.h>
@@ -45,19 +45,17 @@ void ParamVisualizer3D::ModeContour() {
 }
 
 ParamVisualizer3D::ParamVisualizer3D(const std::string & file, nbsMetadata & m, int param, vtkSmartPointer<vtkColorTransferFunction> volumeColor, vtkSmartPointer<vtkPiecewiseFunction> volumeOpacity, float contourThreshold, double contourColor[3], float contourOpacity) :
-	ParamVisualizerBase(file, m, param),
-	polyMap(vtkPolyDataMapper::New()),
-	volMap(vtkSmartVolumeMapper::New()),
-	contourFilter(vtkContourFilter::New()),
-	cleanFilter(vtkCleanPolyData::New()),
-	volProperty(vtkVolumeProperty::New()),
-	volAct(vtkVolume::New()),
-	polyAct(vtkActor::New())
+	ParamVisualizerBase(file, m, param)
+
 {
+
+	volMap = vtkSmartPointer<vtkSmartVolumeMapper>::New();
 	volMap->SetBlendModeToComposite();
 	volMap->SetRequestedRenderModeToGPU();
 	volMap->SetMaxMemoryInBytes(2e9);
 
+
+	volProperty = vtkSmartPointer<vtkVolumeProperty>::New();
 	volProperty->ShadeOff();
 
 	volProperty->SetInterpolationType(VTK_LINEAR_INTERPOLATION);
@@ -65,8 +63,13 @@ ParamVisualizer3D::ParamVisualizer3D(const std::string & file, nbsMetadata & m, 
 	volProperty->SetColor(volumeColor);
 	volProperty->SetScalarOpacity(volumeOpacity);
 
+
+	volAct = vtkSmartPointer<vtkVolume>::New();
+
 	volAct->SetMapper(volMap);
 	volAct->SetProperty(volProperty);
+
+	contourFilter = vtkSmartPointer<vtkContourFilter>::New();
 
 	contourFilter->ComputeNormalsOn();
 	contourFilter->ComputeScalarsOff();
@@ -74,10 +77,17 @@ ParamVisualizer3D::ParamVisualizer3D(const std::string & file, nbsMetadata & m, 
 
 	contourFilter->SetUseScalarTree(true);
 
+	cleanFilter = vtkSmartPointer<vtkCleanPolyData>::New();
+
 	cleanFilter->SetInputConnection(contourFilter->GetOutputPort());
+
+
+	polyMap = vtkSmartPointer<vtkPolyDataMapper>::New();
 
 	polyMap->SetInputConnection(cleanFilter->GetOutputPort());
 	polyMap->ScalarVisibilityOff();
+
+	polyAct = vtkSmartPointer<vtkActor>::New();
 
 	polyAct->SetMapper(polyMap);
 	polyAct->GetProperty()->SetColor(contourColor);
@@ -92,14 +102,3 @@ ParamVisualizer3D::ParamVisualizer3D(const std::string & file, nbsMetadata & m, 
 	ModeVolume();
 }
 
-ParamVisualizer3D::~ParamVisualizer3D() {
-
-	volProperty->Delete();
-	volMap->Delete();
-	volAct->Delete();
-
-	contourFilter->Delete();
-	polyMap->Delete();
-	polyAct->Delete();
-
-}

@@ -19,20 +19,22 @@
 ParamVisualizerText::ParamVisualizerText(const std::string &file, nbsMetadata &m, int param) :
 	ParamVisualizerBase(new nbsSurface(file, &m, param, 13000, true), m, param),
 	tl(1024,1024),
-	tf(vtkTransformPolyDataFilter::New()),
-	ap(vtkAppendPolyData::New()),
-	texture(vtkTexture::New()),
-	map(vtkPolyDataMapper::New()),
-	act(vtkActor::New())
+	tf(vtkSmartPointer<vtkTransformPolyDataFilter>::New()),
+	ap(vtkSmartPointer<vtkAppendPolyData>::New())
 {
 	nbs->Update();
 
-
+	map = vtkSmartPointer<vtkPolyDataMapper>::New();
 	map->SetInputConnection(nbs->GetOutputPort());
 	map->SetScalarVisibility(false);
 	map->Update();
 
+	texture = vtkSmartPointer<vtkTexture>::New();
+
 	texture->SetInterpolate(true);
+
+
+	act = vtkSmartPointer<vtkActor>::New();
 
 	act->SetMapper(map);
 	act->SetTexture(texture);
@@ -49,12 +51,6 @@ ParamVisualizerText::ParamVisualizerText(const std::string &file, nbsMetadata &m
 
 }
 
-ParamVisualizerText::~ParamVisualizerText()
-{
-	act->Delete();
-	map->Delete();
-	ap->Delete();
-}
 
 void ParamVisualizerText::UpdateTimeStep(double t)
 {
@@ -62,7 +58,7 @@ void ParamVisualizerText::UpdateTimeStep(double t)
 	int sizeX = meta.sizeX;
 	int sizeY = meta.sizeY;
 
-	nbs->UpdateTimeStep(t);
+	UpdateNBS(t);
 
 	vtkPolyData * input = vtkPolyData::SafeDownCast(nbs->GetOutputDataObject(0));
 

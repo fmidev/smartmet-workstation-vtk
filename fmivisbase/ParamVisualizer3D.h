@@ -19,16 +19,16 @@ class vtkActor;
 
 class ParamVisualizer3D : public ParamVisualizerBase {
 protected:
-	vtkPolyDataMapper *polyMap;
-	vtkSmartVolumeMapper *volMap;
+	vtkSmartPointer<vtkPolyDataMapper> polyMap;
+	vtkSmartPointer<vtkSmartVolumeMapper> volMap;
 
-	vtkContourFilter *contourFilter;
-	vtkCleanPolyData *cleanFilter;
+	vtkSmartPointer<vtkContourFilter> contourFilter;
+	vtkSmartPointer<vtkCleanPolyData> cleanFilter;
 
-	vtkVolumeProperty *volProperty;
+	vtkSmartPointer<vtkVolumeProperty> volProperty;
 
-	vtkVolume *volAct;
-	vtkActor *polyAct;
+	vtkSmartPointer<vtkVolume> volAct;
+	vtkSmartPointer<vtkActor> polyAct;
 
 	//false = volume
 	bool mode;
@@ -40,7 +40,6 @@ public:
 	ParamVisualizer3D(const std::string &file, nbsMetadata &m, int param,
 		vtkSmartPointer<vtkColorTransferFunction> volumeColor, vtkSmartPointer<vtkPiecewiseFunction> volumeOpacity,
 		float contourThreshold, double contourColor[3], float contourOpacity);
-	~ParamVisualizer3D();
 
 	virtual inline void ToggleMode() {
 

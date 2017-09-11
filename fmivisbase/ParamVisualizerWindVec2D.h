@@ -1,6 +1,7 @@
 #ifndef ParamVisualizerWindVec2D_h__
 #define ParamVisualizerWindVec2D_h__
 
+#include <vtkSmartPointer.h>
 
 #include "ParamVisualizerBase.h"
 
@@ -26,17 +27,17 @@ class ParamVisualizerWindVec2D : public ParamVisualizerBase {
 		mode_count
 	} mode;
 
-	vtkAssignAttribute *assign;
+	vtkSmartPointer<vtkAssignAttribute> assign;
 
-	vtkGlyph3D *glypher;
+	vtkSmartPointer<vtkGlyph3D> glypher;
 
-	vtkExtractSelectedIds *extract;
-	vtkStreamTracer *streamer;
-	vtkRibbonFilter  *ribbon;
+	vtkSmartPointer<vtkExtractSelectedIds> extract;
+	vtkSmartPointer<vtkStreamTracer> streamer;
+	vtkSmartPointer<vtkRibbonFilter> ribbon;
 
-	vtkPolyDataMapper *map;
+	vtkSmartPointer<vtkPolyDataMapper> map;
 
-	vtkActor *act;
+	vtkSmartPointer<vtkActor> act;
 
 	void ModeStreamline();
 	void ModeBarb();
@@ -46,7 +47,6 @@ public:
 	static const int PARAM_WINDVEC = 30000;
 
 	ParamVisualizerWindVec2D(const std::string &file, nbsMetadata &m);
-	~ParamVisualizerWindVec2D();
 
 	virtual void UpdateTimeStep(double t) override;
 

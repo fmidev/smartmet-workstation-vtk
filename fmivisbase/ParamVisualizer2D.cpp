@@ -87,26 +87,32 @@ ParamVisualizer2D::ParamVisualizer2D(const std::string & file, nbsMetadata & m,
 
 	ParamVisualizerBase(file, m, param),
 	labeler(labeler),
-	probeFilter(vtkProbeFilter::New()),
-	contourFilter(vtkContourFilter::New()),
-	contourStripper(vtkStripper::New()),
-	polyMap(vtkPolyDataMapper::New()),
-	polyAct(vtkActor::New()),
+
+
 	mode(false)
 {
+
+	probeFilter = vtkSmartPointer<vtkProbeFilter>::New();
 
 	probeFilter->SetSourceConnection(nbs->GetOutputPort() );
 	probeFilter->AddInputConnection(probingData);
 
+	contourFilter = vtkSmartPointer<vtkContourFilter>::New();
+
 	contourFilter->GenerateValues(numContours, range[0], range[1]);
+
+	contourStripper = vtkSmartPointer<vtkStripper>::New();
 
 	contourStripper->SetInputConnection(contourFilter->GetOutputPort());
 
+	polyMap = vtkSmartPointer<vtkPolyDataMapper>::New();
 
 	polyMap->SetLookupTable(contourColors);
 	polyMap->SetScalarRange(range[0], range[1]);
 
 	SetActiveMapper(polyMap);
+
+	polyAct = vtkSmartPointer<vtkActor>::New();
 
 	polyAct->SetMapper(polyMap);
 
@@ -123,12 +129,4 @@ vtkScalarsToColors  * ParamVisualizer2D::getColor() {
 }
 double * ParamVisualizer2D::getRange() {
 	return polyMap->GetScalarRange();
-}
-
-ParamVisualizer2D::~ParamVisualizer2D() {
-	probeFilter->Delete();
-	contourFilter->Delete();
-	contourStripper->Delete();
-	polyMap->Delete();
-	polyAct->Delete();
 }

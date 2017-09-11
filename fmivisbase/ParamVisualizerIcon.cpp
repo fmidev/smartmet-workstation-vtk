@@ -58,7 +58,7 @@ ParamVisualizerBase(new nbsSurface(file, &m, param, 13000, true), m, param), map
 {
 	nbs->Update();
 
-	attribs = vtkProgrammableAttributeDataFilter::New();
+	attribs = vtkSmartPointer<vtkProgrammableAttributeDataFilter>::New();
 	attribs->SetInputConnection(nbs->GetOutputPort());
 
 	attribs->SetExecuteMethod(&AttributeCallback, this);
@@ -90,7 +90,7 @@ ParamVisualizerBase(new nbsSurface(file, &m, param, 13000, true), m, param), map
 
 
 
-	extract = vtkExtractSelectedIds::New();
+	extract = vtkSmartPointer<vtkExtractSelectedIds>::New();
 	extract->SetInputConnection(0, attribs->GetOutputPort());
 
 	//extract->PreserveTopologyOn();
@@ -108,7 +108,7 @@ ParamVisualizerBase(new nbsSurface(file, &m, param, 13000, true), m, param), map
 
 	geometryFilter->Update();
 
-	glypher = vtkIconGlyphFilter::New();
+	glypher = vtkSmartPointer<vtkIconGlyphFilter>::New();
 	glypher->UseIconSizeOff();
 	glypher->SetDisplaySize(2*downScale, 2 * downScale);
 
@@ -137,12 +137,12 @@ ParamVisualizerBase(new nbsSurface(file, &m, param, 13000, true), m, param), map
 	 filters.push_back(attribs);
 	 filters.push_back(glypher);
 
-	polyMap = vtkPolyDataMapper::New();
+	polyMap = vtkSmartPointer<vtkPolyDataMapper>::New();
 	polyMap->AddInputConnection(glypher->GetOutputPort());
 
 	SetActiveMapper(polyMap);
 
-	polyAct = vtkActor::New();
+	polyAct = vtkSmartPointer<vtkActor>::New();
 
 	polyAct->SetTexture(t);
 
@@ -152,10 +152,5 @@ ParamVisualizerBase(new nbsSurface(file, &m, param, 13000, true), m, param), map
 
 }
 
-ParamVisualizerIcon::~ParamVisualizerIcon() {
-	glypher->Delete();
-	polyMap->Delete();
-	polyAct->Delete();
-}
 
 

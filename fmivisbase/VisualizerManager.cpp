@@ -19,12 +19,12 @@
 
 #include "VisualizerFactory.h"
 
-VisualizerManager::VisualizerManager(vtkSmartPointer<vtkRenderer> ren, float zHeight /*= 13000*/) :
+VisualizerManager::VisualizerManager(vtkRenderer *ren,nbsMetadata &m, float zHeight /*= 13000*/) :
 	renderer(ren),
 	visualizers(),
 	labeler(std::make_unique<ContourLabeler>(ren)),
 	legend(vtkSmartPointer<vtkScalarBarWidget>::New()),
-	meta(),
+	meta(m),
 	prevTime(0)
 {
 	meta.maxH = zHeight;
@@ -45,6 +45,7 @@ visID VisualizerManager::AddVisualizer(std::unique_ptr<ParamVisualizerBase> v)
 	visID vid = visualizers.size();
 	if (v)
 	{
+		v->SetRenderer(renderer);
 		visualizers.push_back(std::move(v));
 		visualizers[vid]->DisableActor();
 		return vid;

@@ -21,16 +21,16 @@ protected:
 
 
 
-	vtkPolyDataMapper *polyMap;
+	vtkSmartPointer<vtkPolyDataMapper> polyMap;
 	
-	vtkProbeFilter *probeFilter;
-	vtkContourFilter *contourFilter;
+	vtkSmartPointer<vtkProbeFilter> probeFilter;
+	vtkSmartPointer<vtkContourFilter> contourFilter;
 
-	vtkStripper* contourStripper;
+	vtkSmartPointer<vtkStripper> contourStripper;
 
 	ContourLabeler &labeler;
 
-	vtkActor *polyAct;
+	vtkSmartPointer<vtkActor>polyAct;
 
 	//false = color
 	bool mode;
@@ -42,7 +42,6 @@ protected:
 public:
 	ParamVisualizer2D(const std::string &file, nbsMetadata &m, int param, vtkAlgorithmOutput* probingData,
 		vtkSmartPointer<vtkColorTransferFunction> contourColors, ContourLabeler &labeler, double range[2], int numContours);
-	~ParamVisualizer2D();
 
 	virtual void UpdateTimeStep(double t) override;
 

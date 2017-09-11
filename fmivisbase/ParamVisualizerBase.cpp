@@ -2,12 +2,13 @@
 
 #include <vtkAbstractMapper.h>
 
-
-#include "vtkColorTransferFunction.h"
-
+#include <vtkColorTransferFunction.h>
+#include <vtkRenderer.h>
 
 #include "newBaseSourcer.h"
 
+
+#include "AreaUtil.h"
 
 
 ParamVisualizerBase::ParamVisualizerBase(const std::string &file, nbsMetadata &m, int param) :
@@ -58,10 +59,21 @@ void ParamVisualizerBase::CropMapper(vtkPlanes* p)
 
 void ParamVisualizerBase::UpdateTimeStep(double t)
 {
-	nbs->UpdateTimeStep(t);
+	UpdateNBS(t);
+
 	for (auto &filter : filters) {
 		//cout << "Updating filter " << filter->GetClassName() << endl;
 		filter->UpdateTimeStep(t);
 	}
 	activeMapper->UpdateTimeStep(t);
+}
+
+void ParamVisualizerBase::UpdateNBS(double t)
+{
+
+	auto areaExt = AreaUtil::FindExtentScandic(ren, meta.dataInfo->Area());
+	int extents[6] = { areaExt[0],areaExt[1],
+					areaExt[2],areaExt[3],
+					1,1 };
+	nbs->UpdateTimeStep(t,-1,1,0,extents);
 }

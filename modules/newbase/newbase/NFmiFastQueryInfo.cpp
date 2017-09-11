@@ -2101,7 +2101,7 @@ bool NFmiFastQueryInfo::GetLevelToVec(std::vector<float> &values)
 	if (IsSubParamUsed()) {
 		if (itsCombinedParamParser)
 		{
-			std::transform(rbegin(values), rend(values), rbegin(values),
+			std::transform(begin(values), end(values), begin(values),
 				[this](const float &fVal)
 			{
 				return SubValueFromFloat(fVal);
@@ -2111,6 +2111,46 @@ bool NFmiFastQueryInfo::GetLevelToVec(std::vector<float> &values)
 	}
 
 	return true;
+
+
+}
+
+bool NFmiFastQueryInfo::GetLevelToVecPartial(size_t x1, size_t y1, size_t x2, size_t y2,std::vector<float> &values)
+{
+
+
+	size_t columnCount = x2 - x1 + 1;
+	if (columnCount <= 0 || columnCount > itsGridXNumber) throw std::invalid_argument("Degenerate X axis");
+	size_t columnStep = SizeTimes()*SizeLevels(); 
+
+	FirstLocation();
+	size_t startIndex = Index() + (x1 + y1*itsGridXNumber)*columnStep;
+
+
+
+	size_t rowCount = y2 - y1 + 1;
+	if (rowCount <= 0 || rowCount > itsGridYNumber) throw std::invalid_argument("Degenerate Y axis");
+	size_t rowStep = (itsGridXNumber - columnCount)*columnStep;
+
+	if (!GetValuesPartial(startIndex,rowCount,rowStep,columnCount,columnStep,values) ) {
+		return false;
+	}
+
+	if (IsSubParamUsed()) {
+		if (itsCombinedParamParser)
+		{
+			std::transform(begin(values), end(values), begin(values),
+				[this](const float &fVal)
+			{
+				return SubValueFromFloat(fVal);
+			});
+		}
+		else throw(std::runtime_error("CombinedParamParser missing!"));
+	}
+
+	return true;
+
+
 }
 
 bool NFmiFastQueryInfo::GetCube(std::vector<float> &values)
@@ -2191,16 +2231,14 @@ bool NFmiFastQueryInfo::GetInterpolatedCube(std::vector<float> &values, const NF
 	NFmiDataIdent &param = Param();
 	FmiInterpolationMethod interp = param.GetParam()->InterpolationMethod();
 	FmiParameterName parId = static_cast<FmiParameterName>(param.GetParamIdent());
-
-	if (interp == kNoneInterpolation || interp == kNearestPoint) {
-		if (timeCache.itsOffset <= 0.5) {
+	bool simpleInterp = kNoneInterpolation ||kNearestPoint;
+	if (simpleInterp && timeCache.itsOffset <= 0.5 || timeCache.itsOffset < 0.001) {
 			TimeIndex(timeCache.itsTimeIndex1);
 			GetCube(values);
 		}
-		else {
+		else if(simpleInterp && timeCache.itsOffset > 0.5 || timeCache.itsOffset > 0.999)  {
 			TimeIndex(timeCache.itsTimeIndex2);
 			GetCube(values);
-		}
 	}
 	else {
 

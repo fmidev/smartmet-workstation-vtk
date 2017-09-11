@@ -75,6 +75,7 @@ class NFmiRawData::Pimple
 
 
   bool GetValues(size_t startIndex, size_t step, size_t count, FloatVector &values) const;
+  bool GetValuesPartial(size_t startIndex, size_t rowCount, size_t columnCount, size_t step, size_t rowSkip, FloatVector &values) const;
 
   bool SetValue(size_t index, float value);
   void SetBinaryStorage(bool flag) const;
@@ -465,7 +466,7 @@ bool NFmiRawData::Pimple::GetValues(size_t startIndex, size_t step, size_t count
 
 	{   ReadLock lock(itsMutex);
 
-	int i = 0;
+	size_t i = 0;
 	std::generate (values.begin(), values.end(), 
 		[&]
 	{
@@ -487,6 +488,39 @@ bool NFmiRawData::Pimple::GetValues(size_t startIndex, size_t step, size_t count
 	return true;
 }
 
+
+bool NFmiRawData::Pimple::GetValuesPartial(size_t startIndex, size_t rowCount, size_t rowStep, size_t columnCount, size_t columnStep,  FloatVector &values) const
+{
+	if (startIndex + rowStep*(rowCount - 1) + columnStep*(columnCount-1) >= itsSize)
+		return false;
+
+
+	values.resize(rowCount*columnCount);
+
+	const float *ptr;
+
+
+	if (itsData) ptr = itsData;
+	else ptr = reinterpret_cast<const float *>(itsMappedFile->const_data() + itsOffset);
+
+	{   ReadLock lock(itsMutex);
+
+	size_t i = 0;
+
+	for (size_t row = 0; row < rowCount; row++) {
+		for (size_t column = 0; column < columnCount; column++) {
+			values[column + row*columnCount] = ptr[startIndex + i];
+			i += columnStep;
+		}
+		i += rowStep;
+	}
+
+
+	}
+
+
+	return true;
+}
 
 // ----------------------------------------------------------------------
 /*!
@@ -702,6 +736,15 @@ float NFmiRawData::GetValue(size_t index) const { return itsPimple->GetValue(ind
 // ----------------------------------------------------------------------
 
 bool NFmiRawData::GetValues(size_t startIndex, size_t step, size_t count, std::vector<float> &values) const { return itsPimple->GetValues(startIndex, step, count, values); }
+
+// ----------------------------------------------------------------------
+/*!
+* \brief Resizes values (invalidates iterators!!) to count and populates it with values at startIndex, startIndex+step, startIndex+step*2, ..., startIndex+step*count. Returns false if out-of-range, true otherwise.
+*/
+// ----------------------------------------------------------------------
+
+bool NFmiRawData::GetValuesPartial(size_t startIndex, size_t rowCount, size_t  rowStep, size_t columnCount, size_t  columnStep, std::vector<float> &values) const { return itsPimple->GetValuesPartial(startIndex,rowCount,rowStep,columnCount,columnStep, values); }
+
 
 // ----------------------------------------------------------------------
 /*!

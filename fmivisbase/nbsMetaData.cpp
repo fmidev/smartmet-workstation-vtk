@@ -13,43 +13,42 @@ using namespace boost::posix_time;
 
 void nbsMetadata::init(const std::string &file)
 {
-	auto data = NFmiQueryData(file);
-	auto dataInfo = NFmiFastQueryInfo(&data);
+	data.reset(new NFmiQueryData(file) );
+	dataInfo.reset( new NFmiFastQueryInfo(data.get()) );
 
 
 	hasHeight = false;
 
-	if (dataInfo.Area()) {
-		const NFmiArea *a = dataInfo.Area();
-		p1 = a->BottomLeftLatLon();
-		p2 = a->TopRightLatLon();
+	if (dataInfo->Area()) {
+		p1 = dataInfo->Area()->BottomLeftLatLon();
+		p2 = dataInfo->Area()->TopRightLatLon();
 
 	}
 
-	sizeX = dataInfo.GridXNumber();
-	sizeY = dataInfo.GridYNumber();
-	sizeZ = dataInfo.SizeLevels();
+	sizeX = dataInfo->GridXNumber();
+	sizeY = dataInfo->GridYNumber();
+	sizeZ = dataInfo->SizeLevels();
 
 
 	float minHeight = kMaxFloat, maxHeight = kMinFloat;
 
 
-	dataInfo.ResetTime();
-	dataInfo.NextTime();
+	dataInfo->ResetTime();
+	dataInfo->NextTime();
 
-	if (dataInfo.Param(kFmiGeopHeight)) {
+	if (dataInfo->Param(kFmiGeopHeight)) {
 
 		hasHeight = true;
 
-		bool rising = dataInfo.HeightParamIsRising();
+		bool rising = dataInfo->HeightParamIsRising();
 
-		if (rising) dataInfo.ResetLevel();
-		else dataInfo.LastLevel();
+		if (rising) dataInfo->ResetLevel();
+		else dataInfo->LastLevel();
 
 		do {
 
-			for (dataInfo.ResetLocation(); dataInfo.NextLocation(); ) {
-				float val = dataInfo.FloatValue();
+			for (dataInfo->ResetLocation(); dataInfo->NextLocation(); ) {
+				float val = dataInfo->FloatValue();
 
 				if (val == kFloatMissing) val = 0;
 				if (val > maxHeight) maxHeight = val;
@@ -57,7 +56,7 @@ void nbsMetadata::init(const std::string &file)
 
 			}
 
-		} while ((rising && dataInfo.NextLevel()) || (!rising && dataInfo.PreviousLevel()));
+		} while ((rising && dataInfo->NextLevel()) || (!rising && dataInfo->PreviousLevel()));
 	}
 
 	minH = minHeight;
@@ -67,9 +66,9 @@ void nbsMetadata::init(const std::string &file)
 
 	int n = 0;
 
-	for (dataInfo.ResetTime(); dataInfo.NextTime(); ) {
-		times.push_back(dataInfo.Time().EpochTime());
-		timeIndex.insert({ dataInfo.Time().EpochTime(),n });
+	for (dataInfo->ResetTime(); dataInfo->NextTime(); ) {
+		times.push_back(dataInfo->Time().EpochTime());
+		timeIndex.insert({ dataInfo->Time().EpochTime(),n });
 		n++;
 	}
 

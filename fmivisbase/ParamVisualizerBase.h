@@ -13,6 +13,7 @@ class vtkAbstractMapper;
 class vtkAlgorithm;
 class vtkPlanes;
 class vtkScalarsToColors;
+class vtkRenderer;
 
 class ParamVisualizerBase {
 private:
@@ -20,6 +21,8 @@ private:
 	vtkProp *prop;
 	bool crop;
 	bool enabled;
+
+	vtkRenderer * ren;
 
 protected:
 
@@ -45,7 +48,14 @@ public:
 		crop = c;
 	}
 
+
+	inline void SetRenderer(vtkRenderer* r) {
+		ren = r;
+	}
+
 	virtual void UpdateTimeStep(double t);
+
+	void UpdateNBS(double t);
 
 	inline void EnableActor() {
 		enabled = true;
@@ -72,6 +82,7 @@ public:
 	}
 
 	virtual void ToggleMode() {};
+
 };
 
 #endif /* PARAMVISUALIZERBASE_H */

@@ -9,10 +9,10 @@
 #include <vtkTextActor.h>
 #include <vtkTextProperty.h>
 
-#include "VisualizerManager.h"
+#include "ViewportManager.h"
 #include "TimeAnimator.h"
 
-void fmiVisInteractorBase::OnKeyRelease(std::string &s,bool ctrl)
+void fmiVisInteractorBase::OnKeyRelease(std::string &s,bool ctrl,vtkRenderer* vp)
 {
 
 
@@ -61,24 +61,7 @@ void fmiVisInteractorBase::OnKeyRelease(std::string &s,bool ctrl)
 			vid--;
 
 
-			if (vid >= 0 && vid < vm->GetVisNum()) {
-				if (ctrl) {
-
-					vm->ToggleMode(vid);
-					visualizerTexts->at(vid)->GetTextProperty()->SetItalic(!visualizerTexts->at(vid)->GetTextProperty()->GetItalic());
-				}
-				else {
-
-					if (vm->IsEnabled(vid)) {
-						visualizerTexts->at(vid)->GetTextProperty()->SetColor(0.2, 0.2, 0.2);
-					}
-					else {
-						visualizerTexts->at(vid)->GetTextProperty()->SetColor(0.8, 0.8, 0.8);
-					}
-
-					vm->ToggleVis(vid);
-				}
-			}
+			vm->ViewportNumKey(vm->whichViewport(vp), vid, ctrl);
 		}
 
 

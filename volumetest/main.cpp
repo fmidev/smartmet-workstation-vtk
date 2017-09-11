@@ -547,9 +547,9 @@ int main(int argc, char *argv[])
 
 
 
-	auto ta = TimeAnimator{ renWin,slider,&vm,&meta };
+	auto ta = std::make_unique< TimeAnimator>( renWin,slider,&vm,&meta );
 
-	style->setTA(&ta);
+	style->setTA(std::move(ta));
 
 	auto overheadLight = vtkSmartPointer<vtkLight>::New();
 

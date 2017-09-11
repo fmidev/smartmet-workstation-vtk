@@ -7,6 +7,7 @@
 #include <vtkPoints.h>
 
 #include "nbsImpl.h"
+#include "newBaseSourcerBase.h"
 
 class vtkInformation;
 class vtkInformationVector;
@@ -14,17 +15,9 @@ class vtkDelaunay2D;
 class vtkPolyData;
 struct nbsMetadata;
 
-class nbsSurface : public vtkPolyDataAlgorithm {
+class nbsSurface : public vtkPolyDataAlgorithm, public newBaseSourcerBase {
 protected:
 	vtkPolyData *inputPolyData;
-
-	nbsMetadata *meta;
-
-	int param;
-
-	int prevTime;
-
-	float zHeight;
 
 	bool flat;
 	bool pad;
@@ -49,13 +42,9 @@ public:
 		vtkInformationVector** vtkNotUsed(inputVector),
 		vtkInformationVector* outputVector);
 
-
-	int nearestIndex(double time);
 protected:
 
-	struct nbsImpl;
-	std::unique_ptr<nbsImpl> pimpl;
-
+	int spacing;
 	nbsSurface::~nbsSurface();
 	nbsSurface(const nbsSurface &copy) = delete;
 	void operator=(const nbsSurface &assign) = delete;

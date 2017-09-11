@@ -162,12 +162,12 @@ ParamVisualizerWindVec2D::ParamVisualizerWindVec2D(const std::string &file, nbsM
 	auto selection = vtkSmartPointer<vtkSelection>::New();
 	selection->AddNode(selectionNode);
 
-	extract = vtkExtractSelectedIds::New();
+	extract = vtkSmartPointer<vtkExtractSelectedIds>::New();
 	extract->SetInputConnection(0, nbs->GetOutputPort());
 
 	extract->SetInputData(1, selection);
 
-	assign = vtkAssignAttribute::New();
+	assign = vtkSmartPointer<vtkAssignAttribute>::New();
 
 	assign->SetInputConnection(extract->GetOutputPort());
 
@@ -184,7 +184,7 @@ ParamVisualizerWindVec2D::ParamVisualizerWindVec2D(const std::string &file, nbsM
 	transform->RotateX(90);
 	transform->Update();
 
-	glypher = vtkGlyph3D::New();
+	glypher = vtkSmartPointer<vtkGlyph3D>::New();
 
 
 	glypher->OrientOn();
@@ -194,7 +194,7 @@ ParamVisualizerWindVec2D::ParamVisualizerWindVec2D(const std::string &file, nbsM
 	glypher->SetColorModeToColorByScalar();
 	glypher->SetSourceTransform(transform);
 
-	streamer = vtkStreamTracer::New();
+	streamer = vtkSmartPointer<vtkStreamTracer>::New();
 
 	streamer->SetSourceConnection(assign->GetOutputPort());
  	streamer->SetMaximumPropagation(300);
@@ -208,7 +208,7 @@ ParamVisualizerWindVec2D::ParamVisualizerWindVec2D(const std::string &file, nbsM
 
 
 
-	ribbon = vtkRibbonFilter::New(); //causes a warning apparently
+	ribbon = vtkSmartPointer<vtkRibbonFilter>::New(); //causes a warning apparently
 	ribbon->SetInputConnection(streamer->GetOutputPort());
 
 	ribbon->SetInputArrayToProcess(0, 0, 0, vtkDataObject::FIELD_ASSOCIATION_POINTS, "Scalars");
@@ -220,14 +220,14 @@ ParamVisualizerWindVec2D::ParamVisualizerWindVec2D(const std::string &file, nbsM
 	ribbon->SetGenerateTCoordsToNormalizedLength () ;
 	ribbon->SetWidth(.3);
 
-	map = vtkPolyDataMapper::New();
+	map = vtkSmartPointer<vtkPolyDataMapper>::New();
 	//colors
  	map->SetScalarRange(0, 150);
  	map->SetColorModeToMapScalars();
  	map->SetLookupTable(VisualizerFactory::blueToRedColor(0, 150));
 
 
-	act = vtkActor::New();
+	act = vtkSmartPointer<vtkActor>::New();
 	act->SetMapper(map);
 	act->GetProperty()->LightingOff();
 
@@ -236,13 +236,3 @@ ParamVisualizerWindVec2D::ParamVisualizerWindVec2D(const std::string &file, nbsM
 
 	ModeStreamline();
 }
-
-ParamVisualizerWindVec2D::~ParamVisualizerWindVec2D() {
-	glypher->Delete();
-	extract->Delete();
-	streamer->Delete();
-	ribbon->Delete();
-	map->Delete();
-	act->Delete();
-}
-

@@ -19,15 +19,14 @@
 #include <NFmiFastQueryInfo.h>
 
 #include "newBaseSourcer.h"
-#include "nbsSurfaceImpl.h"
 
 #include "nbsMetadata.h"
 
 
 
 
-nbsSurface::nbsSurface(const std::string &file, nbsMetadata *meta, int param,int zHeight,bool flat, bool pad) :
-	pimpl(std::make_unique <nbsImpl>(file)), param(param), meta(meta), zHeight(zHeight), prevTime(-1), flat (flat), pad(pad)
+nbsSurface::nbsSurface(const std::string &file, nbsMetadata *meta, int param, int zHeight, bool flat, bool pad) :
+	newBaseSourcerBase(file, meta, param, 1), flat(flat), pad(pad), spacing(2)
 {
 
 	SetNumberOfInputPorts(0);
@@ -74,19 +73,6 @@ int nbsSurface::RequestInformation(vtkInformation* vtkNotUsed(request),
 }
 
 
-int nbsSurface::nearestIndex(double time)
-{
-	for (auto iter = meta->timeIndex.begin(); iter != meta->timeIndex.end(); iter++) {
-		if (iter->first == time) return iter->second;
-		auto nextIter = iter;
-		nextIter++;
-		if (nextIter != meta->timeIndex.end() && nextIter->first > time) return iter->second;
-	}
-	if (meta->timeIndex.rbegin() != meta->timeIndex.rend()) return meta->timeIndex.rbegin()->second;
-
-	return 0;
-}
-
 bool nbsSurface::loadPoints() {
 
 
@@ -104,9 +90,6 @@ bool nbsSurface::loadPoints() {
 	}
 
 	NFmiFastQueryInfo &dataInfo = pimpl->dataInfo;
-
-
-	float spacing = 2;
 
 
 	points->Resize(gridX*gridY);
@@ -251,25 +234,41 @@ int nbsSurface::RequestData(vtkInformation* vtkNotUsed(request),
 			if (dataInfo.HeightParamIsRising()) dataInfo.FirstLevel();
 			else dataInfo.LastLevel();
 
-			dataInfo.GetLevelToVec(values);
+			int eWidth = reqExtent[1] - reqExtent[0]+1;
+			int eHeight = reqExtent[3] - reqExtent[2]+1;
+
+			float shrinkRatio = float(eWidth)*float(eHeight) / float(sizeX*sizeY);
+
+			//if (shrinkRatio > 0.8)
+			//	dataInfo.GetLevelToVec(values);
+			//else
+				dataInfo.GetLevelToVecPartial(reqExtent[0], reqExtent[2], reqExtent[1], reqExtent[3], values);
 
 			for (int x = 0; x < sizeX; ++x)
 				for (int y = 0; y < sizeY; ++y)
 				{
 
-					float val;
+					float val = kFloatMissing;
 
-					if (pad) {
+					if(x>=reqExtent[0] && x<reqExtent[1]
+					&& y>=reqExtent[2] && y<reqExtent[3])
+					{
+						int valX = x - reqExtent[0];
+						int valY = y - reqExtent[2];
 
-						if ((x == 0 || x == gridX-3 )
-							|| (y == 0 || y == gridY-3 ))
-							val = kFloatMissing;
+						if (pad) {
+
+							if ((x == 0 || x == gridX - 3)
+								|| (y == 0 || y == gridY - 3))
+								val = kFloatMissing;
+							else {
+								val = values[valX + (valY)*eWidth];
+							}
+
+						}
 						else
-							val = values[x-1 + (y-1)*sizeX];
-
+							val = values[valX + valY*eWidth];
 					}
-					else 
-						val = values[x + y*sizeX];
 
 					if (val == kFloatMissing) {
 						val = 0;
