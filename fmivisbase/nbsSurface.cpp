@@ -166,7 +166,13 @@ bool nbsSurface::loadPoints() {
 	return true;
 }
 
+bool extentIncreased(int* reqExtent, int* prevExtent) {
 
+	return (reqExtent[0] < prevExtent[0])
+		|| (reqExtent[1] > prevExtent[1])
+		|| (reqExtent[2] < prevExtent[2])
+		|| (reqExtent[3] > prevExtent[3]);
+}
 
 int nbsSurface::RequestData(vtkInformation* vtkNotUsed(request),
 	vtkInformationVector** vtkNotUsed(inputVector),
@@ -211,7 +217,7 @@ int nbsSurface::RequestData(vtkInformation* vtkNotUsed(request),
 	NFmiFastQueryInfo &dataInfo = pimpl->dataInfo;
 
 	//onko aika-askel jo muistissa
-	if (timeI != prevTime) {
+	if (timeI != prevTime || extentIncreased(reqExtent,prevExtent)  ) {
 
 		dataInfo.ResetTime();
 
@@ -287,6 +293,8 @@ int nbsSurface::RequestData(vtkInformation* vtkNotUsed(request),
 		cout << "Done" << endl;
 
 		prevTime = timeI;
+		for (int i = 0; i < 6; i++)
+			prevExtent[i] = reqExtent[i];
 	}
 	else cout << "Reused time " << prevTime << std::endl;
 

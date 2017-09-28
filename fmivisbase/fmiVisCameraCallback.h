@@ -2,7 +2,7 @@
 #define fmiVisCameraCallback_h__
 
 #include <vtkCommand.h>
-#include "VisualizerManager.h"
+#include "ViewportManager.h"
 
 class fmiVisCameraCallback : public vtkCommand
 {
@@ -18,14 +18,14 @@ public:
 		vm->Update();
 
 	}
-	void setManager(VisualizerManager *vm)
+	void setManager(fmiVis::ViewportManager *vm)
 	{
 		this->vm = vm;
 	}
 
 
 protected:
-	VisualizerManager *vm;
+	fmiVis::ViewportManager *vm;
 };
 
 

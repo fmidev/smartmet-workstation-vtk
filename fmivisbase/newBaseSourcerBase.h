@@ -18,6 +18,8 @@ protected:
 
 	int prevTime;
 
+	int prevExtent[6];
+
 	int zRes;
 	float zHeight;
 

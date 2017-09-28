@@ -10,7 +10,7 @@
 #include <vtkTextActor.h>
 #include <vtkTextProperty.h>
 
-#include "VisualizerManager.h"
+#include "ViewportManager.h"
 #include "nbsMetadata.h"
 
 
@@ -28,8 +28,8 @@ void TimeAnimCallback::Execute(vtkObject* caller, unsigned long eventID, void *d
 	timeAnim->AnimateStep();
 }
 
-TimeAnimator::TimeAnimator(vtkRenderWindow *renderWin, vtkSliderWidget *slider, VisualizerManager *visMan, nbsMetadata *metadata, double delay /*= 200*/) :
-	renWin(renderWin), slider(slider), sliderRep(vtkSliderRepresentation2D::SafeDownCast(slider->GetSliderRepresentation())), vm(visMan),
+TimeAnimator::TimeAnimator(vtkRenderer *ren,vtkRenderWindow *renderWin, vtkSliderWidget *slider, fmiVis::ViewportManager *vpMan, nbsMetadata *metadata, double delay /*= 200*/) :
+	renWin(renderWin), slider(slider), sliderRep(vtkSliderRepresentation2D::SafeDownCast(slider->GetSliderRepresentation())), vm(vpMan),
 	meta(metadata), wrapCount(0), timerCallbackTag(0), enabled(false),
 	timerCallback(TimeAnimCallback::New()), sliderCallback(vtkSliderWidgetCallback::New()), animDelay(delay)
 {
@@ -40,7 +40,6 @@ TimeAnimator::TimeAnimator(vtkRenderWindow *renderWin, vtkSliderWidget *slider, 
 	sliderCallbackTag = slider->AddObserver(vtkCommand::InteractionEvent, sliderCallback);
 
 
-	vtkRenderer *ren = renWin->GetRenderers()->GetFirstRenderer();
 	int *winSize = renWin->GetSize();
 
 

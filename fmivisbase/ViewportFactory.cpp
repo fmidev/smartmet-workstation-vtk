@@ -20,6 +20,7 @@
 #include "ParamVisualizerText.h"
 
 #include "ViewportManager.h"
+#include "ViewportManagerTimeGrid.h"
 #include "vtkPNGReader.h"
 #include "vtkTexture.h"
 #include "nbsSurface.h"
@@ -33,8 +34,20 @@
 
 #include "fmiVisInteractor.h"
 
+#include "fmiVisCameraCallback.h"
+
 using namespace std::string_literals;
 using namespace fmiVis;
+
+
+std::map<int, std::string> ViewportFactory::paramsSurf = {
+	std::pair<int,std::string>(kFmiPressure,"kFmiPressure"),
+	std::pair<int,std::string>(kFmiTemperature,"kFmiTemperature"),
+	std::pair<int,std::string>(kFmiHumidity,"kFmiHumidity"),
+	std::pair<int,std::string>(kFmiWindSpeedMS,"kFmiWindSpeedMS"),
+	std::pair<int,std::string>(kFmiTotalCloudCover,"kFmiTotalCloudCover"),
+	std::pair<int,std::string>(kFmiPrecipitation1h,"kFmiPrecipitation1h"),
+};
 
 visID addVis(std::unique_ptr<ParamVisualizerBase> vis, std::string printName,
 	VisualizerManager &vm,
@@ -58,7 +71,12 @@ visID addVis(std::unique_ptr<ParamVisualizerBase> vis, std::string printName,
 		t->GetTextProperty()->SetFontSize(textSize);
 
 		//t->SetTextScaleModeToViewport();
-		t->SetDisplayPosition(10, textVOff + textVSpacing * vid);
+		t->GetPositionCoordinate()->SetCoordinateSystemToNormalizedViewport();
+		t->GetPositionCoordinate()->SetViewport(ren);
+		t->GetPositionCoordinate()->SetValue(0.02, textVOff + textVSpacing * double(vid));
+
+		//t->SetDisplayPosition(12, textVOff + textVSpacing * vid);
+		
 
 		ren->AddActor2D(t);
 	}
@@ -66,10 +84,12 @@ visID addVis(std::unique_ptr<ParamVisualizerBase> vis, std::string printName,
 }
 
 
-vtkSmartPointer<vtkRenderer> MakeDefaultRenderer()
+vtkSmartPointer<vtkRenderer> MakeRenderer(double x1 = 0.0, double y1 = 0.0, double x2 = 1.0, double y2 = 1.0)
 {
 	auto ren = vtkSmartPointer<vtkRenderer>::New();
 	ren->SetBackground(0.4, 0.4, 0.8);
+
+	ren->SetViewport(x1, y1, x2, y2);
 
 	ren->GetActiveCamera()->ParallelProjectionOn();
 
@@ -79,7 +99,7 @@ vtkSmartPointer<vtkRenderer> MakeDefaultRenderer()
 
 	overheadLight->SetPosition(0, 0, 4);
 	overheadLight->SetExponent(1.2);
-	overheadLight->SetIntensity(0.6);
+	overheadLight->SetIntensity(1);
 
 	ren->AddLight(overheadLight);
 
@@ -90,6 +110,8 @@ void addMapPlane(vtkSmartPointer<vtkRenderer> ren,const std::string &file, nbsMe
 
 	cout << "Loading map..." << endl;
 
+	
+	
 	auto mapReader = vtkSmartPointer<vtkPNGReader>::New();
 	mapReader->SetFileName("bottom_indexed.png");
 
@@ -116,10 +138,12 @@ void addMapPlane(vtkSmartPointer<vtkRenderer> ren,const std::string &file, nbsMe
 	texturedPlane->SetPickable(false);
 	texturedPlane->SetDragable(false);
 
+	
+
 	ren->AddActor(texturedPlane);
 }
 
-void MakeTimeAnimator(VisualizerManager &vm,nbsMetadata &meta,
+void MakeTimeAnimator(vtkRenderer *ren, fmiVis::ViewportManager &vm,nbsMetadata &meta,
 	vtkRenderWindowInteractor *iren, vtkRenderWindow *renWin, fmiVisInteractor2D *style) {
 
 	auto sliderRep = vtkSmartPointer<vtkSliderRepresentation2D>::New();
@@ -147,58 +171,27 @@ void MakeTimeAnimator(VisualizerManager &vm,nbsMetadata &meta,
 	slider->SetInteractor(iren);
 	slider->SetRepresentation(sliderRep);
 	slider->SetAnimationModeToJump();
+	slider->SetCurrentRenderer(ren);
 
 	slider->EnabledOn();
 
-	auto ta = std::make_unique<::TimeAnimator>( renWin,slider,&vm,&meta );
+	auto ta = std::make_unique<::TimeAnimator>(ren, renWin,slider,&vm,&meta );
 
 	style->setTA(std::move(ta));
 }
 
-void fmiVis::ViewportFactory::MakeSingleView(std::string file, nbsMetadata &meta, ViewportManager &viewportMan,
-	vtkRenderWindowInteractor *iren, vtkRenderWindow *renWin, fmiVisInteractor2D *style) {
 
-	auto ren = MakeDefaultRenderer();
-
-	renWin->AddRenderer(ren);
-
-	std::unique_ptr<VisualizerManager> visualizerMan = std::make_unique<VisualizerManager>(ren, meta);
-
-
-
-	addMapPlane(ren, file, meta);
-
-	cout << "Initializing visualizers..." << endl;
-
-	std::map<int, std::string> paramsSurf = {
-		std::pair<int,std::string>(kFmiPressure,"kFmiPressure"),
-		std::pair<int,std::string>(kFmiTemperature,"kFmiTemperature"),
-		std::pair<int,std::string>(kFmiHumidity,"kFmiHumidity"),
-		std::pair<int,std::string>(kFmiWindSpeedMS,"kFmiWindSpeedMS"),
-		std::pair<int,std::string>(kFmiTotalCloudCover,"kFmiTotalCloudCover"),
-		std::pair<int,std::string>(kFmiPrecipitation1h,"kFmiPrecipitation1h"),
-	};
-
-	auto textActs = std::make_unique< std::vector<vtkSmartPointer<vtkTextActor> > >();
-
-	auto data = NFmiQueryData(file);
-	auto dataInfo = NFmiFastQueryInfo(&data);
+void MakeFileText(std::string &file, vtkSmartPointer<vtkRenderer> ren)
+{
 
 	int *winSize = ren->GetSize();
-
-
 
 	auto t = vtkSmartPointer<vtkTextActor>::New();
 	auto s = std::ostringstream{};
 
-	auto textSize = 14;
-	auto textVOff = winSize[1] - 50;
-	auto textVSpacing = -16;
-
-
 	int i = 0;
 	for (i = file.length() - 1; i >= 0; --i)
-	if (file[i] == '/' || file[i] == '\\') break;
+		if (file[i] == '/' || file[i] == '\\') break;
 
 	s << file.substr(i + 1);
 
@@ -208,13 +201,19 @@ void fmiVis::ViewportFactory::MakeSingleView(std::string file, nbsMetadata &meta
 
 	t->GetTextProperty()->SetFontSize(20);
 
-	//t->SetTextScaleModeToViewport();
-	t->SetDisplayPosition(10, winSize[1] - 25);
-
+	t->SetTextScaleModeToViewport();
+	t->GetPositionCoordinate()->SetCoordinateSystemToNormalizedDisplay();
+	t->GetPositionCoordinate()->SetValue(0.02,0.96);
 
 	ren->AddActor2D(t);
+}
 
 
+void MakeVisualizers(std::string file, nbsMetadata & meta, VisualizerManager *visualizerMan,
+	std::vector<vtkSmartPointer<vtkTextActor>> *textActs, vtkRenderer *ren,
+	int textSize, double textVOff, double textVSpacing,
+	std::map<int, std::string> &paramsSurf, NFmiFastQueryInfo &dataInfo)
+{
 
 	addVis(std::make_unique<ParamVisualizerWindVec2D>(file, meta), "Wind Vectors"s,
 		*visualizerMan, *textActs, ren, textSize, textVOff, textVSpacing);
@@ -235,7 +234,7 @@ void fmiVis::ViewportFactory::MakeSingleView(std::string file, nbsMetadata &meta
 
 	for (auto &parampair : paramsSurf) {
 		if (dataInfo.Param(FmiParameterName(parampair.first))) {
-			s = std::ostringstream{};
+			auto s = std::ostringstream{};
 			s << parampair.second << "(Surface)"s;
 
 			visID vid = addVis(VisualizerFactory::makeSurfVisualizer(file, meta, visualizerMan->GetLabeler(), parampair.first, true), s.str(),
@@ -250,16 +249,138 @@ void fmiVis::ViewportFactory::MakeSingleView(std::string file, nbsMetadata &meta
 	}
 
 
-	visualizerMan->EnableVis(0);
+	//visualizerMan->EnableVis(0);
+}
+
+void fmiVis::ViewportFactory::MakeSingleView(std::string file, nbsMetadata &meta, ViewportManager &viewportMan,
+	vtkRenderWindowInteractor *iren, vtkRenderWindow *renWin, fmiVisInteractor2D *style) {
+
+	auto ren = MakeRenderer();
+
+	renWin->AddRenderer(ren);
+
+	auto cam = ren->GetActiveCamera();
+	auto callback = vtkSmartPointer<fmiVisCameraCallback>::New();
+	callback->setManager(&viewportMan);
+	cam->AddObserver(vtkCommand::ModifiedEvent, callback);
+
+	std::unique_ptr<VisualizerManager> visualizerMan = std::make_unique<VisualizerManager>(ren, meta);
+
+
+
+	addMapPlane(ren, file, meta);
+
+	cout << "Initializing visualizers..." << endl;
+
+
+	auto textActs = std::make_unique< std::vector<vtkSmartPointer<vtkTextActor> > >();
+
+	auto data = NFmiQueryData(file);
+	auto dataInfo = NFmiFastQueryInfo(&data);
+
+	int *winSize = ren->GetSize();
+
+	vtkSmartPointer<vtkTextActor> t;
+	std::ostringstream s;
+
+	auto textSize = 14;
+	auto textVOff = winSize[1] - 50.0;
+	auto textVSpacing = -16;
+
+	MakeFileText(file,  ren);
+
+
+	MakeVisualizers(file, meta, visualizerMan.get(), textActs.get(), ren, textSize, textVOff, textVSpacing, paramsSurf, dataInfo);
 
 
 	style->setVisTexts(textActs.get());
 
-	MakeTimeAnimator(*visualizerMan, meta,
+	MakeTimeAnimator(ren, viewportMan, meta,
 		iren, renWin, style);
 
 	viewportMan.AddViewport(ren,std::move(visualizerMan),std::move(textActs));
 
 
+}
+
+void fmiVis::ViewportFactory::MakeTimeGridView(size_t numX, size_t numY,
+	std::string file, nbsMetadata &meta, fmiVis::ViewportManagerTimegrid &viewportMan, vtkRenderWindowInteractor *iren, vtkRenderWindow *renWin, fmiVisInteractor2D *style)
+{
+	auto baseRen = MakeRenderer();
+	renWin->AddRenderer(baseRen);
+	baseRen->SetLayer(1);
+
+	MakeFileText(file, baseRen);
+
+	viewportMan.SetBaseViewport(baseRen);
+
+	vtkCamera* cam;
+
+	renWin->SetNumberOfLayers(2);
+
+	double viewWidth = 1.0 / numX;
+	double viewHeight = 1.0 / numY;
+
+	for (size_t y = 0; y < numY; y++)
+		for(size_t x = 0; x < numX; x++)
+		{
+
+			double x1 = viewWidth*x;
+			double y1 = viewHeight*y;
+
+			double x2 = viewWidth*(x + 1);
+			double y2 = viewHeight*(y + 1);
+
+			auto ren = MakeRenderer(x1,y1,x2,y2);
+
+			ren->SetLayer(0);
+
+			if (x == 0 && y == 0) {
+
+				cam = ren->GetActiveCamera();
+				cam->SetParallelScale(100);
+				cam->SetPosition(100, 100, 100);
+				cam->SetFocalPoint(100, 100, 0);
+
+				auto callback = vtkSmartPointer<fmiVisCameraCallback>::New();
+				callback->setManager(&viewportMan );
+				cam->AddObserver(vtkCommand::ModifiedEvent, callback);
+			}
+			else {
+				ren->SetActiveCamera(cam);
+			}
+
+
+			renWin->AddRenderer(ren);
+
+			std::unique_ptr<VisualizerManager> visualizerMan = std::make_unique<VisualizerManager>(ren, meta);
+
+
+
+			addMapPlane(ren, file, meta);
+
+			cout << "Initializing visualizers..." << endl;
+
+
+			auto textActs = std::make_unique< std::vector<vtkSmartPointer<vtkTextActor> > >();
+
+			auto data = NFmiQueryData(file);
+			auto dataInfo = NFmiFastQueryInfo(&data);
+
+			int *winSize = ren->GetSize();
+
+
+			auto textSize = 14;
+			auto textVOff = 1.0 - 0.1;
+			auto textVSpacing = -0.04;
+
+
+			MakeVisualizers(file, meta, visualizerMan.get(), textActs.get(), ren, textSize, textVOff, textVSpacing, paramsSurf, dataInfo);
+
+			viewportMan.AddViewport(ren, std::move(visualizerMan), std::move(textActs));
+		}
+
+	MakeTimeAnimator(baseRen,viewportMan, meta,
+		iren, renWin, style);
 }
 

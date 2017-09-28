@@ -6,7 +6,8 @@
 
 #include <vtkSmartPointer.h>
 
-class VisualizerManager;
+#include "VisualizerManager.h"
+
 class vtkRenderer;
 class vtkTextActor;
 
@@ -30,16 +31,18 @@ namespace fmiVis {
 
 	class ViewportManager {
 
+	protected:
 		std::vector<Viewport> viewports;
 
 	public:
-		void UpdateTimeStep(double t);
+		virtual void UpdateTimeStep(double t);
+		virtual void Update();
 
-		ViewportID whichViewport(vtkRenderer *vp);
+		virtual ViewportID whichViewport(vtkRenderer *vp);
 
-		void ViewportNumKey(ViewportID vpid, int vid, bool ctrl);
+		virtual void ViewportNumKey(ViewportID vpid, int vid, bool ctrl);
 
-		void AddViewport(vtkSmartPointer<vtkRenderer> r,
+		virtual void AddViewport(vtkSmartPointer<vtkRenderer> r,
 			std::unique_ptr<VisualizerManager> &&vm,
 			std::unique_ptr<std::vector<vtkSmartPointer<vtkTextActor>>> &&vt);
 

@@ -11,6 +11,8 @@ newBaseSourcerBase::newBaseSourcerBase(const std::string &file, nbsMetadata *met
 	pimpl(std::make_unique <nbsImpl>(file)), meta(meta), param(param), prevTime(-1), zRes(res)
 {
 	zHeight = meta->maxH;
+	for (int i = 0; i < 6; i++)
+		prevExtent[i] = 0;
 }
 
 

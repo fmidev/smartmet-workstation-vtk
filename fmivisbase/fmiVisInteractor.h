@@ -17,7 +17,6 @@
 #include <vtkCamera.h>
 
 #include "ViewportManager.h"
-#include "fmiVisCameraCallback.h"
 
 class vtkTextActor;
 

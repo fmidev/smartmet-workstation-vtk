@@ -14,10 +14,17 @@ void fmiVis::ViewportManager::UpdateTimeStep(double t)
 	}
 }
 
+void fmiVis::ViewportManager::Update()
+{
+	for (auto &vp : viewports) {
+		vp.vm->Update();
+	}
+}
+
 size_t fmiVis::ViewportManager::whichViewport(vtkRenderer *vp)
 {
 	for (size_t i = 0; i < viewports.size(); i++) {
-		if (vp == viewports[i].r) return i;
+		if (vp == viewports[i].r.Get() ) return i;
 	}
 	return -1;
 }

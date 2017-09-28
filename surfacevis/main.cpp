@@ -38,6 +38,8 @@
 
 #include "ViewportFactory.h"
 
+#include "ViewportManagerTimegrid.h"
+
 using namespace std::string_literals;
 
 
@@ -96,9 +98,9 @@ int main(size_t argc, char* argv[])
 
 	iren->SetInteractorStyle(style);
 
-	auto vm = fmiVis::ViewportManager{};
+	auto vm = fmiVis::ViewportManagerTimegrid{6,3};
 
-	fmiVis::ViewportFactory::MakeSingleView(file, meta, vm, iren, renWin, style);
+	fmiVis::ViewportFactory::MakeTimeGridView(6,3,file, meta, vm, iren, renWin, style);
 
 	style->setVM(&vm);
 

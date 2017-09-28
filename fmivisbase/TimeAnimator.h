@@ -10,7 +10,7 @@
 class vtkRenderWindow;
 class vtkSliderRepresentation2D;
 class vtkSliderWidget;
-class VisualizerManager;
+class vtkRenderer;
 class TimeAnimCallback;
 class vtkSliderWidgetCallback;
 class vtkTextActor;
@@ -18,6 +18,10 @@ class vtkTextActor;
 struct nbsMetadata;
 
 class TimeAnimator;
+
+namespace fmiVis {
+	class ViewportManager;
+}
 
 class vtkSliderWidgetCallback : public vtkCommand
 {
@@ -65,7 +69,7 @@ class TimeAnimator {
 	vtkRenderWindow *renWin;
 	vtkSmartPointer<vtkSliderRepresentation2D> sliderRep;
 	vtkSmartPointer<vtkSliderWidget> slider;
-	VisualizerManager *vm;
+	fmiVis::ViewportManager *vm;
 	nbsMetadata *meta;
 	int wrapCount;
 	TimeAnimCallback *timerCallback;
@@ -83,7 +87,7 @@ class TimeAnimator {
 	bool enabled;
 
 public:
-	TimeAnimator(vtkRenderWindow *renderWin, vtkSliderWidget *slider, VisualizerManager *visMan, nbsMetadata *metadata, double delay = 200);
+	TimeAnimator(vtkRenderer* ren,vtkRenderWindow *renderWin, vtkSliderWidget *slider, fmiVis::ViewportManager *vpMan, nbsMetadata *metadata, double delay = 200);
 	~TimeAnimator();
 
 	void TimeStep(double val);

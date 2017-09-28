@@ -125,7 +125,6 @@ void VisualizerManager::UpdateTimeStep(double t)
 	}
 	if(visualizers.size()>0)
 		labeler->Update();
-	renderer->GetRenderWindow()->Render();
 }
 
 int VisualizerManager::GetVisParam(visID vid)

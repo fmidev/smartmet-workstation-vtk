@@ -60,9 +60,12 @@ void fmiVisInteractorBase::OnKeyRelease(std::string &s,bool ctrl,vtkRenderer* vp
 
 			vid--;
 
+			try {
+				vm->ViewportNumKey(vm->whichViewport(vp), vid, ctrl);
+			}
+			catch (std::invalid_argument e) {}
 
-			vm->ViewportNumKey(vm->whichViewport(vp), vid, ctrl);
-		}
+			}
 
 
 	// cout << "Pressed key " << (ctrl ? "ctrl+" : std::string()) << ", sym " << s << endl;

@@ -75,5 +75,6 @@ void ParamVisualizerBase::UpdateNBS(double t)
 	int extents[6] = { areaExt[0],areaExt[1],
 					areaExt[2],areaExt[3],
 					1,1 };
+	nbs->Modified();
 	nbs->UpdateTimeStep(t,-1,1,0,extents);
 }
