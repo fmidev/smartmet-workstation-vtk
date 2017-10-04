@@ -145,7 +145,7 @@ void ParamVisualizerSurf::UpdateTimeStep(double t) {
 				labeler.Add(midPoint, val);
 
 			}
-		
+			/*
 			if (abs(val - 60) < 0.01) {
 
 
@@ -167,7 +167,7 @@ void ParamVisualizerSurf::UpdateTimeStep(double t) {
 				debugLines(append, points, idList);
 
 			}
-
+			*/
 
 		} 
 

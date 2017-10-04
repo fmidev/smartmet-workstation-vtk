@@ -14,7 +14,9 @@
 #include "nbsMetadata.h"
 
 
-void vtkSliderWidgetCallback::Execute(vtkObject *caller, unsigned long, void*)
+using namespace fmiVis;
+
+void fmiVis::TimeSliderWidgetCallback::Execute(vtkObject *caller, unsigned long, void*)
 {
 	vtkSliderWidget *sliderWidget =
 		reinterpret_cast<vtkSliderWidget*>(caller);
@@ -24,14 +26,15 @@ void vtkSliderWidgetCallback::Execute(vtkObject *caller, unsigned long, void*)
 	timeAnim->TimeStep(value);
 }
 
-void TimeAnimCallback::Execute(vtkObject* caller, unsigned long eventID, void *data) {
+void fmiVis::TimeAnimCallback::Execute(vtkObject* caller, unsigned long eventID, void *data) {
 	timeAnim->AnimateStep();
 }
+
 
 TimeAnimator::TimeAnimator(vtkRenderer *ren,vtkRenderWindow *renderWin, vtkSliderWidget *slider, fmiVis::ViewportManager *vpMan, nbsMetadata *metadata, double delay /*= 200*/) :
 	renWin(renderWin), slider(slider), sliderRep(vtkSliderRepresentation2D::SafeDownCast(slider->GetSliderRepresentation())), vm(vpMan),
 	meta(metadata), wrapCount(0), timerCallbackTag(0), enabled(false),
-	timerCallback(TimeAnimCallback::New()), sliderCallback(vtkSliderWidgetCallback::New()), animDelay(delay)
+	timerCallback(TimeAnimCallback::New()), sliderCallback(TimeSliderWidgetCallback::New()), animDelay(delay)
 {
 	timeVal = sliderRep->GetValue();
 	timerCallback->setAnim(this);
@@ -59,11 +62,10 @@ TimeAnimator::TimeAnimator(vtkRenderer *ren,vtkRenderWindow *renderWin, vtkSlide
 
 TimeAnimator::~TimeAnimator()
 {
-	renWin->GetInteractor()->RemoveObserver(timerCallbackTag);
+	//renWin->GetInteractor()->RemoveObserver(timerCallbackTag);
 	slider->RemoveObserver(sliderCallbackTag);
 	timerCallback->Delete();
 	sliderCallback->Delete();
-	renWin->GetRenderers()->GetFirstRenderer()->RemoveActor2D(timeText);
 	timeText->Delete();
 }
 

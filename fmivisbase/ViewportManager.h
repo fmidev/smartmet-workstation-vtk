@@ -11,10 +11,10 @@
 class vtkRenderer;
 class vtkTextActor;
 
-class TimeAnimator;
+
 
 namespace fmiVis {
-
+	class TimeAnimator;
 
 	typedef size_t ViewportID;
 

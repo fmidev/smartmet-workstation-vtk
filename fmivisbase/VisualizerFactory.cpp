@@ -202,8 +202,8 @@ void VisualizerFactory::init() {
 		}));
 	config2D.insert(std::pair<int, Vis2DParams>(
 		kFmiWindSpeedMS, { kFmiWindSpeedMS ,
-		blueToRedColor(0,90),
-		{ 0,90 },
+		blueToRedColor(0,50),
+		{ 0,50 },
 		10
 		}));
 	config2D.insert(std::pair<int, Vis2DParams>(

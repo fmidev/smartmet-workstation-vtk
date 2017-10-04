@@ -9,7 +9,6 @@
 #include <VisualizerFactory.h>
 #include <VisualizerManager.h>
 #include <vtkImageMapper3D.h>
-#include <fmiVisInteractor.h>
 #include <vtkPNGReader.h>
 #include <vtkTexture.h>
 #include <nbsSurface.h>
@@ -27,14 +26,7 @@
 #include <TimeAnimator.h>
 #include <vtkLight.h>
 
-#include "areaUtil.h"
-
-#include "HatchSource.h"
-
-#include "ParamVisualizerWindVec2D.h"
-#include "ParamVisualizerIcon.h"
-#include "ParamVisualizerText.h"
-#include "TextImageLayer.h"
+#include "Interactor.h"
 
 #include "ViewportFactory.h"
 
@@ -92,7 +84,7 @@ int main(size_t argc, char* argv[])
 
 
 
-	auto style = vtkSmartPointer<fmiVisInteractor2D>::New();
+	auto style = vtkSmartPointer<fmiVis::VisualizationInteractor2D>::New();
 
 	//style->setVM(&vm);
 

@@ -143,7 +143,7 @@ ParamVisualizerWindVec2D::ParamVisualizerWindVec2D(const std::string &file, nbsM
 
 	auto width = 100;
 
-	auto downScale = 10;
+	auto downScale = 15;
 
 
 	// Set values
@@ -203,7 +203,7 @@ ParamVisualizerWindVec2D::ParamVisualizerWindVec2D(const std::string &file, nbsM
 	streamer->SetTerminalSpeed(0.025);
 
  	//integration accuracy for streamlines
- 	streamer->SetInitialIntegrationStep(0.5);
+ 	streamer->SetInitialIntegrationStep(2);
  	streamer->SetIntegratorTypeToRungeKutta4();
 
 

@@ -12,35 +12,35 @@ class vtkSliderRepresentation2D;
 class vtkSliderWidget;
 class vtkRenderer;
 class TimeAnimCallback;
-class vtkSliderWidgetCallback;
+class TimeSliderWidgetCallback;
 class vtkTextActor;
 
 struct nbsMetadata;
 
-class TimeAnimator;
-
 namespace fmiVis {
 	class ViewportManager;
-}
 
-class vtkSliderWidgetCallback : public vtkCommand
-{
-public:
-	vtkSliderWidgetCallback() {}
+	class TimeAnimator;
 
-	static vtkSliderWidgetCallback *New()
+
+	class TimeSliderWidgetCallback : public vtkCommand
 	{
-		return new vtkSliderWidgetCallback;
-	}
-	void Execute(vtkObject *caller, unsigned long, void*) VTK_OVERRIDE;
+	public:
+		TimeSliderWidgetCallback() {}
 
-	inline void setAnim(TimeAnimator *ta) {
-		timeAnim = ta;
-	}
-protected:
-	TimeAnimator *timeAnim;
+		static TimeSliderWidgetCallback *New()
+		{
+			return new TimeSliderWidgetCallback;
+		}
+		void Execute(vtkObject *caller, unsigned long, void*) VTK_OVERRIDE;
 
-};
+		inline void setAnim(TimeAnimator *ta) {
+			timeAnim = ta;
+		}
+	protected:
+		TimeAnimator *timeAnim;
+
+	};
 
 
 class TimeAnimCallback : public vtkCommand {
@@ -73,7 +73,7 @@ class TimeAnimator {
 	nbsMetadata *meta;
 	int wrapCount;
 	TimeAnimCallback *timerCallback;
-	vtkSliderWidgetCallback *sliderCallback;
+	TimeSliderWidgetCallback *sliderCallback;
 
 	vtkTextActor *timeText;
 
@@ -139,6 +139,6 @@ public:
 
 };
 
-
+}
 
 #endif /* TIMEANIMATOR_H */

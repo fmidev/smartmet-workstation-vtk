@@ -36,7 +36,7 @@ VisualizerManager::VisualizerManager(vtkRenderer *ren,nbsMetadata &m, float zHei
 
 
 	legend->SetInteractor(ren->GetRenderWindow()->GetInteractor());
-
+	legend->SetCurrentRenderer(ren);
 
 }
 VisualizerManager::~VisualizerManager() {};

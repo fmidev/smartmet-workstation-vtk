@@ -9,23 +9,24 @@
 class nbsMetadata;
 class vtkRenderWindow;
 class vtkRenderWindowInteractor;
-class fmiVisInteractor2D;
+
 
 namespace fmiVis {
 
 
 	class ViewportManager;
 	class ViewportManagerTimegrid;
+	class VisualizationInteractor2D;
 
 	class ViewportFactory {
 	public:
 		static std::map<int, std::string> paramsSurf;
 		static void MakeSingleView(std::string file, nbsMetadata &meta, ViewportManager &viewportMan,
-			vtkRenderWindowInteractor *iren, vtkRenderWindow *renWin, fmiVisInteractor2D *style);
+			vtkRenderWindowInteractor *iren, vtkRenderWindow *renWin, VisualizationInteractor2D *style);
 
 
 		static void MakeTimeGridView(size_t numX, size_t numY,std::string file,nbsMetadata &meta,ViewportManagerTimegrid &viewportMan,
-			vtkRenderWindowInteractor *iren, vtkRenderWindow *renWin, fmiVisInteractor2D *style);
+			vtkRenderWindowInteractor *iren, vtkRenderWindow *renWin, VisualizationInteractor2D *style);
 
 
 

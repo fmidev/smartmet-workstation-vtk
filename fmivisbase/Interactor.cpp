@@ -1,4 +1,4 @@
-#include "fmiVisInteractor.h"
+#include "Interactor.h"
 
 
 #include <vtkRenderWindow.h>
@@ -12,7 +12,7 @@
 #include "ViewportManager.h"
 #include "TimeAnimator.h"
 
-void fmiVisInteractorBase::OnKeyRelease(std::string &s,bool ctrl,vtkRenderer* vp)
+void fmiVis::VisualizationInteractorBase::OnKeyRelease(std::string &s,bool ctrl,vtkRenderer* vp)
 {
 
 

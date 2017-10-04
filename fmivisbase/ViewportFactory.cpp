@@ -32,9 +32,9 @@
 #include "vtkRenderWindow.h"
 #include "TimeAnimator.h"
 
-#include "fmiVisInteractor.h"
+#include "Interactor.h"
 
-#include "fmiVisCameraCallback.h"
+#include "CameraCallback.h"
 
 using namespace std::string_literals;
 using namespace fmiVis;
@@ -144,7 +144,7 @@ void addMapPlane(vtkSmartPointer<vtkRenderer> ren,const std::string &file, nbsMe
 }
 
 void MakeTimeAnimator(vtkRenderer *ren, fmiVis::ViewportManager &vm,nbsMetadata &meta,
-	vtkRenderWindowInteractor *iren, vtkRenderWindow *renWin, fmiVisInteractor2D *style) {
+	vtkRenderWindowInteractor *iren, vtkRenderWindow *renWin, VisualizationInteractor2D *style) {
 
 	auto sliderRep = vtkSmartPointer<vtkSliderRepresentation2D>::New();
 
@@ -175,7 +175,7 @@ void MakeTimeAnimator(vtkRenderer *ren, fmiVis::ViewportManager &vm,nbsMetadata 
 
 	slider->EnabledOn();
 
-	auto ta = std::make_unique<::TimeAnimator>(ren, renWin,slider,&vm,&meta );
+	auto ta = std::make_unique<fmiVis::TimeAnimator>(ren, renWin,slider,&vm,&meta );
 
 	style->setTA(std::move(ta));
 }
@@ -253,14 +253,14 @@ void MakeVisualizers(std::string file, nbsMetadata & meta, VisualizerManager *vi
 }
 
 void fmiVis::ViewportFactory::MakeSingleView(std::string file, nbsMetadata &meta, ViewportManager &viewportMan,
-	vtkRenderWindowInteractor *iren, vtkRenderWindow *renWin, fmiVisInteractor2D *style) {
+	vtkRenderWindowInteractor *iren, vtkRenderWindow *renWin, VisualizationInteractor2D *style) {
 
 	auto ren = MakeRenderer();
 
 	renWin->AddRenderer(ren);
 
 	auto cam = ren->GetActiveCamera();
-	auto callback = vtkSmartPointer<fmiVisCameraCallback>::New();
+	auto callback = vtkSmartPointer<fmiVis::CameraCallback>::New();
 	callback->setManager(&viewportMan);
 	cam->AddObserver(vtkCommand::ModifiedEvent, callback);
 
@@ -304,7 +304,7 @@ void fmiVis::ViewportFactory::MakeSingleView(std::string file, nbsMetadata &meta
 }
 
 void fmiVis::ViewportFactory::MakeTimeGridView(size_t numX, size_t numY,
-	std::string file, nbsMetadata &meta, fmiVis::ViewportManagerTimegrid &viewportMan, vtkRenderWindowInteractor *iren, vtkRenderWindow *renWin, fmiVisInteractor2D *style)
+	std::string file, nbsMetadata &meta, fmiVis::ViewportManagerTimegrid &viewportMan, vtkRenderWindowInteractor *iren, vtkRenderWindow *renWin, VisualizationInteractor2D *style)
 {
 	auto baseRen = MakeRenderer();
 	renWin->AddRenderer(baseRen);
@@ -342,7 +342,7 @@ void fmiVis::ViewportFactory::MakeTimeGridView(size_t numX, size_t numY,
 				cam->SetPosition(100, 100, 100);
 				cam->SetFocalPoint(100, 100, 0);
 
-				auto callback = vtkSmartPointer<fmiVisCameraCallback>::New();
+				auto callback = vtkSmartPointer<fmiVis::CameraCallback>::New();
 				callback->setManager(&viewportMan );
 				cam->AddObserver(vtkCommand::ModifiedEvent, callback);
 			}
