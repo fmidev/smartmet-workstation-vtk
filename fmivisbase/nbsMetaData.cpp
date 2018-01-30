@@ -87,3 +87,50 @@ std::string nbsMetadata::getTimeString(double val)
 
 	return timeString.str();
 }
+
+paramRange nbsMetadata::getParamRange(int p) const
+{
+	static auto rangeCache = std::map<int, paramRange>();
+
+	if (rangeCache.find(p) == rangeCache.end()) {
+
+		dataInfo->ResetTime();
+		dataInfo->NextTime();
+
+
+		float minVal = kMaxFloat, maxVal = kMinFloat;
+
+
+		if (dataInfo->Param(FmiParameterName(p) )) {
+
+			bool rising = dataInfo->HeightParamIsRising();
+
+			if (rising) dataInfo->ResetLevel();
+			else dataInfo->LastLevel();
+
+			for (dataInfo->ResetLocation(); dataInfo->NextLocation(); ) {
+				float val = dataInfo->FloatValue();
+
+				if (val == kFloatMissing) val = 0;
+				if (val > maxVal) maxVal = val;
+				if (val < minVal) minVal = val;
+
+			}
+
+			constexpr float margin = 1.2f;
+			constexpr float invMargin = 1.0f / margin;
+
+			maxVal *= margin;
+			if (minVal > 0.0f) minVal *= invMargin;
+			else minVal*=margin; 
+
+			auto range = paramRange{ minVal,maxVal };
+			rangeCache.insert(std::make_pair(p, range));
+
+			return range;
+		}
+
+
+	}
+	else return rangeCache.find(p)->second;
+}

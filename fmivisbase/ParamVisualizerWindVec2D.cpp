@@ -28,11 +28,14 @@
 
 #include "Glyphs.h"
 
-#include "VisualizerFactory.h"
 #include "nbsSurfaceWind.h"
 
 #include <vtkPNGReader.h>
 
+
+#include <NFmiDataIdent.h>
+
+#include "DrawOptions.h"
 
 void ParamVisualizerWindVec2D::ModeStreamline() {
 
@@ -83,6 +86,9 @@ void ParamVisualizerWindVec2D::ModeBarb() {
 
 	map->AddInputConnection(glypher->GetOutputPort());
 
+
+	map->SelectColorArray(nullptr);
+
 	act->SetTexture(nullptr);
 
 	filters.clear();
@@ -123,7 +129,10 @@ void ParamVisualizerWindVec2D::UpdateTimeStep(double t)
 	vtkObject::GlobalWarningDisplayOff();
 
 	ParamVisualizerBase::UpdateTimeStep(t);
-
+	if (mode == mode_stream) {
+		auto arr = streamer->GetOutput()->GetPointData()->GetScalars();
+		cout << arr->GetRange()[0] << " : " << arr->GetRange()[1] << '\n';
+	}
 
 	vtkObject::GlobalWarningDisplayOn();
 
@@ -131,8 +140,8 @@ void ParamVisualizerWindVec2D::UpdateTimeStep(double t)
 }
 
 
-ParamVisualizerWindVec2D::ParamVisualizerWindVec2D(const std::string &file, nbsMetadata &m) :
-	ParamVisualizerBase(new nbsSurfaceWind(file, &m), m, param), mode(mode_stream)
+ParamVisualizerWindVec2D::ParamVisualizerWindVec2D(const std::string &file, nbsMetadata &m, NFmiDataIdent &paramIdent, NFmiDrawParamFactory* fac) :
+	ParamVisualizerBase(new nbsSurfaceWind(file, &m), m, paramIdent,fac), mode(mode_stream)
 {
 
 	//nbs->setSubSample(3);
@@ -206,25 +215,28 @@ ParamVisualizerWindVec2D::ParamVisualizerWindVec2D(const std::string &file, nbsM
  	streamer->SetInitialIntegrationStep(2);
  	streamer->SetIntegratorTypeToRungeKutta4();
 
+	streamer->SetComputeVorticity(false);
 
 
 	ribbon = vtkSmartPointer<vtkRibbonFilter>::New(); //causes a warning apparently
 	ribbon->SetInputConnection(streamer->GetOutputPort());
 
-	ribbon->SetInputArrayToProcess(0, 0, 0, vtkDataObject::FIELD_ASSOCIATION_POINTS, "Scalars");
+	//ribbon->SetInputArrayToProcess(0, 0, 0, vtkDataObject::FIELD_ASSOCIATION_POINTS, "Scalars");
+
 	ribbon->UseDefaultNormalOn();
 	ribbon->SetDefaultNormal(0, 0, 1);
 
-	ribbon->SetVaryWidth(true);
-	ribbon->SetWidthFactor(2.5);
+	ribbon->SetVaryWidth(false);
+	ribbon->SetWidthFactor(5);
 	ribbon->SetGenerateTCoordsToNormalizedLength () ;
-	ribbon->SetWidth(.3);
+	ribbon->SetWidth(0.5);
 
 	map = vtkSmartPointer<vtkPolyDataMapper>::New();
 	//colors
- 	map->SetScalarRange(0, 150);
+ 	map->SetScalarRange(0, 4);
  	map->SetColorModeToMapScalars();
- 	map->SetLookupTable(VisualizerFactory::blueToRedColor(0, 150));
+ 	map->SetLookupTable(fmiVis::blueToRedColFunc(0, 4));
+	map->GetLookupTable()->SetVectorModeToMagnitude();
 
 
 	act = vtkSmartPointer<vtkActor>::New();

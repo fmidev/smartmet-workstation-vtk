@@ -15,8 +15,6 @@
 
 #include "ContourLabeler.h"
 
-#include "VisualizerFactory.h"
-
 #include "nbsSurface.h"
 #include "vtkAppendPolyData.h"
 
@@ -30,19 +28,27 @@
 #include <vtkContourTriangulator.h>
 #include <vtkCleanPolyData.h>
 
+#include <NFmiDrawParam.h>
+#include <NFmiDataIdent.h>
+
 void ParamVisualizerSurf::ModeIsoLine() {
+
+	polyMap->SetLookupTable(isolineColFunc);
 
 
 	contour->SetInputConnection(nbs->GetOutputPort());
-	
+
+
 	append->RemoveAllInputConnections(0);
 
 	stripper->AddInputConnection(contour->GetOutputPort());
 
-
+	
 }
 
 void ParamVisualizerSurf::ModeColorContour() {
+
+	polyMap->SetLookupTable(contourColFunc);
 
 	contour->RemoveAllInputConnections(0);
 
@@ -115,6 +121,7 @@ void ParamVisualizerSurf::UpdateTimeStep(double t) {
 		append->RemoveAllInputs();
 		append->SetInputConnection(0, contour->GetOutputPort());
 
+		contour->Update();
 		stripper->Update();
 
 		vtkPoints *points =
@@ -185,11 +192,11 @@ double * ParamVisualizerSurf::getRange() {
 	return polyMap->GetScalarRange();
 }
 
-ParamVisualizerSurf::ParamVisualizerSurf(const std::string & file, nbsMetadata & m,
-	int param, vtkSmartPointer<vtkColorTransferFunction> contourColors,
-	ContourLabeler &labeler, double range[2], int numContours, bool flat) :
+ParamVisualizerSurf::ParamVisualizerSurf(
+	const std::string &file, nbsMetadata &m,ContourLabeler &labeler,
+	NFmiDataIdent &paramIdent, NFmiDrawParamFactory* fac, bool flat) :
 
-	ParamVisualizerBase(new nbsSurface(file, &m,param,13000,flat,true),m,param),
+	ParamVisualizerBase(new nbsSurface(file, &m, paramIdent.GetParamIdent(), 13000, flat, true), m, paramIdent,fac),
 	labeler(labeler), mode(false)
 {
 	nbs->Update();
@@ -210,13 +217,9 @@ ParamVisualizerSurf::ParamVisualizerSurf(const std::string & file, nbsMetadata &
 	clip->AddInputConnection(hatch->GetOutputPort());
 
 	contour = vtkContourFilter::New();
-
-	contour->GenerateValues(numContours, range[0], range[1]);
 	contour->SetComputeScalars(true);
 
 	stripper = vtkStripper::New();
-
-	//stripper->SetJoinContiguousSegments(1);
 
 	stripper->SetInputConnection(contour->GetOutputPort());
 
@@ -226,11 +229,9 @@ ParamVisualizerSurf::ParamVisualizerSurf(const std::string & file, nbsMetadata &
 
 	polyMap->AddInputConnection(append->GetOutputPort());
 
-	polyMap->SetScalarRange(range);
-	polyMap->SetColorModeToMapScalars();
-	polyMap->SetLookupTable(contourColors);
-
 	polyMap->SelectColorArray("Scalars");
+
+	polyMap->SetColorModeToMapScalars();
 
 	triangulate = vtkSmartPointer<vtkContourTriangulator>::New();
 
@@ -239,23 +240,80 @@ ParamVisualizerSurf::ParamVisualizerSurf(const std::string & file, nbsMetadata &
 
 	//decimate->AddInputConnection(clean->GetOutputPort());
 
-
-	decimate->SetTargetReduction(0.9);
-
-
 	SetActiveMapper(polyMap);
 
 	polyAct = vtkActor::New();
 
 	polyAct->SetMapper(polyMap);
 
-	//polyAct->GetProperty()->SetOpacity(0.4);
-
-	polyAct->GetProperty()->SetBackfaceCulling(false);
+	ReloadOptions();
 
 	SetProp(polyAct);
 
 	ModeColorContour();
+}
+
+void ParamVisualizerSurf::ReloadOptions()
+{
+
+	auto drawParam = drawParamFac->CreateDrawParam(paramIdent, nullptr);
+
+	const int stepLimit = 100;
+
+
+	
+	auto range = meta.getParamRange(param);
+
+	auto step = drawParam->IsoLineGab();
+
+	int stepCount = (range[1] - range[0]) / step *2;
+	if (stepCount > stepLimit) stepCount = stepLimit;
+
+	contour->GenerateValues(stepCount,
+		drawParam->SimpleIsoLineZeroValue() - step * stepCount/2,
+		drawParam->SimpleIsoLineZeroValue() + step * stepCount/2);
+
+	//stripper->SetJoinContiguousSegments(1);
+
+	polyMap->SetScalarRange(range[0],range[1]);
+
+	if (!drawParam->UseSingleColorsWithSimpleIsoLines())
+		isolineColFunc = fmiVis::makeIsolineColorFunction(drawParam.get());
+	else
+		isolineColFunc =
+			fmiVis::constColor( &fmiVis::fmiToVtkColor(drawParam->IsolineColor()) );
+
+	contourColFunc =  fmiVis::makeContourColorFunction(drawParam.get());
+
+	if (drawParam->UseCustomIsoLineing() || drawParam->UseCustomColorContouring()) {
+		std::vector<vtkColor4f> colors;
+		std::vector<float> values;
+
+		if (drawParam->UseCustomIsoLineing()) 
+		{
+			isolineColFunc = fmiVis::makeColorFunction(colors, values);
+			fmiVis::readCustomIsolineParams(drawParam.get(), colors, values);
+		}
+		else 
+			fmiVis::readCustomContourParams(drawParam.get(), colors, values);
+
+		contour->SetNumberOfContours(values.size());
+
+		int i = 0;
+
+		for (auto &val : values) {
+			contour->SetValue(i, val);
+		}
+
+		polyMap->SetScalarRange(*values.begin(), *values.rbegin());
+	}
+
+	decimate->SetTargetReduction(0.9);
+
+	//polyAct->GetProperty()->ShadingOff();
+	//polyAct->GetProperty()->SetOpacity(0.4);
+
+
 }
 
 ParamVisualizerSurf::~ParamVisualizerSurf() {

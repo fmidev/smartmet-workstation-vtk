@@ -5,12 +5,16 @@
 #include <map>
 #include <vector>
 #include <memory>
+#include <array>
 
 #include <NFmiPoint.h>
 #include <NFmiArea.h>
+#include <NFmiParam.h>
 
 #include <NFmiQueryData.h>
 #include <NFmiFastQueryInfo.h>
+
+typedef std::array<float, 2> paramRange;
 
 //yleisiä tietoja newbase-datasta
 struct nbsMetadata {
@@ -44,6 +48,8 @@ struct nbsMetadata {
 	time_t timeStepToEpoch(double step) {
 		return minT + step*(double(maxT - minT) / (timeSteps));
 	}
+
+	paramRange getParamRange(int p) const;
 };
 
 #endif /*NEWBASESOURCERMETADATA_H*/

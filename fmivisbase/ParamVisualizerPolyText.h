@@ -12,6 +12,8 @@ class vtkPolyDataMapper;
 class vtkActor;
 class vtkAppendPolyData;
 class vtkTransformPolyDataFilter;
+class NFmiDrawParamFactory;
+class NFmiDataIdent;
 
 class ParamVisualizerPolyText : public ParamVisualizerBase {
 
@@ -23,7 +25,7 @@ class ParamVisualizerPolyText : public ParamVisualizerBase {
 	vtkSmartPointer<vtkActor> act;
 
 public:
-	ParamVisualizerPolyText(const std::string &file, nbsMetadata &m, int param);
+	ParamVisualizerPolyText(const std::string &file, nbsMetadata &m, NFmiDataIdent &paramIdent, NFmiDrawParamFactory* fac);
 
 	void UpdateTimeStep(double t) override;
 

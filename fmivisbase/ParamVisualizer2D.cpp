@@ -80,12 +80,12 @@ void ParamVisualizer2D::UpdateTimeStep(double t) {
 	}
 }
 
-ParamVisualizer2D::ParamVisualizer2D(const std::string & file, nbsMetadata & m, 
-	int param, vtkAlgorithmOutput * probingData,
+ParamVisualizer2D::ParamVisualizer2D(const std::string & file, nbsMetadata & m,
+	NFmiDataIdent &paramIdent, NFmiDrawParamFactory* fac, vtkAlgorithmOutput * probingData,
 	vtkSmartPointer<vtkColorTransferFunction> contourColors,
 	ContourLabeler &labeler, double range[2], int numContours) :
 
-	ParamVisualizerBase(file, m, param),
+	ParamVisualizerBase(file, m, paramIdent,fac),
 	labeler(labeler),
 
 

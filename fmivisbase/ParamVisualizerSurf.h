@@ -9,7 +9,7 @@
 class vtkPolyDataMapper;
 
 class vtkContourFilter;
-class vtkColorTransferFunction;
+class vtkScalarsToColors;
 class vtkStripper;
 class vtkActor;
 class vtkPolyData;
@@ -21,6 +21,9 @@ class vtkImplicitSelectionLoop;
 class vtkContourTriangulator;
 class vtkDecimatePolylineFilter;
 class vtkCleanPolyData;
+
+class NFmiDrawParam;
+class NFmiDataIdent;
 
 class ParamVisualizerSurf : public ParamVisualizerBase {
 protected:
@@ -46,6 +49,9 @@ protected:
 
 	vtkActor *polyAct;
 
+	vtkSmartPointer<vtkScalarsToColors> isolineColFunc;
+	vtkSmartPointer<vtkScalarsToColors> contourColFunc;
+
 	//false = color
 	bool mode;
 
@@ -54,8 +60,10 @@ protected:
 
 
 public:
-	ParamVisualizerSurf(const std::string &file, nbsMetadata &m, int param,
-		vtkSmartPointer<vtkColorTransferFunction> contourColors, ContourLabeler &labeler, double range[2], int numContours, bool flat = false);
+	ParamVisualizerSurf(const std::string &file, nbsMetadata &m, ContourLabeler &labeler, NFmiDataIdent &paramIdent, NFmiDrawParamFactory* fac, bool flat = false);
+
+	void ReloadOptions();
+
 	~ParamVisualizerSurf();
 
 	virtual void UpdateTimeStep(double t) override;

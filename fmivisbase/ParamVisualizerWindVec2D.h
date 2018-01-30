@@ -15,6 +15,7 @@ class vtkPolyDataMapper;
 class vtkActor;
 class vtkPolyDataAlgorithm;
 class vtkAssignAttribute;
+class NFmiDataIdent;
 
 class ParamVisualizerWindVec2D : public ParamVisualizerBase {
 
@@ -44,9 +45,8 @@ class ParamVisualizerWindVec2D : public ParamVisualizerBase {
 	void ModeArrow();
 
 public:
-	static const int PARAM_WINDVEC = 30000;
 
-	ParamVisualizerWindVec2D(const std::string &file, nbsMetadata &m);
+	ParamVisualizerWindVec2D(const std::string &file, nbsMetadata &m, NFmiDataIdent &paramIdent, NFmiDrawParamFactory* fac);
 
 	virtual void UpdateTimeStep(double t) override;
 

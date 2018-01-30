@@ -11,10 +11,12 @@
 #include <vtkTransform.h>
 #include <vtkFloatArray.h>
 
+#include <NFmiDataIdent.h>
+
 #include "nbsSurface.h"
 
-ParamVisualizerPolyText::ParamVisualizerPolyText(const std::string &file, nbsMetadata &m, int param) :
-	ParamVisualizerBase(new nbsSurface(file, &m, param, 13000, true), m, param),
+ParamVisualizerPolyText::ParamVisualizerPolyText(const std::string &file, nbsMetadata &m, NFmiDataIdent &paramIdent, NFmiDrawParamFactory* fac) :
+	ParamVisualizerBase(new nbsSurface(file, &m, paramIdent.GetParamIdent(), 13000, true), m, paramIdent,fac),
 	vt(vtkSmartPointer<vtkVectorText>::New()),
 	tf(vtkSmartPointer<vtkTransformPolyDataFilter>::New()),
 	ap(vtkSmartPointer<vtkAppendPolyData>::New())

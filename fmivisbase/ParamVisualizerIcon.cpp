@@ -14,6 +14,7 @@
 #include <vtkProgrammableAttributeDataFilter.h>
 #include <vtkPNGReader.h>
 
+#include <NFmiDataIdent.h>
 
 #include "nbsSurface.h"
 #include "vtkSelectionNode.h"
@@ -53,8 +54,8 @@ void AttributeCallback(void* arg) {
 
 }
 
-ParamVisualizerIcon::ParamVisualizerIcon(const std::string & file, nbsMetadata & m, int param, iconMapping mapping) :
-ParamVisualizerBase(new nbsSurface(file, &m, param, 13000, true), m, param), mapping(mapping)
+ParamVisualizerIcon::ParamVisualizerIcon(const std::string & file, nbsMetadata & m, NFmiDataIdent &paramIdent, NFmiDrawParamFactory* fac, iconMapping mapping) :
+ParamVisualizerBase(new nbsSurface(file, &m, paramIdent.GetParamIdent(), 13000, true), m, paramIdent,fac), mapping(mapping)
 {
 	nbs->Update();
 

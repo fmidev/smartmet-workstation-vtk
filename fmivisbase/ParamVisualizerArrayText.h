@@ -10,7 +10,7 @@
 
 class vtkTextActor3D;
 class vtkPropAssembly;
-class vtkColorTransferFunction;
+class vtkScalarsToColors;
 
 class ParamVisualizerArrayText : public ParamVisualizerBase {
 
@@ -18,10 +18,10 @@ class ParamVisualizerArrayText : public ParamVisualizerBase {
 
 	vtkSmartPointer<vtkPropAssembly> assembly;
 
-	vtkSmartPointer<vtkColorTransferFunction> colF;
+	vtkSmartPointer<vtkScalarsToColors> colF;
 
 public:
-	ParamVisualizerArrayText(const std::string &file, nbsMetadata &m, int param, vtkSmartPointer<vtkColorTransferFunction> col = nullptr);
+	ParamVisualizerArrayText(const std::string &file, nbsMetadata &m, NFmiDataIdent &paramIdent, NFmiDrawParamFactory* fac, vtkSmartPointer<vtkScalarsToColors> col = nullptr);
 	~ParamVisualizerArrayText();
 
 	void UpdateTimeStep(double t) override;

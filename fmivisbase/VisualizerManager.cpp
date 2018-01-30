@@ -16,8 +16,8 @@
 
 #include "ContourLabeler.h"
 
+#include "DrawOptions.h"
 
-#include "VisualizerFactory.h"
 
 VisualizerManager::VisualizerManager(vtkRenderer *ren,nbsMetadata &m, float zHeight /*= 13000*/) :
 	renderer(ren),
@@ -38,6 +38,7 @@ VisualizerManager::VisualizerManager(vtkRenderer *ren,nbsMetadata &m, float zHei
 	legend->SetInteractor(ren->GetRenderWindow()->GetInteractor());
 	legend->SetCurrentRenderer(ren);
 
+	drawParamFac = fmiVis::LoadOptions();
 }
 VisualizerManager::~VisualizerManager() {};
 visID VisualizerManager::AddVisualizer(std::unique_ptr<ParamVisualizerBase> v)
@@ -46,7 +47,7 @@ visID VisualizerManager::AddVisualizer(std::unique_ptr<ParamVisualizerBase> v)
 	if (v)
 	{
 		v->SetRenderer(renderer);
-		visualizers.push_back(std::move(v));
+		visualizers.push_back(std::move(v)); 
 		visualizers[vid]->DisableActor();
 		return vid;
 	}

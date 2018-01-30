@@ -28,7 +28,7 @@
 nbsSurface::nbsSurface(const std::string &file, nbsMetadata *meta, int param, int zHeight, bool flat, bool pad) :
 	newBaseSourcerBase(file, meta, param, 1), flat(flat), pad(pad), spacing(2)
 {
-
+	if (param == 0) throw new std::invalid_argument("param is 0");
 	SetNumberOfInputPorts(0);
 	inputPolyData = vtkPolyData::New();
 
@@ -284,6 +284,7 @@ int nbsSurface::RequestData(vtkInformation* vtkNotUsed(request),
 
 				}
 		}
+		else throw new std::runtime_error("No param found");
 
 
 
@@ -295,17 +296,18 @@ int nbsSurface::RequestData(vtkInformation* vtkNotUsed(request),
 		prevTime = timeI;
 		for (int i = 0; i < 6; i++)
 			prevExtent[i] = reqExtent[i];
+
+
 	}
 	else cout << "Reused time " << prevTime << std::endl;
 
 	//siirretään imagedata ulostuloon
 	ds->ShallowCopy( inputPolyData );
-
 	//kerrotaan mitä dataa löytyi
 	ds->GetInformation()->Set(vtkDataObject::DATA_TIME_STEP(), dataInfo.Time().EpochTime());
 
-	Modified();
 
+	Modified();
 
 	return 1;
 }

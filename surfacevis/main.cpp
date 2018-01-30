@@ -6,7 +6,6 @@
 #include <vtkCamera.h>
 #include <vtkWin32OutputWindow.h>
 #include <vtkRenderWindowInteractor.h>
-#include <VisualizerFactory.h>
 #include <VisualizerManager.h>
 #include <vtkImageMapper3D.h>
 #include <vtkPNGReader.h>
@@ -67,7 +66,6 @@ int main(size_t argc, char* argv[])
 
 	cout << "Initializing interface..." << endl;
 
-	VisualizerFactory::init();
 
 	std::string file = std::string(argc < 2 ?
 		"D:/3D-dataa/201706160543_gfs_scandinavia_surface.sqd" :
@@ -90,9 +88,12 @@ int main(size_t argc, char* argv[])
 
 	iren->SetInteractorStyle(style);
 
-	auto vm = fmiVis::ViewportManagerTimegrid{6,3};
+	size_t sizeX = 6;
+	size_t sizeY = 3;
 
-	fmiVis::ViewportFactory::MakeTimeGridView(6,3,file, meta, vm, iren, renWin, style);
+	auto vm = fmiVis::ViewportManagerTimegrid{ sizeX,sizeY };
+
+	fmiVis::ViewportFactory::MakeTimeGridView(sizeX, sizeY,file, meta, vm, iren, renWin, style);
 
 	style->setVM(&vm);
 

@@ -18,6 +18,8 @@ class vtkActor;
 class vtkPolyData;
 class vtkExtractSelectedIds;
 class vtkProgrammableAttributeDataFilter;
+class NFmiDrawParamFactory;
+class NFmiDataIdent;
 
 typedef std::function<float(float)> iconMapping;
 
@@ -42,7 +44,7 @@ protected:
 
 	friend void AttributeCallback(void* arg);
 public:
-	ParamVisualizerIcon(const std::string &file, nbsMetadata &m, int param, iconMapping mapping);
+	ParamVisualizerIcon(const std::string &file, nbsMetadata &m, NFmiDataIdent &paramIdent, NFmiDrawParamFactory* fac,iconMapping mapping);
 
 	virtual inline void ToggleMode() { }
 };

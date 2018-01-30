@@ -13,7 +13,7 @@
 
 
 #include "ParamVisualizerWindVec2D.h"
-#include "VisualizerFactory.h"
+#include "ParamVisualizerSurf.h"
 #include "ParamVisualizerIcon.h"
 #include "ParamVisualizerArrayText.h"
 #include "ParamVisualizerPolyText.h"
@@ -35,6 +35,9 @@
 #include "Interactor.h"
 
 #include "CameraCallback.h"
+#include <NFmiDrawParamFactory.h>
+
+#include "DrawOptions.h"
 
 using namespace std::string_literals;
 using namespace fmiVis;
@@ -215,29 +218,40 @@ void MakeVisualizers(std::string file, nbsMetadata & meta, VisualizerManager *vi
 	std::map<int, std::string> &paramsSurf, NFmiFastQueryInfo &dataInfo)
 {
 
-	addVis(std::make_unique<ParamVisualizerWindVec2D>(file, meta), "Wind Vectors"s,
+
+	auto drawParamFactory = fmiVis::LoadOptions();
+
+	visualizerMan->setDrawParamFac(drawParamFactory);
+
+	dataInfo.Param(kFmiWindDirection);
+	addVis(std::make_unique<ParamVisualizerWindVec2D>(file, meta, dataInfo.Param(), drawParamFactory.get()), "Wind Vectors"s,
 		*visualizerMan, *textActs, ren, textSize, textVOff, textVSpacing);
 
 	auto iconMapping = [](double in) {
 		return static_cast<int> ((100.0 - in) / 100.01 * 3.0);
 	};
 
-	addVis(std::make_unique<ParamVisualizerIcon>(file, meta, kFmiTotalCloudCover, iconMapping), "Total Cloud Cover (Icon)",
+
+	dataInfo.Param(kFmiTotalCloudCover);
+	addVis(std::make_unique<ParamVisualizerIcon>(file, meta, dataInfo.Param(), drawParamFactory.get(), iconMapping), "Total Cloud Cover (Icon)",
 		*visualizerMan, *textActs, ren, textSize, textVOff, textVSpacing);
 
-	addVis(std::make_unique<ParamVisualizerArrayText>(file, meta, kFmiTotalCloudCover, VisualizerFactory::greenToRedColor(0, 100)), "Total Cloud Cover (ArrayText)",
+	addVis(std::make_unique<ParamVisualizerArrayText>(file, meta, dataInfo.Param(), drawParamFactory.get(), fmiVis::redToGreenColFunc(0, 100)), "Total Cloud Cover (ArrayText)",
 		*visualizerMan, *textActs, ren, textSize, textVOff, textVSpacing);
-	addVis(std::make_unique<ParamVisualizerPolyText>(file, meta, kFmiTotalCloudCover), "Total Cloud Cover (Polytext)",
+	addVis(std::make_unique<ParamVisualizerPolyText>(file, meta, dataInfo.Param(), drawParamFactory.get()), "Total Cloud Cover (Polytext)",
 		*visualizerMan, *textActs, ren, textSize, textVOff, textVSpacing);
-	addVis(std::make_unique<ParamVisualizerText>(file, meta, kFmiTotalCloudCover), "Total Cloud Cover (Text)",
+	addVis(std::make_unique<ParamVisualizerText>(file, meta, dataInfo.Param(), drawParamFactory.get()), "Total Cloud Cover (Text)",
 		*visualizerMan, *textActs, ren, textSize, textVOff, textVSpacing);
+
 
 	for (auto &parampair : paramsSurf) {
 		if (dataInfo.Param(FmiParameterName(parampair.first))) {
 			auto s = std::ostringstream{};
 			s << parampair.second << "(Surface)"s;
 
-			visID vid = addVis(VisualizerFactory::makeSurfVisualizer(file, meta, visualizerMan->GetLabeler(), parampair.first, true), s.str(),
+			//auto drawParam = drawParamFactory.get()->CreateDrawParam(dataInfo.Param(),nullptr);
+			//dataInfo.Param();
+			visID vid = addVis(std::make_unique<ParamVisualizerSurf>(file, meta, visualizerMan->GetLabeler(), dataInfo.Param(), drawParamFactory.get(), true), s.str(),
 				*visualizerMan, *textActs, ren, textSize, textVOff, textVSpacing);
 			if (vid == -1)
 			{

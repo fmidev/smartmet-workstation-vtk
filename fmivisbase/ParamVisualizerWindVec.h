@@ -16,6 +16,7 @@ class vtkActor;
 class vtkPolyDataAlgorithm;
 class vtkProbeFilter;
 class vtkAssignAttribute;
+class NFmiDataIdent;
 
 class ParamVisualizerWindVec : public ParamVisualizerBase {
 
@@ -41,9 +42,8 @@ class ParamVisualizerWindVec : public ParamVisualizerBase {
 	void ModeGlyph();
 
 public:
-	static const int PARAM_WINDVEC = 30000;
 
-	ParamVisualizerWindVec(const std::string &file, nbsMetadata &m, vtkAlgorithmOutput* seedData);
+	ParamVisualizerWindVec(const std::string &file, nbsMetadata &m, NFmiDataIdent &param, NFmiDrawParamFactory* fac, vtkAlgorithmOutput* seedData);
 
 	virtual inline void ToggleMode() {
 

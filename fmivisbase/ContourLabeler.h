@@ -15,6 +15,8 @@
 #include <vtkDoubleArray.h>
 #include <vtkSelectVisiblePoints.h>
 
+#include "DrawOptions.h"
+
 class ContourLabeler {
 
 	vtkSmartPointer<vtkLabeledDataMapper> labelMapper;

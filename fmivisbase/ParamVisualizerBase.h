@@ -14,6 +14,8 @@ class vtkAlgorithm;
 class vtkPlanes;
 class vtkScalarsToColors;
 class vtkRenderer;
+class NFmiDrawParamFactory;
+class NFmiDataIdent;
 
 class ParamVisualizerBase {
 private:
@@ -24,7 +26,13 @@ private:
 
 	vtkRenderer * ren;
 
+
 protected:
+
+
+	NFmiDrawParamFactory* drawParamFac = nullptr;
+	
+	NFmiDataIdent &paramIdent;
 
 	const nbsMetadata &meta;
 
@@ -34,13 +42,11 @@ protected:
 
 	void SetActiveMapper(vtkAbstractMapper *m);
 	void SetProp(vtkProp *p);
-
-
 public:
 	int param;
 
-	ParamVisualizerBase(const std::string &file, nbsMetadata &m, int param);
-	ParamVisualizerBase(vtkAlgorithm *nbs, nbsMetadata &m, int param);
+	ParamVisualizerBase(const std::string &file, nbsMetadata &m, NFmiDataIdent &paramIdent,NFmiDrawParamFactory* fac);
+	ParamVisualizerBase(vtkAlgorithm *nbs, nbsMetadata &m, NFmiDataIdent &paramIdent, NFmiDrawParamFactory* fac);
 	virtual ~ParamVisualizerBase();
 	void CropMapper(vtkPlanes* p);
 
@@ -79,6 +85,10 @@ public:
 
 	inline vtkProp* GetProp() {
 		return prop;
+	}
+
+	inline void SetDrawParamFac(NFmiDrawParamFactory *p) {
+		drawParamFac = p;
 	}
 
 	virtual void ToggleMode() {};

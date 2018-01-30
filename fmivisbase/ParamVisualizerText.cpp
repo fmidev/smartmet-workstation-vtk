@@ -12,12 +12,14 @@
 #include <vtkFloatArray.h>
 #include <vtkTexture.h>
 
+#include <NFmiDataIdent.h>
+
 #include "nbsSurface.h"
 #include "TextImageLayer.h"
 #include "vtkScalarsToColors.h"
 
-ParamVisualizerText::ParamVisualizerText(const std::string &file, nbsMetadata &m, int param) :
-	ParamVisualizerBase(new nbsSurface(file, &m, param, 13000, true), m, param),
+ParamVisualizerText::ParamVisualizerText(const std::string &file, nbsMetadata &m, NFmiDataIdent &paramIdent, NFmiDrawParamFactory* fac) :
+	ParamVisualizerBase(new nbsSurface(file, &m, paramIdent.GetParamIdent(), 13000, true), m, paramIdent,fac),
 	tl(1024,1024),
 	tf(vtkSmartPointer<vtkTransformPolyDataFilter>::New()),
 	ap(vtkSmartPointer<vtkAppendPolyData>::New())

@@ -23,9 +23,12 @@
 #include <vtkSelection.h>
 #include <vtkExtractSelectedIds.h>
 
+#include <NFmiDataIdent.h>
+
+#include "DrawOptions.h"
+
 #include "Glyphs.h"
 
-#include "VisualizerFactory.h"
 
 void ParamVisualizerWindVec::ModeStreamline() {
 	
@@ -63,8 +66,8 @@ void ParamVisualizerWindVec::ModeGlyph() {
 }
 
 
-ParamVisualizerWindVec::ParamVisualizerWindVec(const std::string &file, nbsMetadata &m, vtkAlgorithmOutput* seedData) :
-	ParamVisualizerBase(new nbsWindVectors(file, &m),m,param), seedData(seedData), mode(false)
+ParamVisualizerWindVec::ParamVisualizerWindVec(const std::string &file, nbsMetadata &m, NFmiDataIdent &paramIdent, NFmiDrawParamFactory* fac, vtkAlgorithmOutput* seedData) :
+	ParamVisualizerBase(new nbsWindVectors(file, &m),m, paramIdent,fac), seedData(seedData), mode(false)
 {
 
 	//nbs->setSubSample(3);
@@ -158,7 +161,7 @@ ParamVisualizerWindVec::ParamVisualizerWindVec(const std::string &file, nbsMetad
 	//colors
 	map->SetScalarRange(0,150);
 	map->SetColorModeToMapScalars();
-	map->SetLookupTable(VisualizerFactory::blueToRedColor(0, 150) );
+	map->SetLookupTable(fmiVis::blueToRedColFunc(0, 150) );
 
 	act = vtkSmartPointer<vtkActor>::New();
 	act->SetMapper(map);

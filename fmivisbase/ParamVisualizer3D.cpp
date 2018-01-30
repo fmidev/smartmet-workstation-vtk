@@ -44,8 +44,8 @@ void ParamVisualizer3D::ModeContour() {
 	SetProp(polyAct);
 }
 
-ParamVisualizer3D::ParamVisualizer3D(const std::string & file, nbsMetadata & m, int param, vtkSmartPointer<vtkColorTransferFunction> volumeColor, vtkSmartPointer<vtkPiecewiseFunction> volumeOpacity, float contourThreshold, double contourColor[3], float contourOpacity) :
-	ParamVisualizerBase(file, m, param)
+ParamVisualizer3D::ParamVisualizer3D(const std::string & file, nbsMetadata & m, NFmiDataIdent &paramIdent, NFmiDrawParamFactory* fac, vtkSmartPointer<vtkColorTransferFunction> volumeColor, vtkSmartPointer<vtkPiecewiseFunction> volumeOpacity, float contourThreshold, double contourColor[3], float contourOpacity) :
+	ParamVisualizerBase(file, m, paramIdent,fac)
 
 {
 

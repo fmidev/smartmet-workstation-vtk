@@ -9,9 +9,11 @@
 #include <vtkImageAlgorithm.h>
 #include "newBaseSourcerBase.h"
 
-
 class NFmiQueryData;
 class NFmiFastQueryInfo;
+class NFmiDataIdent;
+
+
 struct nbsMetadata;
 
 //lukee sqd-tiedoston ja muuntaa sen vtkImageDataksi
@@ -72,6 +74,9 @@ public:
 	inline int getParam() {
 		return param;
 	}
+
+	const NFmiDataIdent &getParamDescr();
+
 protected:
 	virtual newBaseSourcer::~newBaseSourcer();
 	newBaseSourcer(const newBaseSourcer &copy) = delete;

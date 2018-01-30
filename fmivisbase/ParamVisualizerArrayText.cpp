@@ -5,14 +5,15 @@
 #include <vtkPolyData.h>
 #include <vtkPointData.h>
 #include <vtkTextProperty.h>
-#include <vtkColorTransferFunction.h>
+#include <vtkScalarsToColors.h>
 
 #include "nbsSurface.h"
 
 
 
-ParamVisualizerArrayText::ParamVisualizerArrayText(const std::string &file, nbsMetadata &m, int param, vtkSmartPointer<vtkColorTransferFunction> col) :
-	ParamVisualizerBase(new nbsSurface(file, &m, param, 13000, true), m, param),
+ParamVisualizerArrayText::ParamVisualizerArrayText(const std::string &file, nbsMetadata &m,
+	NFmiDataIdent &paramIdent, NFmiDrawParamFactory* fac, vtkSmartPointer<vtkScalarsToColors> col) :
+	ParamVisualizerBase(new nbsSurface(file, &m, paramIdent.GetParamIdent(), 13000, true), m, paramIdent,fac),
 	acts(),
 	assembly(vtkSmartPointer<vtkPropAssembly>::New()),
 	colF(col)

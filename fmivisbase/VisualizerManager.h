@@ -35,6 +35,8 @@ class VisualizerManager {
 
 	double prevTime;
 
+	std::shared_ptr<NFmiDrawParamFactory> drawParamFac;
+
 
 public:
 
@@ -43,6 +45,10 @@ public:
 
 	inline nbsMetadata& GetMeta() {
 		return meta;
+	}
+
+	void setDrawParamFac(std::shared_ptr<NFmiDrawParamFactory> fac) {
+		drawParamFac = fac;
 	}
 
 	visID AddVisualizer(std::unique_ptr<ParamVisualizerBase> v);

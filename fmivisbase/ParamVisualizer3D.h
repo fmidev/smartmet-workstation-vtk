@@ -37,7 +37,7 @@ protected:
 	void ModeContour();
 
 public:
-	ParamVisualizer3D(const std::string &file, nbsMetadata &m, int param,
+	ParamVisualizer3D(const std::string &file, nbsMetadata &m, NFmiDataIdent &paramIdent, NFmiDrawParamFactory* fac,
 		vtkSmartPointer<vtkColorTransferFunction> volumeColor, vtkSmartPointer<vtkPiecewiseFunction> volumeOpacity,
 		float contourThreshold, double contourColor[3], float contourOpacity);
 

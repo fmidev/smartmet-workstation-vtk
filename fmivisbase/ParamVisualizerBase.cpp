@@ -5,23 +5,25 @@
 #include <vtkColorTransferFunction.h>
 #include <vtkRenderer.h>
 
+#include <NFmiDataIdent.h>
+
 #include "newBaseSourcer.h"
 
 
 #include "AreaUtil.h"
 
 
-ParamVisualizerBase::ParamVisualizerBase(const std::string &file, nbsMetadata &m, int param) :
+ParamVisualizerBase::ParamVisualizerBase(const std::string &file, nbsMetadata &m, NFmiDataIdent &paramIdent, NFmiDrawParamFactory* fac) :
 	meta(m), activeMapper(nullptr),
 	filters(), nbs(new newBaseSourcer(file, &m, param)),
-	prop(nullptr), crop(true), enabled(false), param(param)
+	prop(nullptr), crop(true), enabled(false), paramIdent(paramIdent), param(param), drawParamFac(fac)
 {
 	cout << "Initializing visualizer for param " << param << endl;
 }
 
-ParamVisualizerBase::ParamVisualizerBase( vtkAlgorithm *nbs, nbsMetadata &m, int param) :
+ParamVisualizerBase::ParamVisualizerBase( vtkAlgorithm *nbs, nbsMetadata &m, NFmiDataIdent &paramIdent, NFmiDrawParamFactory* fac) :
 	nbs(nbs), meta( m ), activeMapper(nullptr),
-	filters(), prop(nullptr), crop(true), enabled(false), param(param)
+	filters(), prop(nullptr), crop(true), enabled(false),paramIdent(paramIdent), param(paramIdent.GetParam()->GetIdent()), drawParamFac(fac)
 {
 
 	cout << "Initializing visualizer for param " << param << endl;
