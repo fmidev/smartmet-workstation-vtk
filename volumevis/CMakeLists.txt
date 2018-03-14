@@ -1,4 +1,4 @@
-project (volumetest)
+project (volumevis)
 
 find_package(VTK REQUIRED)
 

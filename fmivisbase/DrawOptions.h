@@ -16,6 +16,7 @@
 #include <vtkLookupTable.h>
 #include <vtkSmartPointer.h>
 #include <vtkImageMapper3D.h>
+#include <vtkPiecewiseFunction.h>
 
 
 namespace fmiVis {
@@ -95,6 +96,7 @@ inline vtkSmartPointer<vtkScalarsToColors> constColor(vtkColor4f *c)
 
 vtkSmartPointer<vtkScalarsToColors> blueToRedColFunc(double min, double max);
 vtkSmartPointer<vtkScalarsToColors> redToGreenColFunc(double min, double max);
+vtkSmartPointer<vtkPiecewiseFunction> opacityFunction(double min, double max, double threshold, double maxAlpha=0.2, double minAlpha=0.0);
 
 vtkSmartPointer<vtkScalarsToColors> makeIsolineColorFunction(const NFmiDrawParam *drawParam);
 vtkSmartPointer<vtkScalarsToColors> makeContourColorFunction(const NFmiDrawParam *drawParam);

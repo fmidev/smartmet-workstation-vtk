@@ -159,9 +159,9 @@ ParamVisualizerWindVec::ParamVisualizerWindVec(const std::string &file, nbsMetad
 
 
 	//colors
-	map->SetScalarRange(0,150);
+	map->SetScalarRange(0,100);
 	map->SetColorModeToMapScalars();
-	map->SetLookupTable(fmiVis::blueToRedColFunc(0, 150) );
+	map->SetLookupTable(fmiVis::blueToRedColFunc(0, 100) );
 
 	act = vtkSmartPointer<vtkActor>::New();
 	act->SetMapper(map);

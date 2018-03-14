@@ -38,6 +38,7 @@ protected:
 
 	ContourLabeler &labeler;
 
+	bool flat;
 
 	vtkAppendPolyData *append;
 
@@ -85,6 +86,8 @@ public:
 
 		mode = !mode;
 	}
+
+	virtual void UpdateNBS(double t) override;
 };
 
 #endif /*PARAMVISUALIZERSURF_H*/

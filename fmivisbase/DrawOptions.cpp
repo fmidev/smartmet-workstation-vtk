@@ -3,13 +3,14 @@
 #include <algorithm>
 
 #include "vtkSmartPointer.h"
+#include <vtkPiecewiseFunction.h>
 
 
 
 std::shared_ptr<NFmiDrawParamFactory> fmiVis::LoadOptions()
 {
 	std::shared_ptr<NFmiDrawParamFactory> drawParamFactory = std::make_shared<NFmiDrawParamFactory>(false, false);
-	drawParamFactory->LoadDirectory("./DrawOptions");
+	drawParamFactory->LoadDirectory("D:/3D-dataa/DrawParams");
 	drawParamFactory->Init();
 
 	return drawParamFactory;
@@ -42,6 +43,15 @@ vtkSmartPointer<vtkScalarsToColors> fmiVis::redToGreenColFunc(double min, double
 	val[1] = max;
 
 	return makeColorFunction(col, val);
+}
+
+vtkSmartPointer<vtkPiecewiseFunction> fmiVis::opacityFunction(double min, double max, double threshold, double maxAlpha/*=0.2*/, double minAlpha/*=0.0*/)
+{
+	auto f = vtkSmartPointer<vtkPiecewiseFunction>::New();
+	f->AddPoint(min, 0.0f);
+	f->AddPoint(threshold, minAlpha);
+	f->AddPoint(max, maxAlpha);
+	return f;
 }
 
 vtkSmartPointer<vtkScalarsToColors> fmiVis::makeIsolineColorFunction(const NFmiDrawParam *drawParam)

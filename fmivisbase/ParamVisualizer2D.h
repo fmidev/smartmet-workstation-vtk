@@ -41,7 +41,7 @@ protected:
 
 public:
 	ParamVisualizer2D(const std::string &file, nbsMetadata &m, NFmiDataIdent &paramIdent, NFmiDrawParamFactory* fac, vtkAlgorithmOutput* probingData,
-		vtkSmartPointer<vtkColorTransferFunction> contourColors, ContourLabeler &labeler, double range[2], int numContours);
+		vtkSmartPointer<vtkScalarsToColors> contourColors, ContourLabeler &labeler, double range[2], int numContours);
 
 	virtual void UpdateTimeStep(double t) override;
 

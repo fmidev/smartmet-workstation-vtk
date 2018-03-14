@@ -17,7 +17,8 @@
 #include "ContourLabeler.h"
 
 #include "DrawOptions.h"
-
+#include <vtkWidgetEventTranslator.h>
+#include <vtkCommand.h>
 
 VisualizerManager::VisualizerManager(vtkRenderer *ren,nbsMetadata &m, float zHeight /*= 13000*/) :
 	renderer(ren),
@@ -33,10 +34,12 @@ VisualizerManager::VisualizerManager(vtkRenderer *ren,nbsMetadata &m, float zHei
 	legend->GetScalarBarRepresentation()->SetPosition(0.92, 0.1);
 	legend->GetScalarBarRepresentation()->SetPosition2(0.08, 0.8);
 	legend->GetScalarBarRepresentation()->SetAutoOrient(false);
-
+	legend->ProcessEventsOff();
 
 	legend->SetInteractor(ren->GetRenderWindow()->GetInteractor());
 	legend->SetCurrentRenderer(ren);
+
+	legend->KeyPressActivationOff();
 
 	drawParamFac = fmiVis::LoadOptions();
 }

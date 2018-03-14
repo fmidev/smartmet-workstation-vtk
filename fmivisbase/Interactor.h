@@ -16,6 +16,8 @@
 #include <vtkRenderer.h>
 #include <vtkCamera.h>
 
+
+#include "TimeAnimator.h"
 #include "ViewportManager.h"
 
 class vtkTextActor;
@@ -28,7 +30,7 @@ namespace fmiVis {
 	class TimeAnimator;
 	class ViewportManager;
 
-	class VisualizationInteractorBase {
+	class VisualizationInteractorImpl {
 	public:
 
 		std::vector< vtkSmartPointer<vtkTextActor> > *visualizerTexts;
@@ -43,6 +45,14 @@ namespace fmiVis {
 		void OnKeyRelease(std::string &s, bool ctrl, vtkRenderer *vp = nullptr);
 
 
+		inline void setVM(ViewportManager *vm) {
+			this->vm = vm;
+
+		}
+
+		inline void setTA(std::unique_ptr<TimeAnimator> &&ta) {
+			this->ta = std::move(ta);
+		}
 	};
 
 	class VisualizationInteractor : public vtkInteractorStyleTerrain {
@@ -51,17 +61,14 @@ namespace fmiVis {
 			return new VisualizationInteractor();
 		};
 
-		inline void setVM(ViewportManager *vm) {
-			b.vm = vm;
-
+		inline VisualizationInteractorImpl& GetImpl() {
+			return impl;
 		}
 
-		inline void setTA(std::unique_ptr<TimeAnimator> &&ta) {
-			b.ta = std::move(ta);
-		}
+
 
 		inline void setVisTexts(std::vector<vtkSmartPointer<vtkTextActor> > *visualizerTexts) {
-			b.visualizerTexts = visualizerTexts;
+			impl.visualizerTexts = visualizerTexts;
 		}
 
 		inline void OnKeyRelease() {
@@ -70,7 +77,11 @@ namespace fmiVis {
 			auto s = std::string(rwi->GetKeySym());
 			bool ctrl = rwi->GetControlKey();
 
-			b.OnKeyRelease(s, ctrl);
+			this->SetCurrentRenderer(this->Interactor->FindPokedRenderer(
+				this->Interactor->GetLastEventPosition()[0],
+				this->Interactor->GetLastEventPosition()[1]));
+
+			impl.OnKeyRelease(s, ctrl, this->GetCurrentRenderer());
 
 			rwi->Render();
 		}
@@ -87,7 +98,7 @@ namespace fmiVis {
 		}
 
 	protected:
-		VisualizationInteractorBase b;
+		VisualizationInteractorImpl impl;
 		VisualizationInteractor() { }
 	};
 
@@ -97,16 +108,14 @@ namespace fmiVis {
 			return new VisualizationInteractor2D();
 		};
 
-		inline void setVM(ViewportManager *vm) {
-			b.vm = vm;
+
+		inline VisualizationInteractorImpl& GetImpl() {
+			return impl;
 		}
 
-		inline void setTA(std::unique_ptr<TimeAnimator> &&ta) {
-			b.ta = std::move(ta);
-		}
 
 		inline void setVisTexts(std::vector<vtkSmartPointer<vtkTextActor> > *visualizerTexts) {
-			b.visualizerTexts = visualizerTexts;
+			impl.visualizerTexts = visualizerTexts;
 		}
 
 		virtual void OnKeyRelease() {
@@ -120,7 +129,7 @@ namespace fmiVis {
 			int y = this->Interactor->GetEventPosition()[1];
 			this->FindPokedRenderer(x, y);
 
-			b.OnKeyRelease(s, ctrl, this->GetCurrentRenderer());
+			impl.OnKeyRelease(s, ctrl, this->GetCurrentRenderer());
 
 			rwi->Render();
 		}
@@ -137,7 +146,7 @@ namespace fmiVis {
 
 
 	protected:
-		VisualizationInteractorBase b;
+		VisualizationInteractorImpl impl;
 		VisualizationInteractor2D() { }
 	};
 }

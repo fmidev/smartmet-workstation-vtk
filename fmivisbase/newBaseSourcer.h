@@ -75,7 +75,7 @@ public:
 		return param;
 	}
 
-	const NFmiDataIdent &getParamDescr();
+	const NFmiDataIdent getParamDescr();
 
 protected:
 	virtual newBaseSourcer::~newBaseSourcer();

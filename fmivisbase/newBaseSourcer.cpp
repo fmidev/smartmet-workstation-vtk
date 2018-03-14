@@ -25,7 +25,7 @@ newBaseSourcer::newBaseSourcer(const std::string &file, nbsMetadata *meta, int p
 	ReadHeights(1);
 }
 
-const NFmiDataIdent &newBaseSourcer::getParamDescr()
+const NFmiDataIdent newBaseSourcer::getParamDescr()
 {
 	return pimpl->data.Param();
 }

@@ -43,6 +43,9 @@ add_subdirectory(
 add_subdirectory(
 	modules/newbase
 )
+add_subdirectory(
+	modules/smarttools
+)
 
 add_subdirectory(
 	fmivisbase
@@ -53,9 +56,9 @@ add_subdirectory(
 	testbed
 )
 
-#add_subdirectory(
-#	volumetest
-#)
+add_subdirectory(
+	volumevis
+)
 
 add_subdirectory(
 	surfacevis

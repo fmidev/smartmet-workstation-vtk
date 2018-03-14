@@ -26,7 +26,7 @@
 
 
 nbsSurface::nbsSurface(const std::string &file, nbsMetadata *meta, int param, int zHeight, bool flat, bool pad) :
-	newBaseSourcerBase(file, meta, param, 1), flat(flat), pad(pad), spacing(2)
+	newBaseSourcerBase(file, meta, param,1), flat(flat), pad(pad), spacing(2)
 {
 	if (param == 0) throw new std::invalid_argument("param is 0");
 	SetNumberOfInputPorts(0);
@@ -121,6 +121,11 @@ bool nbsSurface::loadPoints() {
 
 
 		static std::vector<float> values;
+
+		if (dataInfo.HeightParamIsRising())
+			dataInfo.FirstLevel();
+		else 
+			dataInfo.LastLevel();
 
 		dataInfo.GetLevelToVec(values);
 

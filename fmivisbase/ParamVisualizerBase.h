@@ -24,10 +24,10 @@ private:
 	bool crop;
 	bool enabled;
 
-	vtkRenderer * ren;
-
 
 protected:
+
+	vtkRenderer * ren;
 
 
 	NFmiDrawParamFactory* drawParamFac = nullptr;
@@ -61,7 +61,7 @@ public:
 
 	virtual void UpdateTimeStep(double t);
 
-	void UpdateNBS(double t);
+	virtual void UpdateNBS(double t);
 
 	inline void EnableActor() {
 		enabled = true;

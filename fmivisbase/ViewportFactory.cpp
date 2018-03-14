@@ -36,7 +36,6 @@
 
 #include "CameraCallback.h"
 #include <NFmiDrawParamFactory.h>
-
 #include "DrawOptions.h"
 
 using namespace std::string_literals;
@@ -52,7 +51,7 @@ std::map<int, std::string> ViewportFactory::paramsSurf = {
 	std::pair<int,std::string>(kFmiPrecipitation1h,"kFmiPrecipitation1h"),
 };
 
-visID addVis(std::unique_ptr<ParamVisualizerBase> vis, std::string printName,
+visID fmiVis::addVis(std::unique_ptr<ParamVisualizerBase> vis, std::string printName,
 	VisualizerManager &vm,
 	std::vector<vtkSmartPointer<vtkTextActor> > &textActs, vtkRenderer *ren,
 	int textSize, double textVOff, double textVSpacing) {
@@ -109,7 +108,7 @@ vtkSmartPointer<vtkRenderer> MakeRenderer(double x1 = 0.0, double y1 = 0.0, doub
 	return ren;
 }
 
-void addMapPlane(vtkSmartPointer<vtkRenderer> ren,const std::string &file, nbsMetadata &meta) {
+void fmiVis::AddMapPlane(vtkSmartPointer<vtkRenderer> ren,const std::string &file, nbsMetadata &meta, bool flat) {
 
 	cout << "Loading map..." << endl;
 
@@ -126,7 +125,7 @@ void addMapPlane(vtkSmartPointer<vtkRenderer> ren,const std::string &file, nbsMe
 	texture->SetInterpolate(true);
 	texture->Update();
 
-	auto mapNbs = new nbsSurface(file, &meta, 1, 13000, true);
+	auto mapNbs = new nbsSurface(file, &meta, 1, 13000, flat);
 
 	mapNbs->Update();
 
@@ -146,8 +145,8 @@ void addMapPlane(vtkSmartPointer<vtkRenderer> ren,const std::string &file, nbsMe
 	ren->AddActor(texturedPlane);
 }
 
-void MakeTimeAnimator(vtkRenderer *ren, fmiVis::ViewportManager &vm,nbsMetadata &meta,
-	vtkRenderWindowInteractor *iren, vtkRenderWindow *renWin, VisualizationInteractor2D *style) {
+void fmiVis::MakeTimeAnimator(vtkRenderer *ren, fmiVis::ViewportManager &vm,nbsMetadata &meta,
+	vtkRenderWindowInteractor *iren, vtkRenderWindow *renWin, VisualizationInteractorImpl &style) {
 
 	auto sliderRep = vtkSmartPointer<vtkSliderRepresentation2D>::New();
 
@@ -180,11 +179,11 @@ void MakeTimeAnimator(vtkRenderer *ren, fmiVis::ViewportManager &vm,nbsMetadata 
 
 	auto ta = std::make_unique<fmiVis::TimeAnimator>(ren, renWin,slider,&vm,&meta );
 
-	style->setTA(std::move(ta));
+	style.setTA(std::move(ta));
 }
 
 
-void MakeFileText(std::string &file, vtkSmartPointer<vtkRenderer> ren)
+void fmiVis::MakeFileText(std::string &file, vtkSmartPointer<vtkRenderer> ren)
 {
 
 	int *winSize = ren->GetSize();
@@ -266,56 +265,6 @@ void MakeVisualizers(std::string file, nbsMetadata & meta, VisualizerManager *vi
 	//visualizerMan->EnableVis(0);
 }
 
-void fmiVis::ViewportFactory::MakeSingleView(std::string file, nbsMetadata &meta, ViewportManager &viewportMan,
-	vtkRenderWindowInteractor *iren, vtkRenderWindow *renWin, VisualizationInteractor2D *style) {
-
-	auto ren = MakeRenderer();
-
-	renWin->AddRenderer(ren);
-
-	auto cam = ren->GetActiveCamera();
-	auto callback = vtkSmartPointer<fmiVis::CameraCallback>::New();
-	callback->setManager(&viewportMan);
-	cam->AddObserver(vtkCommand::ModifiedEvent, callback);
-
-	std::unique_ptr<VisualizerManager> visualizerMan = std::make_unique<VisualizerManager>(ren, meta);
-
-
-
-	addMapPlane(ren, file, meta);
-
-	cout << "Initializing visualizers..." << endl;
-
-
-	auto textActs = std::make_unique< std::vector<vtkSmartPointer<vtkTextActor> > >();
-
-	auto data = NFmiQueryData(file);
-	auto dataInfo = NFmiFastQueryInfo(&data);
-
-	int *winSize = ren->GetSize();
-
-	vtkSmartPointer<vtkTextActor> t;
-	std::ostringstream s;
-
-	auto textSize = 14;
-	auto textVOff = winSize[1] - 50.0;
-	auto textVSpacing = -16;
-
-	MakeFileText(file,  ren);
-
-
-	MakeVisualizers(file, meta, visualizerMan.get(), textActs.get(), ren, textSize, textVOff, textVSpacing, paramsSurf, dataInfo);
-
-
-	style->setVisTexts(textActs.get());
-
-	MakeTimeAnimator(ren, viewportMan, meta,
-		iren, renWin, style);
-
-	viewportMan.AddViewport(ren,std::move(visualizerMan),std::move(textActs));
-
-
-}
 
 void fmiVis::ViewportFactory::MakeTimeGridView(size_t numX, size_t numY,
 	std::string file, nbsMetadata &meta, fmiVis::ViewportManagerTimegrid &viewportMan, vtkRenderWindowInteractor *iren, vtkRenderWindow *renWin, VisualizationInteractor2D *style)
@@ -371,7 +320,7 @@ void fmiVis::ViewportFactory::MakeTimeGridView(size_t numX, size_t numY,
 
 
 
-			addMapPlane(ren, file, meta);
+			AddMapPlane(ren, file, meta);
 
 			cout << "Initializing visualizers..." << endl;
 
@@ -395,6 +344,6 @@ void fmiVis::ViewportFactory::MakeTimeGridView(size_t numX, size_t numY,
 		}
 
 	MakeTimeAnimator(baseRen,viewportMan, meta,
-		iren, renWin, style);
+		iren, renWin, style->GetImpl());
 }
 

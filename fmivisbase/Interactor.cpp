@@ -12,7 +12,7 @@
 #include "ViewportManager.h"
 #include "TimeAnimator.h"
 
-void fmiVis::VisualizationInteractorBase::OnKeyRelease(std::string &s,bool ctrl,vtkRenderer* vp)
+void fmiVis::VisualizationInteractorImpl::OnKeyRelease(std::string &s,bool ctrl,vtkRenderer* vp)
 {
 
 

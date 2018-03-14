@@ -30,6 +30,7 @@
 
 #include <NFmiDrawParam.h>
 #include <NFmiDataIdent.h>
+#include "areaUtil.h"
 
 void ParamVisualizerSurf::ModeIsoLine() {
 
@@ -192,12 +193,29 @@ double * ParamVisualizerSurf::getRange() {
 	return polyMap->GetScalarRange();
 }
 
+void ParamVisualizerSurf::UpdateNBS(double t)
+{
+	nbs->Modified();
+	if (flat)
+	{
+		auto areaExt = AreaUtil::FindExtentScandic(ren, meta.dataInfo->Area());
+		int extents[6] = {	areaExt[0],areaExt[1],
+							areaExt[2],areaExt[3],
+							1,1 };
+
+		nbs->UpdateTimeStep(t, -1, 1, 0, extents);
+	}
+	else
+		nbs->UpdateTimeStep(t);
+
+}
+
 ParamVisualizerSurf::ParamVisualizerSurf(
-	const std::string &file, nbsMetadata &m,ContourLabeler &labeler,
+	const std::string &file, nbsMetadata &m, ContourLabeler &labeler,
 	NFmiDataIdent &paramIdent, NFmiDrawParamFactory* fac, bool flat) :
 
-	ParamVisualizerBase(new nbsSurface(file, &m, paramIdent.GetParamIdent(), 13000, flat, true), m, paramIdent,fac),
-	labeler(labeler), mode(false)
+	ParamVisualizerBase(new nbsSurface(file, &m, paramIdent.GetParamIdent(), 13000, flat, true), m, paramIdent, fac),
+	labeler(labeler), mode(false), flat(flat)
 {
 	nbs->Update();
 
@@ -266,16 +284,23 @@ void ParamVisualizerSurf::ReloadOptions()
 
 	auto step = drawParam->IsoLineGab();
 
-	int stepCount = (range[1] - range[0]) / step *2;
+	int stepCount = (range[1] - range[0]) / step;
 	if (stepCount > stepLimit) stepCount = stepLimit;
 
-	contour->GenerateValues(stepCount,
+/*	contour->GenerateValues(stepCount,
 		drawParam->SimpleIsoLineZeroValue() - step * stepCount/2,
 		drawParam->SimpleIsoLineZeroValue() + step * stepCount/2);
-
+*/
+	contour->GenerateValues(stepCount, range[0], range[1]);
 	//stripper->SetJoinContiguousSegments(1);
 
-	polyMap->SetScalarRange(range[0],range[1]);
+
+	double offset = drawParam->SimpleIsoLineZeroValue();
+
+	long lower = floor(range[0] / step )*step + offset;
+	long upper = ceil(range[1] / step )*step + offset;
+
+	polyMap->SetScalarRange(lower,upper);
 
 	if (!drawParam->UseSingleColorsWithSimpleIsoLines())
 		isolineColFunc = fmiVis::makeIsolineColorFunction(drawParam.get());
@@ -302,7 +327,7 @@ void ParamVisualizerSurf::ReloadOptions()
 		int i = 0;
 
 		for (auto &val : values) {
-			contour->SetValue(i, val);
+			contour->SetValue(i++, val);
 		}
 
 		polyMap->SetScalarRange(*values.begin(), *values.rbegin());

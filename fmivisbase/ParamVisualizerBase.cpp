@@ -15,10 +15,10 @@
 
 ParamVisualizerBase::ParamVisualizerBase(const std::string &file, nbsMetadata &m, NFmiDataIdent &paramIdent, NFmiDrawParamFactory* fac) :
 	meta(m), activeMapper(nullptr),
-	filters(), nbs(new newBaseSourcer(file, &m, param)),
-	prop(nullptr), crop(true), enabled(false), paramIdent(paramIdent), param(param), drawParamFac(fac)
+	filters(), nbs(new newBaseSourcer(file, &m, paramIdent.GetParamIdent())),
+	prop(nullptr), crop(true), enabled(false), paramIdent(paramIdent), param(paramIdent.GetParamIdent()), drawParamFac(fac)
 {
-	cout << "Initializing visualizer for param " << param << endl;
+	cout << "Initializing visualizer for param " << paramIdent << endl;
 }
 
 ParamVisualizerBase::ParamVisualizerBase( vtkAlgorithm *nbs, nbsMetadata &m, NFmiDataIdent &paramIdent, NFmiDrawParamFactory* fac) :
@@ -26,7 +26,7 @@ ParamVisualizerBase::ParamVisualizerBase( vtkAlgorithm *nbs, nbsMetadata &m, NFm
 	filters(), prop(nullptr), crop(true), enabled(false),paramIdent(paramIdent), param(paramIdent.GetParam()->GetIdent()), drawParamFac(fac)
 {
 
-	cout << "Initializing visualizer for param " << param << endl;
+	cout << "Initializing visualizer for param " << paramIdent << endl;
 }
 
 ParamVisualizerBase::~ParamVisualizerBase()
@@ -72,11 +72,6 @@ void ParamVisualizerBase::UpdateTimeStep(double t)
 
 void ParamVisualizerBase::UpdateNBS(double t)
 {
-
-	auto areaExt = AreaUtil::FindExtentScandic(ren, meta.dataInfo->Area());
-	int extents[6] = { areaExt[0],areaExt[1],
-					areaExt[2],areaExt[3],
-					1,1 };
 	nbs->Modified();
-	nbs->UpdateTimeStep(t,-1,1,0,extents);
+	nbs->UpdateTimeStep(t);
 }
