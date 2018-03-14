@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
 		if (strcmp(argv[i], "-f") == 0) {
 			if (i < argc - 1)
 				file = std::string{ argv[i + 1] };
-			else cout << "Usage: -s <surface data file>" << endl;
+			else cout << "Usage: -f <data file>" << endl;
 		}
 		if (strcmp(argv[i], "-s") == 0) {
 			if (i < argc - 1)
