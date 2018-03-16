@@ -37,10 +37,23 @@ using namespace std::string_literals;
 int main(size_t argc, char* argv[])
 {
 
-	std::string file = std::string(argc < 2 ?
-		"D:/3D-dataa/201706160543_gfs_scandinavia_surface.sqd" :
-		argv[1]
-	);
+	std::string surfFile = "D:/3D-dataa/201703210327_hirlam_skandinavia_mallipinta.sqd"s;
+
+	std::string drawParamPath = "D:/3D-dataa/DrawParams";
+
+	for (int i = 1; i < argc; i++) {
+		if (strcmp(argv[i], "-s") == 0) {
+			if (i < argc - 1)
+				surfFile = std::string{ argv[i + 1] };
+			else cout << "Usage: -s <surface data file>" << endl;
+		}
+		if (strcmp(argv[i], "-d") == 0) {
+			if (i < argc - 1)
+				drawParamPath = std::string{ argv[i + 1] };
+			else cout << "Usage: -d <drawparam path>" << endl;
+		}
+	}
+
 
 
 	cout << "Initializing VTK..." << endl;
@@ -62,7 +75,7 @@ int main(size_t argc, char* argv[])
 
 
 	auto meta = nbsMetadata();
-	meta.init(file);
+	meta.init(surfFile);
 
 
 	auto style = vtkSmartPointer<fmiVis::VisualizationInteractor2D>::New();
@@ -75,7 +88,7 @@ int main(size_t argc, char* argv[])
 
 	auto vm = fmiVis::ViewportManagerTimegrid{ sizeX,sizeY };
 
-	fmiVis::ViewportFactory::MakeTimeGridView(sizeX, sizeY,file, meta, vm, iren, renWin, style);
+	fmiVis::ViewportFactory::MakeTimeGridView(sizeX, sizeY,surfFile, drawParamPath, meta, vm, iren, renWin, style);
 
 	style->GetImpl().setVM(&vm);
 

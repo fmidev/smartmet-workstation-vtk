@@ -43,7 +43,7 @@ namespace  fmiVis {
 	vtkSmartPointer<vtkBoxWidget2> box;
 	};
 
-	Widgets3D Make3DView(std::string file, std::string surfFile, nbsMetadata &meta, ViewportManager &viewportMan,
+	Widgets3D Make3DView(std::string file, std::string surfFile, std::string drawParamPath, nbsMetadata &meta, ViewportManager &viewportMan,
 		vtkRenderWindowInteractor *iren, vtkRenderWindow *renWin, VisualizationInteractor *style);
 }
 

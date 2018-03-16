@@ -123,7 +123,7 @@ protected:
 	VisualizerManager * vm;
 };
 
-void MakeVisualizers3D(std::string file, std::string surfFile, nbsMetadata & meta, VisualizerManager *visualizerMan,
+void MakeVisualizers3D(std::string file, std::string drawParamPath, std::string surfFile, nbsMetadata & meta, VisualizerManager *visualizerMan,
 	std::vector<vtkSmartPointer<vtkTextActor>> *textActs, vtkRenderer *ren, vtkAlgorithmOutput* probe,
 	int textSize, double textVOff, double textVSpacing, std::map<int, std::string> &paramsSurf, NFmiFastQueryInfo &dataInfo)
 {
@@ -146,7 +146,7 @@ void MakeVisualizers3D(std::string file, std::string surfFile, nbsMetadata & met
 	};
 
 
-	auto drawParamFactory = fmiVis::LoadOptions();
+	auto drawParamFactory = fmiVis::LoadOptions(drawParamPath);
 
 	visualizerMan->setDrawParamFac(drawParamFactory);
 
@@ -235,7 +235,7 @@ void MakeVisualizers3D(std::string file, std::string surfFile, nbsMetadata & met
 }
 
 
-fmiVis::Widgets3D fmiVis::Make3DView(std::string file, std::string surfFile, nbsMetadata &meta, ViewportManager &viewportMan,
+fmiVis::Widgets3D fmiVis::Make3DView(std::string file, std::string surfFile, std::string drawParamPath, nbsMetadata &meta, ViewportManager &viewportMan,
 	vtkRenderWindowInteractor *iren, vtkRenderWindow *renWin, VisualizationInteractor *style) {
 
 	auto ren = renWin->GetRenderers()->GetFirstRenderer();
@@ -263,7 +263,7 @@ fmiVis::Widgets3D fmiVis::Make3DView(std::string file, std::string surfFile, nbs
 	//callback->setManager(&viewportMan);
 	//cam->AddObserver(vtkCommand::ModifiedEvent, callback);
 
-	std::unique_ptr<VisualizerManager> visualizerMan = std::make_unique<VisualizerManager>(ren, meta);
+	std::unique_ptr<VisualizerManager> visualizerMan = std::make_unique<VisualizerManager>(ren, drawParamPath, meta);
 
 	auto cubeAxesActor = vtkSmartPointer<vtkCubeAxesActor>::New();
 	double bounds[6] = { 0,meta.sizeX * 2,0,meta.sizeY * 2,0,80 * 2 };
@@ -416,7 +416,7 @@ fmiVis::Widgets3D fmiVis::Make3DView(std::string file, std::string surfFile, nbs
 	fmiVis::MakeFileText(file, ren);
 
 
-	MakeVisualizers3D(file, surfFile, meta, visualizerMan.get(), textActs.get(), ren, planeWidget->GetPolyDataAlgorithm()->GetOutputPort(), textSize, textVOff, textVSpacing, ViewportFactory::paramsSurf, dataInfo);
+	MakeVisualizers3D(file, drawParamPath, surfFile, meta, visualizerMan.get(), textActs.get(), ren, planeWidget->GetPolyDataAlgorithm()->GetOutputPort(), textSize, textVOff, textVSpacing, ViewportFactory::paramsSurf, dataInfo);
 
 
 	style->setVisTexts(textActs.get());

@@ -42,6 +42,8 @@ int main(int argc, char *argv[])
 
 	std::string surfFile;
 
+	std::string drawParamPath = "D:/3D-dataa/DrawParams";
+
 	for (int i = 1; i < argc; i++) {
 		if (strcmp(argv[i], "-f") == 0) {
 			if (i < argc - 1)
@@ -52,6 +54,11 @@ int main(int argc, char *argv[])
 			if (i < argc - 1)
 				surfFile = std::string{ argv[i + 1] };
 			else cout << "Usage: -s <surface data file>" << endl;
+		}
+		if (strcmp(argv[i], "-d") == 0) {
+			if (i < argc - 1)
+				drawParamPath = std::string{ argv[i + 1] };
+			else cout << "Usage: -d <drawparam path>" << endl;
 		}
 	}
 
@@ -89,7 +96,7 @@ int main(int argc, char *argv[])
 	auto vm = fmiVis::ViewportManager{ };
 
 
-	auto widgets = fmiVis::Make3DView(file, surfFile, meta, vm, iren.Get(), renWin.Get(), style.Get());
+	auto widgets = fmiVis::Make3DView(file, surfFile, drawParamPath, meta, vm, iren.Get(), renWin.Get(), style.Get());
 
 	style->GetImpl().setVM(&vm);
 
