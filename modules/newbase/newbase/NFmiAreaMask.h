@@ -5,14 +5,13 @@
  */
 // ======================================================================
 
-#ifndef NFMIAREAMASK_H
-#define NFMIAREAMASK_H
+#pragma once
 
-#include "NFmiString.h"
-#include "NFmiPoint.h"
-#include "NFmiMetTime.h"
-#include "NFmiInfoData.h"
 #include "NFmiDataMatrix.h"
+#include "NFmiInfoData.h"
+#include "NFmiMetTime.h"
+#include "NFmiPoint.h"
+#include "NFmiString.h"
 #include <boost/shared_ptr.hpp>
 #include <vector>
 
@@ -21,23 +20,26 @@ class NFmiDataIdent;
 class NFmiLevel;
 class NFmiParam;
 class NFmiFastQueryInfo;
+class NFmiSimpleCondition;
 
 class NFmiCalculationParams
 {
  public:
   NFmiCalculationParams(void)
-      : itsLatlon(), itsLocationIndex(gMissingIndex), itsTime(), itsTimeIndex(gMissingIndex)
+      : itsLatlon(), itsLocationIndex(gMissingIndex), itsTime(), itsTimeIndex(gMissingIndex), fCrossSectionCase(false)
   {
   }
 
   NFmiCalculationParams(const NFmiPoint &theLatlon,
                         unsigned long theLocationIndex,
                         const NFmiMetTime &theTime,
-                        unsigned long theTimeIndex)
+                        unsigned long theTimeIndex,
+      bool crossSectionCase = false)
       : itsLatlon(theLatlon),
         itsLocationIndex(theLocationIndex),
         itsTime(theTime),
-        itsTimeIndex(theTimeIndex)
+        itsTimeIndex(theTimeIndex),
+        fCrossSectionCase(crossSectionCase)
   {
   }
 
@@ -45,6 +47,7 @@ class NFmiCalculationParams
   unsigned long itsLocationIndex;
   NFmiMetTime itsTime;
   unsigned long itsTimeIndex;
+  bool fCrossSectionCase; // Joskus pitää tietää että kyse on poikkileikkaus laskuista
 };
 
 //! Undocumented class
@@ -135,6 +138,7 @@ class _FMI_DLL NFmiAreaMask
     StartParenthesis,       //!< Beginning of expression parenthesis
     EndParenthesis,         //!< End of expression parenthesis
     CommaOperator,   //!< ','-merkki joka toimii argumenttien erottimena tietyissä funktioissa
+    SimpleConditionCalculation,  //!< Simple condition type calculation inside string-literal, like "T_ec > xxx"
     EndOfOperations  //!< End of operators marker
   };
 
@@ -164,6 +168,8 @@ class _FMI_DLL NFmiAreaMask
     Get,    //!< Get -function just gets value
     FindH,  //!< FindH -function finds the height where wanted value exists
     FindC,  //!< FindC -function finds how many wanted values there is
+    FindHeightCond,  //!< FindHeightCond -function finds the height where wanted simple-condition turns true
+    FindCountCond,  //!< FindCountCond -function calculates how many time simple-condition status changes
 
     // Seuraaavt ovat ns. 'meteorologisia' funktioita
     Grad,        //!< Gradientti
@@ -186,8 +192,8 @@ class _FMI_DLL NFmiAreaMask
     VertFL,   //!< vertikaali-hakua lentopinta rajoissa hakien
     VertHyb,  //!< vertikaali-hakua hybrid-pintojen mukaan hakien
     // Seuraavat ovat Probability laskujen alue määritys
-    ProbRect,    //!< Todennäköisyys laskut laatikon sisältä
-    ProbCircle,  //!< Todennäköisyys laskut ympyrän sisältä
+    AreaRect,    //!< Todennäköisyys/kokooma laskut laatikon sisältä
+    AreaCircle,  //!< Todennäköisyys/kokooma laskut ympyrän sisältä
     // Seuraavat ovat Probability laskujen ehtoja
     ProbOver,       //!< Todennäköisyys ehto: arvo on alle rajan (value < limit)
     ProbOverEq,     //!< Todennäköisyys ehto: arvo on alle rajan (value <= limit)
@@ -210,14 +216,19 @@ class _FMI_DLL NFmiAreaMask
     TimeVertFL,   //!< aika+vertikaali-hakua lentopinta rajoissa hakien
     TimeVertHyb,  //!< aika+vertikaali-hakua hybrid-pintojen mukaan hakien
     Occurrence,  //!< aika-väli + aluehaku datasta, laskee kuinka monta kertaa tarkastelupisteessä
+    Occurrence2,  //!< Sama kuin edellä, mutta tarkoitettu toistaiseksi vain hiladatalle (käytetään occurance with simple-condition funktion kanssa)
     PeekT,       //!< 'Kurkistetaan' arvo halutun aikahypyn [h] päästä
     Resolution,  //!< Tällä asetetaan macroParamin lasketun hilan toive resoluutio, joko jostain
-                 //!datasta tai suoraan kilometreinä.
+                 //! datasta tai suoraan kilometreinä.
     CalculationPoint,  //!< Tällä asetetaan macroParamin laskentapiste (lat,lon). Laskut saavat
-                       //!muissa hilapisteissä puuttuvaa.
+                       //! muissa hilapisteissä puuttuvaa.
     ObservationRadius,  //!< Tällä määrätään että laskuissa otetaan huomioon havainnoista vain x
                         //![km] säteellä olevat arvot.
     //! joku ehto toteutuu
+    Med, //!< Mediaani laskut
+    ProbSimpleCondition,  //!< Todennäköisyys laskut käyttäen ehtolauseketta esim. "T_ec > 0"
+    LatestValue,  //!< Hae datasta sen viimeisimmän ajan arvo
+    PreviousFullDays //!< Laske datasta aikasarja integraatio mennen halutun määrän päiviä taaksepäin aina halutun päivän 0 lokaali tuntiin asti.
   };
 
   //! Function direction, e.g. with 'met'-functions x- and/or y-direction
@@ -251,6 +262,13 @@ class _FMI_DLL NFmiAreaMask
     Round,
     Abs,
     Rand
+  };
+
+  enum class SimpleConditionRule
+  {
+      NotAllowed,
+      Allowed,
+      MustHave
   };
 
   virtual ~NFmiAreaMask(void);
@@ -332,13 +350,9 @@ class _FMI_DLL NFmiAreaMask
   virtual void GetMetFunctionDirection(MetFunctionDirection newValue) = 0;
   virtual int IntegrationFunctionType(void) const = 0;
   virtual void IntegrationFunctionType(int newValue) = 0;
-  virtual void SetArguments(std::vector<float> &theArgumentVector) = 0;  // tämän avulla annetaan
-                                                                         // laskuissa tarvittavia
-                                                                         // eri pituisia
-                                                                         // argumenttilistaja
-                                                                         // (käytössä ainakin
-                                                                         // uusille vertikaali
-                                                                         // funktioille)
+  // tämän avulla annetaan laskuissa tarvittavia eri pituisia argumenttilistaja
+  // (käytössä ainakin uusille vertikaali funktioille)
+  virtual void SetArguments(std::vector<float> &theArgumentVector) = 0;
   virtual int FunctionArgumentCount(
       void) const = 0;  // käytössä ainakin uusille vertikaali funktioille
   virtual void FunctionArgumentCount(
@@ -347,6 +361,9 @@ class _FMI_DLL NFmiAreaMask
   // HUOM! seuraavat toimivat oikeasti vain NFmiBinaryMask:in kanssa.
   virtual void SetAll(bool theNewState) = 0;  // Asettaa koko maskin kaikki arvot halutuksi.
   virtual void Mask(int theIndex, bool newStatus) = 0;
+  // Joillain smarttool funktoilla voi olla simple-condition ehto (esim. "T_ec > T_hir"), jota käytetään mm. erilaisissa integraatiolaskuissa
+  virtual const boost::shared_ptr<NFmiSimpleCondition>& SimpleCondition() const = 0;
+  virtual void SimpleCondition(boost::shared_ptr<NFmiSimpleCondition> &theSimpleCondition) = 0;
 
   static boost::shared_ptr<NFmiFastQueryInfo> DoShallowCopy(
       const boost::shared_ptr<NFmiFastQueryInfo> &theInfo);
@@ -356,7 +373,5 @@ class _FMI_DLL NFmiAreaMask
       const checkedVector<boost::shared_ptr<NFmiAreaMask> > &theMaskVector);
 
 };  // class NFmiAreaMask
-
-#endif  // NFMIAREAMASK_H
 
 // ======================================================================

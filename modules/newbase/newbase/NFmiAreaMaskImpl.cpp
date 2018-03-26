@@ -17,6 +17,7 @@
 // ======================================================================
 
 #include "NFmiAreaMaskImpl.h"
+#include "NFmiSimpleCondition.h"
 
 // ----------------------------------------------------------------------
 /*!
@@ -24,7 +25,7 @@
  */
 // ----------------------------------------------------------------------
 
-NFmiAreaMaskImpl::NFmiAreaMaskImpl(void)
+NFmiAreaMaskImpl::NFmiAreaMaskImpl()
     : itsMaskCondition(),
       itsMaskType(kNoType),
       itsDataType(NFmiInfoData::kNoDataType),
@@ -38,7 +39,8 @@ NFmiAreaMaskImpl::NFmiAreaMaskImpl(void)
       itsIntegrationFunctionType(0),
       itsFunctionArgumentCount(0),
       fHasSubMasks(false),
-      fEnabled(true)
+      fEnabled(true),
+      itsSimpleCondition()
 {
 }
 
@@ -71,7 +73,8 @@ NFmiAreaMaskImpl::NFmiAreaMaskImpl(const NFmiCalculationCondition &theOperation,
       itsIntegrationFunctionType(0),
       itsFunctionArgumentCount(0),
       fHasSubMasks(false),
-      fEnabled(true)
+      fEnabled(true),
+      itsSimpleCondition()
 {
 }
 
@@ -89,7 +92,8 @@ NFmiAreaMaskImpl::NFmiAreaMaskImpl(const NFmiAreaMaskImpl &theOther)
       itsIntegrationFunctionType(theOther.itsIntegrationFunctionType),
       itsFunctionArgumentCount(theOther.itsFunctionArgumentCount),
       fHasSubMasks(theOther.fHasSubMasks),
-      fEnabled(theOther.fEnabled)
+      fEnabled(theOther.fEnabled),
+      itsSimpleCondition(theOther.itsSimpleCondition ? theOther.itsSimpleCondition->Clone() : nullptr)
 {
 }
 
@@ -99,7 +103,14 @@ NFmiAreaMaskImpl::NFmiAreaMaskImpl(const NFmiAreaMaskImpl &theOther)
  */
 // ----------------------------------------------------------------------
 
-NFmiAreaMaskImpl::~NFmiAreaMaskImpl(void) {}
+NFmiAreaMaskImpl::~NFmiAreaMaskImpl() = default;
+
+void NFmiAreaMaskImpl::Initialize(void) 
+{
+    if(itsSimpleCondition)
+        itsSimpleCondition->Initialize();
+}
+
 // ----------------------------------------------------------------------
 /*!
  * \param theLatLon Undocumented
@@ -183,7 +194,7 @@ bool NFmiAreaMaskImpl::IsWantedParam(const NFmiDataIdent & /* theParam */,
  */
 // ----------------------------------------------------------------------
 
-const NFmiString NFmiAreaMaskImpl::MaskString(void) const
+const NFmiString NFmiAreaMaskImpl::MaskString() const
 {
   NFmiString subStr(MakeSubMaskString());
   NFmiString returnValue(itsMaskCondition.MaskString(subStr));
@@ -196,21 +207,21 @@ const NFmiString NFmiAreaMaskImpl::MaskString(void) const
  */
 // ----------------------------------------------------------------------
 
-const NFmiDataIdent *NFmiAreaMaskImpl::DataIdent(void) const { return 0; }
+const NFmiDataIdent *NFmiAreaMaskImpl::DataIdent() const { return nullptr; }
 // ----------------------------------------------------------------------
 /*!
  * \return Undocumented
  */
 // ----------------------------------------------------------------------
 
-const NFmiParam *NFmiAreaMaskImpl::Param(void) const { return 0; }
+const NFmiParam *NFmiAreaMaskImpl::Param() const { return nullptr; }
 // ----------------------------------------------------------------------
 /*!
  * \return Undocumented
  */
 // ----------------------------------------------------------------------
 
-const NFmiLevel *NFmiAreaMaskImpl::Level(void) const { return 0; }
+const NFmiLevel *NFmiAreaMaskImpl::Level() const { return nullptr; }
 void NFmiAreaMaskImpl::Level(const NFmiLevel & /* theLevel */) {}
 // ----------------------------------------------------------------------
 /*!
@@ -218,10 +229,10 @@ void NFmiAreaMaskImpl::Level(const NFmiLevel & /* theLevel */) {}
  */
 // ----------------------------------------------------------------------
 
-bool NFmiAreaMaskImpl::UseLevelInfo(void) const { return false; }
-bool NFmiAreaMaskImpl::UsePressureLevelInterpolation(void) const { return false; }
+bool NFmiAreaMaskImpl::UseLevelInfo() const { return false; }
+bool NFmiAreaMaskImpl::UsePressureLevelInterpolation() const { return false; }
 void NFmiAreaMaskImpl::UsePressureLevelInterpolation(bool /* newValue */) {}
-double NFmiAreaMaskImpl::UsedPressureLevelValue(void) const { return kFloatMissing; }
+double NFmiAreaMaskImpl::UsedPressureLevelValue() const { return kFloatMissing; }
 void NFmiAreaMaskImpl::UsedPressureLevelValue(double /* newValue */) {}
 // ----------------------------------------------------------------------
 /*!
@@ -242,7 +253,7 @@ bool NFmiAreaMaskImpl::AddMask(NFmiAreaMask * /* theMask */) { return false; }
  */
 // ----------------------------------------------------------------------
 
-NFmiAreaMask *NFmiAreaMaskImpl::AreaMask(int /* theIndex */) const { return 0; }
+NFmiAreaMask *NFmiAreaMaskImpl::AreaMask(int /* theIndex */) const { return nullptr; }
 // ----------------------------------------------------------------------
 /*!
  * \param theIndex Undocumented, unused
@@ -269,7 +280,7 @@ double NFmiAreaMaskImpl::CalcValueFromLocation(const NFmiPoint & /* theLatLon */
  */
 // ----------------------------------------------------------------------
 
-const NFmiString NFmiAreaMaskImpl::MakeSubMaskString(void) const
+const NFmiString NFmiAreaMaskImpl::MakeSubMaskString() const
 {
   NFmiString returnVal;
   return returnVal;
@@ -292,5 +303,26 @@ void NFmiAreaMaskImpl::Condition(const NFmiCalculationCondition &theCondition)
  */
 // ----------------------------------------------------------------------
 
-bool NFmiAreaMaskImpl::IsRampMask(void) const { return itsMaskCondition.IsRampMask(); }
+bool NFmiAreaMaskImpl::IsRampMask() const { return itsMaskCondition.IsRampMask(); }
 // ======================================================================
+
+void NFmiAreaMaskImpl::DoIntegrationCalculations(float value)
+{
+}
+
+void NFmiAreaMaskImpl::InitializeIntegrationValues()
+{
+}
+
+bool NFmiAreaMaskImpl::SimpleConditionCheck(const NFmiCalculationParams &theCalculationParams)
+{
+    if(itsSimpleCondition)
+        return itsSimpleCondition->CheckCondition(theCalculationParams, true);
+    else
+        return true;
+}
+
+float NFmiAreaMaskImpl::CalculationPointValue(int theOffsetX, int theOffsetY, const NFmiMetTime &theInterpolationTime, bool useInterpolatedTime)
+{
+    return kFloatMissing;
+}

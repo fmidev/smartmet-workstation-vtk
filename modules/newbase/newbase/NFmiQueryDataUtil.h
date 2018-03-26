@@ -5,17 +5,16 @@
  */
 // ======================================================================
 
-#ifndef NFMIQUERYDATAUTIL_H
-#define NFMIQUERYDATAUTIL_H
+#pragma once
 
+#include "NFmiArea.h"
+#include "NFmiDataIdent.h"
+#include "NFmiDataMatrix.h"
 #include "NFmiDef.h"
 #include "NFmiGlobals.h"
-#include "NFmiMetTime.h"
-#include "NFmiDataIdent.h"
-#include "NFmiLevel.h"
-#include "NFmiDataMatrix.h"
-#include "NFmiArea.h"
 #include "NFmiGrid.h"
+#include "NFmiLevel.h"
+#include "NFmiMetTime.h"
 #include <boost/shared_ptr.hpp>
 
 #ifndef BOOST_DISABLE_THREADS
@@ -32,9 +31,9 @@
 
 #endif  // BOOST_DISABLE_THREADS
 
-#include <vector>
 #include <set>
 #include <string>
+#include <vector>
 
 class NFmiFastQueryInfo;
 class NFmiQueryInfo;
@@ -185,6 +184,7 @@ class NFmiStopFunctor
   ~NFmiStopFunctor() {}
   bool Stop(void) const { return fStop; }
   void Stop(bool newValue) { fStop = newValue; }
+
  private:
   bool fStop;
 };
@@ -456,6 +456,20 @@ class _FMI_DLL NFmiQueryDataUtil
                                           bool fDoaccuratePrecip,
                                           bool fForceTimeBag = false);
 
+  static NFmiQueryData *MakeCombineParams(NFmiFastQueryInfo &theSourceInfo,
+                                          double theWantedInfoVersion,
+                                          bool fKeepCloudSymbolParameter,
+                                          bool fDoTotalWind,
+                                          bool fDoWeatherAndCloudiness,
+                                          FmiParameterName theWindGustParId,
+                                          const std::vector<int> &thePrecipFormParIds,
+                                          const std::vector<int> &theFogParIds,
+                                          const std::vector<int> &thePotParIds,
+                                          bool fAllowLessParamsWhenCreatingWeather,
+                                          int theMaxUsedThreadCount,
+                                          bool fDoaccuratePrecip,
+                                          bool fForceTimeBag = false);
+
   static NFmiQueryData *CreateEmptyData(NFmiQueryInfo &srcInfo);
   static NFmiQueryData *CreateEmptyData(NFmiQueryInfo &srcInfo,
                                         const std::string &theFilename,
@@ -517,7 +531,5 @@ class _FMI_DLL NFmiQueryDataUtil
   static int CalcOptimalThreadCount(int maxAvailableThreads, int separateTaskCount);
 
 };  // class NFmiQueryDataUtil
-
-#endif  // NFMIQUERYDATAUTIL_H
 
 // ======================================================================

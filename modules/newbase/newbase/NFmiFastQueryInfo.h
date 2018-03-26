@@ -5,16 +5,13 @@
  */
 // ======================================================================
 
-#ifndef NFMIFASTQUERYINFO_H
-#define NFMIFASTQUERYINFO_H
+#pragma once
 
-#include <vector>
-
-#include "NFmiQueryInfo.h"
 #include "NFmiDataMatrix.h"
+#include "NFmiQueryInfo.h"
 
-#include <boost/unordered_map.hpp>
 #include <boost/shared_ptr.hpp>
+#include <boost/unordered_map.hpp>
 
 class NFmiRect;
 
@@ -244,6 +241,10 @@ class _FMI_DLL NFmiFastQueryInfo : public NFmiQueryInfo
   float HeightValue(float theHeight);
   float HeightValue(float theHeight, const NFmiPoint &theLatlon);
   float HeightValue(float theHeight, const NFmiPoint &theLatlon, const NFmiMetTime &theTime);
+  float HeightValue(float theHeight,
+                    const NFmiPoint &theLatlon,
+                    const NFmiMetTime &theTime,
+                    unsigned long theTimeRangeInMinutes);
   float HeightValue(float theHeight, const NFmiMetTime &theTime);
 
   // Tähän tulee joukko funktioita, jotka palauttavat aktiivisen parametrin
@@ -252,6 +253,10 @@ class _FMI_DLL NFmiFastQueryInfo : public NFmiQueryInfo
   float PressureLevelValue(float P);
   float PressureLevelValue(float P, const NFmiPoint &theLatlon);
   float PressureLevelValue(float P, const NFmiPoint &theLatlon, const NFmiMetTime &theTime);
+  float PressureLevelValue(float P,
+                           const NFmiPoint &theLatlon,
+                           const NFmiMetTime &theTime,
+                           unsigned long theTimeRangeInMinutes);
   float PressureLevelValue(float P, const NFmiMetTime &theTime);
 
   // Tässä metodit millä saadaan dataan nopeita osoitus indeksejä, mitä voidaan hyödyntää kun
@@ -501,9 +506,8 @@ class _FMI_DLL NFmiFastQueryInfo : public NFmiQueryInfo
                                    const NFmiDataMatrix<float> &heightMatrix,
                                    const NFmiDataMatrix<float> &lapseRateMatrix,
                                    const NFmiDataMatrix<float> &maskMatrix);
-
-
-
+  float GetCurrentLevelPressure(void);
+  float GetCurrentLevelPressure(const NFmiPoint &theLatlon, const NFmiMetTime &theTime);
  protected:
   size_t Index(void) const;
 
@@ -517,7 +521,6 @@ class _FMI_DLL NFmiFastQueryInfo : public NFmiQueryInfo
   void InitFastInfo(void);
   std::vector<float> CalcPressureLevelDataPressures(void);
   std::vector<float> CalcHeightLevelDataHeights(void);
-  float GetCurrentLevelPressure(void);
   float FindFirstPressureValue(void);
   float FindFirstHeightValue(void);
   void DoWindComponentFix(const NFmiGrid &usedGrid,
@@ -1149,5 +1152,3 @@ inline void NFmiFastQueryInfo::Locations(NFmiDataMatrix<NFmiPoint> &theMatrix) c
 }
 
 // ======================================================================
-
-#endif  // NFMIFASTQUERYINFO_H

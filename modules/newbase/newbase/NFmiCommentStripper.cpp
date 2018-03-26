@@ -16,9 +16,9 @@
 
 #include "NFmiCommentStripper.h"
 
+#include <algorithm>
 #include <fstream>
 #include <iostream>
-#include <algorithm>
 
 using namespace std;
 
@@ -235,8 +235,9 @@ bool NFmiCommentStripper::ReadAndStripFile(const string& theFileName)
  */
 // ----------------------------------------------------------------------
 
-bool NFmiCommentStripper::Strip(void)
+bool NFmiCommentStripper::Strip()
 {
+  StripBomMarkersFromStart();
   string filt_elem2("/*"), filt_elem3("*/");
   if (fStripSlashAst)
   {
@@ -283,6 +284,14 @@ bool NFmiCommentStripper::Strip(void)
   return true;
 }
 
+void NFmiCommentStripper::StripBomMarkersFromStart()
+{
+    const std::string bomMarkers = "\xEF\xBB\xBF"; // BOM characters ï»¿ must be given with hexa escape format because this cpp file is Utf-8 encoded
+    auto pos = itsString.find(bomMarkers);
+    if(pos == 0)
+        itsString = std::string(itsString.begin() + bomMarkers.size(), itsString.end());
+}
+
 // ----------------------------------------------------------------------
 /*!
  * \param theString Undocumented
@@ -324,7 +333,7 @@ bool NFmiCommentStripper::CollectAndStripNested(const string& theBeginDirective,
  */
 // ----------------------------------------------------------------------
 
-bool NFmiCommentStripper::StripDoubleSlashes(void)  // from to endline
+bool NFmiCommentStripper::StripDoubleSlashes()  // from to endline
 {
   string oldString(itsString);
   string newString = "";
@@ -361,7 +370,7 @@ bool NFmiCommentStripper::StripDoubleSlashes(void)  // from to endline
  */
 // ----------------------------------------------------------------------
 
-bool NFmiCommentStripper::StripPounds(void)  // from pound to end of line
+bool NFmiCommentStripper::StripPounds()  // from pound to end of line
 {
   string oldString(itsString);
   string newString = "";
@@ -474,8 +483,8 @@ bool NFmiCommentStripper::StripSubStrings(const string& theString)
 bool NFmiCommentStripper::StripNested(checkedVector<unsigned long> theBeginPositions,
                                       checkedVector<unsigned long> theEndPositions)
 {
-  checkedVector<unsigned long>::iterator startFiltsInd = theBeginPositions.begin();
-  checkedVector<unsigned long>::iterator endFiltsInd = theEndPositions.begin();
+  auto startFiltsInd = theBeginPositions.begin();
+  auto endFiltsInd = theEndPositions.begin();
   int posStart, posEnd, startOfErase = 0;
   int eraseSum = 0;
   int level = 0;
@@ -495,8 +504,8 @@ bool NFmiCommentStripper::StripNested(checkedVector<unsigned long> theBeginPosit
       level--;
       if (level < 0)
       {
-        itsMessage = "ERROR in " + itsFileName + ": Missing pair to */ after: " +
-                     itsString.substr(max(posEnd - 22, 0), 21);
+        itsMessage = "ERROR in " + itsFileName +
+                     ": Missing pair to */ after: " + itsString.substr(max(posEnd - 22, 0), 21);
         return false;
       }
       else if (level == 0)

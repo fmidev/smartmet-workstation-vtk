@@ -6,6 +6,6 @@
 [subrepo]
 	remote = git@github.com:fmidev/smartmet-library-newbase.git
 	branch = master
-	commit = 3eff27ed51ae539eca3d717a2b94ae98c0796509
-	parent = 339f9d934908aa56765c74a7e8c81ebc9688094c
+	commit = de1ffed9f56fd273cf7c163565e4f34fe26b948f
+	parent = d7021d59e1f7a8efb0985849aded3c13a0f380f0
 	cmdver = 0.3.1

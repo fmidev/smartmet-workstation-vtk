@@ -5,8 +5,7 @@
  */
 // ======================================================================
 
-#ifndef NFMIAREAMASKIMPL_H
-#define NFMIAREAMASKIMPL_H
+#pragma once
 
 #include "NFmiAreaMask.h"
 #include "NFmiCalculationCondition.h"
@@ -25,7 +24,7 @@ class _FMI_DLL NFmiAreaMaskImpl : public NFmiAreaMask
                    NFmiInfoData::Type theDataType,
                    BinaryOperator thePostBinaryOperator = kNoValue);
   NFmiAreaMaskImpl(const NFmiAreaMaskImpl &theOther);
-  void Initialize(void){};
+  void Initialize(void);
 
   bool IsMasked(int theIndex) const;
   bool IsMasked(const NFmiPoint &theLatLon) const;
@@ -35,14 +34,18 @@ class _FMI_DLL NFmiAreaMaskImpl : public NFmiAreaMask
   // NFmiInfoAreaMask-luokassa
   double HeightValue(double /* theHeight */, const NFmiCalculationParams &theCalculationParams)
   {
-    return Value(theCalculationParams, false);
-  };
+    // Poikkileikkauslaskuissa pitää aina käyttää 'aikainterpolaatiota', muuten ei (koska laskussa käytetyt ajat on jo asetettu muualla)
+    bool useTimeInterpolationAlways = theCalculationParams.fCrossSectionCase;
+    return Value(theCalculationParams, useTimeInterpolationAlways);
+  }
   // oletuksenä PressureValue palauttaa saman kuin Value-metodi, homma overridataan vain
   // NFmiInfoAreaMask-luokassa
   double PressureValue(double /* thePressure */, const NFmiCalculationParams &theCalculationParams)
   {
-    return Value(theCalculationParams, false);
-  };
+    // Poikkileikkauslaskuissa pitää aina käyttää 'aikainterpolaatiota', muuten ei (koska laskussa käytetyt ajat on jo asetettu muualla)
+    bool useTimeInterpolationAlways = theCalculationParams.fCrossSectionCase;
+    return Value(theCalculationParams, useTimeInterpolationAlways);
+  }
 
   bool IsEnabled(void) const;
   void Enable(bool theNewState);
@@ -107,10 +110,17 @@ class _FMI_DLL NFmiAreaMaskImpl : public NFmiAreaMask
   // toteutukset.
   void SetAll(bool /* theNewState */){};
   void Mask(int /* theIndex */, bool /* newStatus */){};
+  const boost::shared_ptr<NFmiSimpleCondition>& SimpleCondition() const { return itsSimpleCondition; }
+  void SimpleCondition(boost::shared_ptr<NFmiSimpleCondition> &theSimpleCondition) { itsSimpleCondition = theSimpleCondition; }
 
  protected:
   virtual double CalcValueFromLocation(const NFmiPoint &theLatLon) const;
   virtual const NFmiString MakeSubMaskString(void) const;
+  // Seuraavat virtuaali funktiot liittyvät integraatio funktioihin ja niiden mahdollisiin Simplecondition tarkasteluihin
+  virtual void DoIntegrationCalculations(float value);
+  virtual void InitializeIntegrationValues();
+  virtual bool SimpleConditionCheck(const NFmiCalculationParams &theCalculationParams);
+  virtual float CalculationPointValue(int theOffsetX, int theOffsetY, const NFmiMetTime &theInterpolationTime, bool useInterpolatedTime);
 
  protected:
   NFmiCalculationCondition itsMaskCondition;
@@ -134,7 +144,7 @@ class _FMI_DLL NFmiAreaMaskImpl : public NFmiAreaMask
   int itsFunctionArgumentCount;
   bool fHasSubMasks;
   bool fEnabled;
-
+  boost::shared_ptr<NFmiSimpleCondition> itsSimpleCondition;
 };  // class NFmiAreaMaskImpl
 
 // ----------------------------------------------------------------------
@@ -363,7 +373,5 @@ inline FmiMaskOperation NFmiAreaMaskImpl::MaskOperation(void) const
 {
   return itsMaskCondition.Condition();
 }
-
-#endif  // NFMIAREAMASKIMPL_H
 
 // ======================================================================

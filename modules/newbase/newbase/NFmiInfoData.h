@@ -9,8 +9,7 @@
  */
 // ======================================================================
 
-#ifndef NFMIINFODATA_H
-#define NFMIINFODATA_H
+#pragma once
 
 namespace NFmiInfoData
 {
@@ -56,6 +55,8 @@ enum Type
                                  // popup-valikko)
   kQ3MacroParam = 25,  // makro-parametri joka lasketaan Q3-enginellä eli esim. RESULT = T_EC -
                        // T_HIR makrolla laskettu
+  kCapData = 26,  // Kun editorilla halutaan katsoa CAP/Varoke II dataa
+  kWmsData = 27,
   kSoundingParameterData =
       1000  // HUOM! tästä on tarkoitus päästä eroon, mukana nyt siksi että on olemassa
             // näyttömakroja, joissa on käytetty tätä.
@@ -92,5 +93,3 @@ enum SpecialParameters
 };
 
 }  // end of namespace NFmiInfoData
-
-#endif  // NFMIINFODATA_H
