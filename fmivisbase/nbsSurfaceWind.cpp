@@ -20,7 +20,7 @@
 
 
 nbsSurfaceWind::nbsSurfaceWind(const std::string &file, nbsMetadata *meta, int subSample) :
-	nbsSurface(file,meta,1,true), subSample(subSample)
+	nbsSurface(file,meta,1,1,true), subSample(subSample)
 {
 	scalars->SetNumberOfComponents(3);
 	scalars->SetName("Scalars");
@@ -114,7 +114,7 @@ int nbsSurfaceWind::RequestData(vtkInformation* vtkNotUsed(request),
 
 			}
 			else {
-				scalars->InsertNextTuple3(0, 0,0);
+				scalars->InsertNextTuple3(0, 0, 0);
 			}
 		}
 

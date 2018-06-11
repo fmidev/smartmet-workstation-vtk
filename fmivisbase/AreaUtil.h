@@ -28,7 +28,7 @@ namespace AreaUtil {
 
 	NFmiRect areaToWorldScandic(const NFmiRect &a);
 
-	extent RectIntoExtentScandic(const NFmiRect &a);
+	extent RectIntoExtentScandic(const NFmiRect &a); 
 
 	NFmiRect ScandicWorldSpace();
 

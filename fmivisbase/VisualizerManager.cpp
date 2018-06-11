@@ -20,7 +20,7 @@
 #include <vtkWidgetEventTranslator.h>
 #include <vtkCommand.h>
 
-VisualizerManager::VisualizerManager(vtkRenderer *ren,nbsMetadata &m, float zHeight /*= 13000*/) :
+VisualizerManager::VisualizerManager(vtkRenderer *ren, std::string drawParamPath,nbsMetadata &m, float zHeight /*= 13000*/) :
 	renderer(ren),
 	visualizers(),
 	labeler(std::make_unique<ContourLabeler>(ren)),
@@ -41,7 +41,7 @@ VisualizerManager::VisualizerManager(vtkRenderer *ren,nbsMetadata &m, float zHei
 
 	legend->KeyPressActivationOff();
 
-	drawParamFac = fmiVis::LoadOptions();
+	drawParamFac = fmiVis::LoadOptions(drawParamPath);
 }
 VisualizerManager::~VisualizerManager() {};
 visID VisualizerManager::AddVisualizer(std::unique_ptr<ParamVisualizerBase> v)

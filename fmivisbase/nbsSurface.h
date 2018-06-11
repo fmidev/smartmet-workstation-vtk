@@ -25,6 +25,7 @@ protected:
 	bool loadPoints();
 
 	vtkSmartPointer<vtkFloatArray> textureCoordinates;
+	vtkSmartPointer<vtkFloatArray> normals;
 
 
 	vtkSmartPointer<vtkFloatArray> scalars;

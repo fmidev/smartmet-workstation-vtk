@@ -211,14 +211,14 @@ void fmiVis::MakeFileText(std::string &file, vtkSmartPointer<vtkRenderer> ren)
 }
 
 
-void MakeVisualizers(std::string file, nbsMetadata & meta, VisualizerManager *visualizerMan,
+void MakeVisualizers(std::string file, std::string drawParamPath, nbsMetadata & meta, VisualizerManager *visualizerMan,
 	std::vector<vtkSmartPointer<vtkTextActor>> *textActs, vtkRenderer *ren,
 	int textSize, double textVOff, double textVSpacing,
 	std::map<int, std::string> &paramsSurf, NFmiFastQueryInfo &dataInfo)
 {
 
 
-	auto drawParamFactory = fmiVis::LoadOptions();
+	auto drawParamFactory = fmiVis::LoadOptions(drawParamPath);
 
 	visualizerMan->setDrawParamFac(drawParamFactory);
 
@@ -267,7 +267,7 @@ void MakeVisualizers(std::string file, nbsMetadata & meta, VisualizerManager *vi
 
 
 void fmiVis::ViewportFactory::MakeTimeGridView(size_t numX, size_t numY,
-	std::string file, nbsMetadata &meta, fmiVis::ViewportManagerTimegrid &viewportMan, vtkRenderWindowInteractor *iren, vtkRenderWindow *renWin, VisualizationInteractor2D *style)
+	std::string file, std::string drawParamPath, nbsMetadata &meta, ViewportManagerTimegrid &viewportMan, vtkRenderWindowInteractor *iren, vtkRenderWindow *renWin, VisualizationInteractor2D *style)
 {
 	auto baseRen = MakeRenderer();
 	renWin->AddRenderer(baseRen);
@@ -298,6 +298,7 @@ void fmiVis::ViewportFactory::MakeTimeGridView(size_t numX, size_t numY,
 
 			ren->SetLayer(0);
 
+
 			if (x == 0 && y == 0) {
 
 				cam = ren->GetActiveCamera();
@@ -316,7 +317,7 @@ void fmiVis::ViewportFactory::MakeTimeGridView(size_t numX, size_t numY,
 
 			renWin->AddRenderer(ren);
 
-			std::unique_ptr<VisualizerManager> visualizerMan = std::make_unique<VisualizerManager>(ren, meta);
+			std::unique_ptr<VisualizerManager> visualizerMan = std::make_unique<VisualizerManager>(ren,drawParamPath, meta);
 
 
 
@@ -338,7 +339,7 @@ void fmiVis::ViewportFactory::MakeTimeGridView(size_t numX, size_t numY,
 			auto textVSpacing = -0.04;
 
 
-			MakeVisualizers(file, meta, visualizerMan.get(), textActs.get(), ren, textSize, textVOff, textVSpacing, paramsSurf, dataInfo);
+			MakeVisualizers(file, drawParamPath, meta, visualizerMan.get(), textActs.get(), ren, textSize, textVOff, textVSpacing, paramsSurf, dataInfo);
 
 			viewportMan.AddViewport(ren, std::move(visualizerMan), std::move(textActs));
 		}

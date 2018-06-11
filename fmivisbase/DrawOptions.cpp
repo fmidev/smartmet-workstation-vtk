@@ -7,10 +7,10 @@
 
 
 
-std::shared_ptr<NFmiDrawParamFactory> fmiVis::LoadOptions()
+std::shared_ptr<NFmiDrawParamFactory> fmiVis::LoadOptions(std::string file)
 {
 	std::shared_ptr<NFmiDrawParamFactory> drawParamFactory = std::make_shared<NFmiDrawParamFactory>(false, false);
-	drawParamFactory->LoadDirectory("D:/3D-dataa/DrawParams");
+	drawParamFactory->LoadDirectory(file);
 	drawParamFactory->Init();
 
 	return drawParamFactory;

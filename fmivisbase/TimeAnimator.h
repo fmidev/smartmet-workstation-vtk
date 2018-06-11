@@ -124,14 +124,14 @@ public:
 	}
 
 	inline void IncreaseDelay() {
-		double step = std::max(10.0, animDelay*0.5);
+		double step = (std::max)(10.0, animDelay*0.5);
 		animDelay += step;
 		if (animDelay > 2000) animDelay = 2000;
 		RefreshTimer();
 	}
 
 	inline void DecreaseDelay() {
-		double step = std::max(10.0, animDelay*0.5);
+		double step = (std::max)(10.0, animDelay*0.5);
 		animDelay -= step;
 		if (animDelay < 10) animDelay = 10;
 		RefreshTimer();

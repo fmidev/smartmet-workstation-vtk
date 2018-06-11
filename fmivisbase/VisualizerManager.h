@@ -40,7 +40,7 @@ class VisualizerManager {
 
 public:
 
-	VisualizerManager(vtkRenderer *ren,nbsMetadata &m, float zHeight = 13000);
+	VisualizerManager(vtkRenderer *ren, std::string drawParamPath,nbsMetadata &m, float zHeight = 13000);
 	~VisualizerManager();
 
 	inline nbsMetadata& GetMeta() {

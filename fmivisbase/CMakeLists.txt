@@ -1,6 +1,8 @@
 project (fmivisbase)
 
-find_package(VTK REQUIRED)
+set(CMAKE_VERBOSE_MAKEFILE ON)
+
+find_package(VTK REQUIRED NO_MODULE)
 
 include(${VTK_USE_FILE})
 

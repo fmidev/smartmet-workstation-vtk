@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>15.0</VCProjectVersion>
+    <ProjectGuid>{D9024DDC-BA01-4348-A7C2-D8CDA747FB1B}</ProjectGuid>
+    <Keyword>MFCProj</Keyword>
+    <RootNamespace>volumevisMFC</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseOfMfc>Dynamic</UseOfMfc>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseOfMfc>Dynamic</UseOfMfc>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseOfMfc>Dynamic</UseOfMfc>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseOfMfc>Dynamic</UseOfMfc>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>C:\Users\tavi\PROJECT\fmi_VTK_MSVC\bin\Release\</OutDir>
+    <IntDir>volumevisMFC.dir\Release\</IntDir>
+    <TargetName>volumevisMFC</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>C:\Users\tavi\PROJECT\fmi_VTK_MSVC\bin\Debug\</OutDir>
+    <IntDir>volumevisMFC.dir\Debug\</IntDir>
+    <TargetName>volumevisMFC</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>D:\VTK8_build\Utilities\KWIML;D:\VTK-8.1.0\Utilities\KWIML;D:\VTK8_build\Utilities\KWSys;D:\VTK-8.1.0\Utilities\KWSys;D:\VTK8_build\Common\Core;D:\VTK-8.1.0\Common\Core;D:\VTK8_build\Common\Math;D:\VTK-8.1.0\Common\Math;D:\VTK8_build\Common\Misc;D:\VTK-8.1.0\Common\Misc;D:\VTK8_build\Common\System;D:\VTK-8.1.0\Common\System;D:\VTK8_build\Common\Transforms;D:\VTK-8.1.0\Common\Transforms;D:\VTK8_build\Common\DataModel;D:\VTK-8.1.0\Common\DataModel;D:\VTK8_build\Common\Color;D:\VTK-8.1.0\Common\Color;D:\VTK8_build\Common\ExecutionModel;D:\VTK-8.1.0\Common\ExecutionModel;D:\VTK8_build\Common\ComputationalGeometry;D:\VTK-8.1.0\Common\ComputationalGeometry;D:\VTK8_build\Filters\Core;D:\VTK-8.1.0\Filters\Core;D:\VTK8_build\Filters\General;D:\VTK-8.1.0\Filters\General;D:\VTK8_build\Imaging\Core;D:\VTK-8.1.0\Imaging\Core;D:\VTK8_build\Imaging\Fourier;D:\VTK-8.1.0\Imaging\Fourier;D:\VTK8_build\ThirdParty\alglib;D:\VTK-8.1.0\ThirdParty\alglib;D:\VTK8_build\Filters\Statistics;D:\VTK-8.1.0\Filters\Statistics;D:\VTK8_build\Filters\Extraction;D:\VTK-8.1.0\Filters\Extraction;D:\VTK8_build\Infovis\Core;D:\VTK-8.1.0\Infovis\Core;D:\VTK8_build\Filters\Geometry;D:\VTK-8.1.0\Filters\Geometry;D:\VTK8_build\Filters\Sources;D:\VTK-8.1.0\Filters\Sources;D:\VTK8_build\Rendering\Core;D:\VTK-8.1.0\Rendering\Core;D:\VTK8_build\ThirdParty\zlib;D:\VTK-8.1.0\ThirdParty\zlib;D:\VTK8_build\ThirdParty\freetype;D:\VTK-8.1.0\ThirdParty\freetype;D:\VTK8_build\Rendering\FreeType;D:\VTK-8.1.0\Rendering\FreeType;D:\VTK8_build\Rendering\Context2D;D:\VTK-8.1.0\Rendering\Context2D;D:\VTK8_build\Charts\Core;D:\VTK-8.1.0\Charts\Core;D:\VTK8_build\Utilities\DICOMParser;D:\VTK-8.1.0\Utilities\DICOMParser;D:\VTK-8.1.0\ThirdParty\lz4\vtklz4\lib;D:\VTK8_build\ThirdParty\lz4\vtklz4;D:\VTK8_build\ThirdParty\lz4;D:\VTK-8.1.0\ThirdParty\lz4;D:\VTK8_build\IO\Core;D:\VTK-8.1.0\IO\Core;D:\VTK8_build\IO\Legacy;D:\VTK-8.1.0\IO\Legacy;D:\VTK8_build\ThirdParty\expat;D:\VTK-8.1.0\ThirdParty\expat;D:\VTK8_build\IO\XMLParser;D:\VTK-8.1.0\IO\XMLParser;D:\VTK8_build\Domains\Chemistry;D:\VTK-8.1.0\Domains\Chemistry;D:\VTK8_build\Utilities\EncodeString;D:\VTK-8.1.0\Utilities\EncodeString;D:\VTK8_build\ThirdParty\glew;D:\VTK-8.1.0\ThirdParty\glew;D:\VTK8_build\Rendering\OpenGL2;D:\VTK-8.1.0\Rendering\OpenGL2;D:\VTK8_build\Domains\ChemistryOpenGL2;D:\VTK-8.1.0\Domains\ChemistryOpenGL2;D:\VTK8_build\IO\XML;D:\VTK-8.1.0\IO\XML;D:\VTK8_build\Utilities\HashSource;D:\VTK-8.1.0\Utilities\HashSource;D:\VTK8_build\Parallel\Core;D:\VTK-8.1.0\Parallel\Core;D:\VTK8_build\Filters\AMR;D:\VTK-8.1.0\Filters\AMR;D:\VTK8_build\Filters\FlowPaths;D:\VTK-8.1.0\Filters\FlowPaths;D:\VTK8_build\Filters\Generic;D:\VTK-8.1.0\Filters\Generic;D:\VTK8_build\Imaging\Sources;D:\VTK-8.1.0\Imaging\Sources;D:\VTK8_build\Filters\Hybrid;D:\VTK-8.1.0\Filters\Hybrid;D:\VTK8_build\Filters\HyperTree;D:\VTK-8.1.0\Filters\HyperTree;D:\VTK8_build\Imaging\General;D:\VTK-8.1.0\Imaging\General;D:\VTK8_build\Filters\Imaging;D:\VTK-8.1.0\Filters\Imaging;D:\VTK8_build\Filters\Modeling;D:\VTK-8.1.0\Filters\Modeling;D:\VTK8_build\Filters\Parallel;D:\VTK-8.1.0\Filters\Parallel;D:\VTK8_build\Filters\ParallelImaging;D:\VTK-8.1.0\Filters\ParallelImaging;D:\VTK8_build\Filters\Points;D:\VTK-8.1.0\Filters\Points;D:\VTK8_build\Filters\Programmable;D:\VTK-8.1.0\Filters\Programmable;D:\VTK8_build\Filters\SMP;D:\VTK-8.1.0\Filters\SMP;D:\VTK8_build\Filters\Selection;D:\VTK-8.1.0\Filters\Selection;D:\VTK8_build\Filters\Texture;D:\VTK-8.1.0\Filters\Texture;D:\VTK8_build\Filters\Topology;D:\VTK-8.1.0\Filters\Topology;D:\VTK8_build\ThirdParty\verdict;D:\VTK-8.1.0\ThirdParty\verdict;D:\VTK8_build\Filters\Verdict;D:\VTK-8.1.0\Filters\Verdict;D:\VTK8_build\GUISupport\MFC;D:\VTK-8.1.0\GUISupport\MFC;D:\VTK8_build\Utilities\MetaIO\vtkmetaio;D:\VTK8_build\Utilities\MetaIO;D:\VTK-8.1.0\Utilities\MetaIO;D:\VTK8_build\ThirdParty\jpeg;D:\VTK-8.1.0\ThirdParty\jpeg;D:\VTK8_build\ThirdParty\png;D:\VTK-8.1.0\ThirdParty\png;D:\VTK8_build\ThirdParty\tiff\vtktiff\libtiff;D:\VTK8_build\ThirdParty\tiff;D:\VTK-8.1.0\ThirdParty\tiff;D:\VTK8_build\IO\Image;D:\VTK-8.1.0\IO\Image;D:\VTK8_build\Imaging\Hybrid;D:\VTK-8.1.0\Imaging\Hybrid;D:\VTK8_build\Infovis\Layout;D:\VTK-8.1.0\Infovis\Layout;D:\VTK8_build\Interaction\Style;D:\VTK-8.1.0\Interaction\Style;D:\VTK8_build\Imaging\Color;D:\VTK-8.1.0\Imaging\Color;D:\VTK8_build\Rendering\Annotation;D:\VTK-8.1.0\Rendering\Annotation;D:\VTK8_build\Rendering\Volume;D:\VTK-8.1.0\Rendering\Volume;D:\VTK8_build\Interaction\Widgets;D:\VTK-8.1.0\Interaction\Widgets;D:\VTK8_build\Views\Core;D:\VTK-8.1.0\Views\Core;D:\VTK-8.1.0\ThirdParty\libproj4\vtklibproj4;D:\VTK8_build\ThirdParty\libproj4\vtklibproj4;D:\VTK8_build\ThirdParty\libproj4;D:\VTK-8.1.0\ThirdParty\libproj4;D:\VTK8_build\Geovis\Core;D:\VTK-8.1.0\Geovis\Core;D:\VTK8_build\ThirdParty\hdf5\vtkhdf5;D:\VTK-8.1.0\ThirdParty\hdf5\vtkhdf5\hl\src;D:\VTK-8.1.0\ThirdParty\hdf5\vtkhdf5\src;D:\VTK8_build\ThirdParty\hdf5;D:\VTK-8.1.0\ThirdParty\hdf5;D:\VTK8_build\IO\AMR;D:\VTK-8.1.0\IO\AMR;D:\VTK8_build\IO\EnSight;D:\VTK-8.1.0\IO\EnSight;D:\VTK-8.1.0\ThirdParty\netcdf\vtknetcdf\include;D:\VTK8_build\ThirdParty\netcdf\vtknetcdf;D:\VTK8_build\ThirdParty\netcdf;D:\VTK-8.1.0\ThirdParty\netcdf;D:\VTK8_build\ThirdParty\exodusII;D:\VTK-8.1.0\ThirdParty\exodusII;D:\VTK8_build\IO\Exodus;D:\VTK-8.1.0\IO\Exodus;D:\VTK8_build\ThirdParty\gl2ps;D:\VTK-8.1.0\ThirdParty\gl2ps;D:\VTK8_build\Rendering\GL2PSOpenGL2;D:\VTK-8.1.0\Rendering\GL2PSOpenGL2;D:\VTK-8.1.0\ThirdParty\libharu\vtklibharu\include;D:\VTK8_build\ThirdParty\libharu\vtklibharu\include;D:\VTK8_build\ThirdParty\libharu;D:\VTK-8.1.0\ThirdParty\libharu;D:\VTK8_build\IO\Export;D:\VTK-8.1.0\IO\Export;D:\VTK8_build\IO\ExportOpenGL2;D:\VTK-8.1.0\IO\ExportOpenGL2;D:\VTK8_build\IO\Geometry;D:\VTK-8.1.0\IO\Geometry;D:\VTK8_build\IO\Import;D:\VTK-8.1.0\IO\Import;D:\VTK8_build\ThirdParty\libxml2\vtklibxml2;D:\VTK8_build\ThirdParty\libxml2;D:\VTK-8.1.0\ThirdParty\libxml2;D:\VTK8_build\IO\Infovis;D:\VTK-8.1.0\IO\Infovis;D:\VTK8_build\IO\LSDyna;D:\VTK-8.1.0\IO\LSDyna;D:\VTK8_build\IO\MINC;D:\VTK-8.1.0\IO\MINC;D:\VTK8_build\ThirdParty\oggtheora;D:\VTK-8.1.0\ThirdParty\oggtheora;D:\VTK8_build\IO\Movie;D:\VTK-8.1.0\IO\Movie;D:\VTK8_build\ThirdParty\netcdfcpp;D:\VTK-8.1.0\ThirdParty\netcdfcpp;D:\VTK8_build\IO\NetCDF;D:\VTK-8.1.0\IO\NetCDF;D:\VTK8_build\IO\PLY;D:\VTK-8.1.0\IO\PLY;D:\VTK8_build\ThirdParty\jsoncpp;D:\VTK-8.1.0\ThirdParty\jsoncpp;D:\VTK8_build\IO\Parallel;D:\VTK-8.1.0\IO\Parallel;D:\VTK8_build\IO\ParallelXML;D:\VTK-8.1.0\IO\ParallelXML;D:\VTK8_build\ThirdParty\sqlite;D:\VTK-8.1.0\ThirdParty\sqlite;D:\VTK8_build\IO\SQL;D:\VTK-8.1.0\IO\SQL;D:\VTK8_build\IO\TecplotTable;D:\VTK-8.1.0\IO\TecplotTable;D:\VTK8_build\IO\Video;D:\VTK-8.1.0\IO\Video;D:\VTK8_build\Imaging\Math;D:\VTK-8.1.0\Imaging\Math;D:\VTK8_build\Imaging\Morphological;D:\VTK-8.1.0\Imaging\Morphological;D:\VTK8_build\Imaging\Statistics;D:\VTK-8.1.0\Imaging\Statistics;D:\VTK8_build\Imaging\Stencil;D:\VTK-8.1.0\Imaging\Stencil;D:\VTK8_build\Interaction\Image;D:\VTK-8.1.0\Interaction\Image;D:\VTK8_build\Rendering\ContextOpenGL2;D:\VTK-8.1.0\Rendering\ContextOpenGL2;D:\VTK8_build\Rendering\Image;D:\VTK-8.1.0\Rendering\Image;D:\VTK8_build\Rendering\LOD;D:\VTK-8.1.0\Rendering\LOD;D:\VTK8_build\Rendering\Label;D:\VTK-8.1.0\Rendering\Label;D:\VTK8_build\Rendering\VolumeOpenGL2;D:\VTK-8.1.0\Rendering\VolumeOpenGL2;D:\VTK8_build\Views\Context2D;D:\VTK-8.1.0\Views\Context2D;D:\VTK8_build\Views\Infovis;D:\VTK-8.1.0\Views\Infovis;C:\Users\tavi\PROJECT\fmi_VTK\fmivisbase;C:\Users\tavi\PROJECT\fmi_VTK\modules\newbase\newbase;C:\Users\tavi\PROJECT\fmi_VTK\modules\newbase;C:\Users\tavi\PROJECT\fmi_VTK\modules\boost;C:\Users\tavi\PROJECT\fmi_VTK\modules\smarttools\smarttools;C:\Users\tavi\PROJECT\fmi_VTK\modules\smarttools;D:\VTK8_build\Utilities\KWSys\vtksys;D:\VTK8_build\ThirdParty\hdf5\vtkhdf5\hl\src;D:\VTK8_build\ThirdParty\hdf5\vtkhdf5\src;D:\VTK8_build\ThirdParty\netcdfcpp\vtknetcdfcpp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>C:/Users/tavi/PROJECT/fmi_VTK/modules/boost/lib;C:/Users/tavi/PROJECT/fmi_VTK/modules/boost/lib/$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>D:\VTK8_build\lib\Release\vtksqlite-8.1.lib;..\fmivisbase\Release\fmivisbase.lib;D:\VTK8_build\lib\Release\vtkDomainsChemistryOpenGL2-8.1.lib;D:\VTK8_build\lib\Release\vtkDomainsChemistry-8.1.lib;D:\VTK8_build\lib\Release\vtkFiltersFlowPaths-8.1.lib;D:\VTK8_build\lib\Release\vtkFiltersGeneric-8.1.lib;D:\VTK8_build\lib\Release\vtkFiltersHyperTree-8.1.lib;D:\VTK8_build\lib\Release\vtkFiltersParallelImaging-8.1.lib;D:\VTK8_build\lib\Release\vtkFiltersPoints-8.1.lib;D:\VTK8_build\lib\Release\vtkFiltersProgrammable-8.1.lib;D:\VTK8_build\lib\Release\vtkFiltersSMP-8.1.lib;D:\VTK8_build\lib\Release\vtkFiltersSelection-8.1.lib;D:\VTK8_build\lib\Release\vtkFiltersTexture-8.1.lib;D:\VTK8_build\lib\Release\vtkFiltersTopology-8.1.lib;D:\VTK8_build\lib\Release\vtkFiltersVerdict-8.1.lib;D:\VTK8_build\lib\Release\vtkverdict-8.1.lib;D:\VTK8_build\lib\Release\vtkGUISupportMFC-8.1.lib;D:\VTK8_build\lib\Release\vtkGeovisCore-8.1.lib;D:\VTK8_build\lib\Release\vtkproj4-8.1.lib;D:\VTK8_build\lib\Release\vtkIOAMR-8.1.lib;D:\VTK8_build\lib\Release\vtkFiltersAMR-8.1.lib;D:\VTK8_build\lib\Release\vtkIOEnSight-8.1.lib;D:\VTK8_build\lib\Release\vtkIOExodus-8.1.lib;D:\VTK8_build\lib\Release\vtkIOExportOpenGL2-8.1.lib;D:\VTK8_build\lib\Release\vtkIOExport-8.1.lib;D:\VTK8_build\lib\Release\vtkRenderingGL2PSOpenGL2-8.1.lib;D:\VTK8_build\lib\Release\vtkgl2ps-8.1.lib;D:\VTK8_build\lib\Release\vtklibharu-8.1.lib;D:\VTK8_build\lib\Release\vtkIOImport-8.1.lib;D:\VTK8_build\lib\Release\vtkIOInfovis-8.1.lib;D:\VTK8_build\lib\Release\vtklibxml2-8.1.lib;D:\VTK8_build\lib\Release\vtkIOLSDyna-8.1.lib;D:\VTK8_build\lib\Release\vtkIOMINC-8.1.lib;D:\VTK8_build\lib\Release\vtkIOMovie-8.1.lib;D:\VTK8_build\lib\Release\vtkoggtheora-8.1.lib;D:\VTK8_build\lib\Release\vtkIOPLY-8.1.lib;D:\VTK8_build\lib\Release\vtkIOParallel-8.1.lib;D:\VTK8_build\lib\Release\vtkFiltersParallel-8.1.lib;D:\VTK8_build\lib\Release\vtkexoIIc-8.1.lib;D:\VTK8_build\lib\Release\vtkIOGeometry-8.1.lib;D:\VTK8_build\lib\Release\vtkIONetCDF-8.1.lib;D:\VTK8_build\lib\Release\vtknetcdfcpp-8.1.lib;D:\VTK8_build\lib\Release\vtkNetCDF-8.1.lib;D:\VTK8_build\lib\Release\vtkhdf5_hl-8.1.lib;D:\VTK8_build\lib\Release\vtkhdf5-8.1.lib;D:\VTK8_build\lib\Release\vtkjsoncpp-8.1.lib;D:\VTK8_build\lib\Release\vtkIOParallelXML-8.1.lib;D:\VTK8_build\lib\Release\vtkParallelCore-8.1.lib;D:\VTK8_build\lib\Release\vtkIOLegacy-8.1.lib;D:\VTK8_build\lib\Release\vtkIOSQL-8.1.lib;D:\VTK8_build\lib\Release\vtkIOTecplotTable-8.1.lib;D:\VTK8_build\lib\Release\vtkIOVideo-8.1.lib;D:\VTK8_build\lib\Release\vtkImagingMorphological-8.1.lib;D:\VTK8_build\lib\Release\vtkImagingStatistics-8.1.lib;D:\VTK8_build\lib\Release\vtkImagingStencil-8.1.lib;D:\VTK8_build\lib\Release\vtkInteractionImage-8.1.lib;D:\VTK8_build\lib\Release\vtkRenderingContextOpenGL2-8.1.lib;D:\VTK8_build\lib\Release\vtkRenderingImage-8.1.lib;D:\VTK8_build\lib\Release\vtkRenderingLOD-8.1.lib;D:\VTK8_build\lib\Release\vtkRenderingVolumeOpenGL2-8.1.lib;D:\VTK8_build\lib\Release\vtkRenderingOpenGL2-8.1.lib;D:\VTK8_build\lib\Release\vtkglew-8.1.lib;D:\VTK8_build\lib\Release\vtkImagingMath-8.1.lib;D:\VTK8_build\lib\Release\vtkViewsContext2D-8.1.lib;D:\VTK8_build\lib\Release\vtkViewsInfovis-8.1.lib;D:\VTK8_build\lib\Release\vtkChartsCore-8.1.lib;D:\VTK8_build\lib\Release\vtkRenderingContext2D-8.1.lib;D:\VTK8_build\lib\Release\vtkFiltersImaging-8.1.lib;D:\VTK8_build\lib\Release\vtkInfovisLayout-8.1.lib;D:\VTK8_build\lib\Release\vtkInfovisCore-8.1.lib;D:\VTK8_build\lib\Release\vtkViewsCore-8.1.lib;D:\VTK8_build\lib\Release\vtkInteractionWidgets-8.1.lib;D:\VTK8_build\lib\Release\vtkFiltersHybrid-8.1.lib;D:\VTK8_build\lib\Release\vtkImagingGeneral-8.1.lib;D:\VTK8_build\lib\Release\vtkImagingSources-8.1.lib;D:\VTK8_build\lib\Release\vtkFiltersModeling-8.1.lib;D:\VTK8_build\lib\Release\vtkImagingHybrid-8.1.lib;D:\VTK8_build\lib\Release\vtkIOImage-8.1.lib;D:\VTK8_build\lib\Release\vtkDICOMParser-8.1.lib;D:\VTK8_build\lib\Release\vtkmetaio-8.1.lib;comctl32.lib;wsock32.lib;D:\VTK8_build\lib\Release\vtkpng-8.1.lib;D:\VTK8_build\lib\Release\vtktiff-8.1.lib;D:\VTK8_build\lib\Release\vtkjpeg-8.1.lib;D:\VTK8_build\lib\Release\vtkInteractionStyle-8.1.lib;D:\VTK8_build\lib\Release\vtkFiltersExtraction-8.1.lib;D:\VTK8_build\lib\Release\vtkFiltersStatistics-8.1.lib;D:\VTK8_build\lib\Release\vtkImagingFourier-8.1.lib;D:\VTK8_build\lib\Release\vtkalglib-8.1.lib;D:\VTK8_build\lib\Release\vtkRenderingAnnotation-8.1.lib;D:\VTK8_build\lib\Release\vtkImagingColor-8.1.lib;D:\VTK8_build\lib\Release\vtkRenderingVolume-8.1.lib;D:\VTK8_build\lib\Release\vtkImagingCore-8.1.lib;D:\VTK8_build\lib\Release\vtkIOXML-8.1.lib;D:\VTK8_build\lib\Release\vtkIOXMLParser-8.1.lib;D:\VTK8_build\lib\Release\vtkIOCore-8.1.lib;D:\VTK8_build\lib\Release\vtklz4-8.1.lib;D:\VTK8_build\lib\Release\vtkexpat-8.1.lib;D:\VTK8_build\lib\Release\vtkRenderingLabel-8.1.lib;D:\VTK8_build\lib\Release\vtkRenderingFreeType-8.1.lib;D:\VTK8_build\lib\Release\vtkRenderingCore-8.1.lib;D:\VTK8_build\lib\Release\vtkCommonColor-8.1.lib;D:\VTK8_build\lib\Release\vtkFiltersGeometry-8.1.lib;D:\VTK8_build\lib\Release\vtkFiltersSources-8.1.lib;D:\VTK8_build\lib\Release\vtkFiltersGeneral-8.1.lib;D:\VTK8_build\lib\Release\vtkCommonComputationalGeometry-8.1.lib;D:\VTK8_build\lib\Release\vtkFiltersCore-8.1.lib;D:\VTK8_build\lib\Release\vtkCommonExecutionModel-8.1.lib;D:\VTK8_build\lib\Release\vtkCommonDataModel-8.1.lib;D:\VTK8_build\lib\Release\vtkCommonMisc-8.1.lib;D:\VTK8_build\lib\Release\vtkCommonSystem-8.1.lib;D:\VTK8_build\lib\Release\vtksys-8.1.lib;ws2_32.lib;Psapi.lib;D:\VTK8_build\lib\Release\vtkCommonTransforms-8.1.lib;D:\VTK8_build\lib\Release\vtkCommonMath-8.1.lib;D:\VTK8_build\lib\Release\vtkCommonCore-8.1.lib;D:\VTK8_build\lib\Release\vtkfreetype-8.1.lib;D:\VTK8_build\lib\Release\vtkzlib-8.1.lib;..\modules\smarttools\Release\SmartTools.lib;..\modules\newbase\Release\Newbase.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImportLibrary>C:/Users/tavi/PROJECT/fmi_VTK_MSVC/volumevis/RelWithDebInfo/volumevis.lib</ImportLibrary>
+    </Link>
+    <Midl>
+      <MkTypLibCompatible>false</MkTypLibCompatible>
+      <ValidateAllParameters>true</ValidateAllParameters>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </Midl>
+    <ResourceCompile>
+      <Culture>0x0409</Culture>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+    <Midl>
+      <MkTypLibCompatible>false</MkTypLibCompatible>
+      <ValidateAllParameters>true</ValidateAllParameters>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </Midl>
+    <ResourceCompile>
+      <Culture>0x0409</Culture>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>D:\VTK8_build\Utilities\KWIML;D:\VTK-8.1.0\Utilities\KWIML;D:\VTK8_build\Utilities\KWSys;D:\VTK-8.1.0\Utilities\KWSys;D:\VTK8_build\Common\Core;D:\VTK-8.1.0\Common\Core;D:\VTK8_build\Common\Math;D:\VTK-8.1.0\Common\Math;D:\VTK8_build\Common\Misc;D:\VTK-8.1.0\Common\Misc;D:\VTK8_build\Common\System;D:\VTK-8.1.0\Common\System;D:\VTK8_build\Common\Transforms;D:\VTK-8.1.0\Common\Transforms;D:\VTK8_build\Common\DataModel;D:\VTK-8.1.0\Common\DataModel;D:\VTK8_build\Common\Color;D:\VTK-8.1.0\Common\Color;D:\VTK8_build\Common\ExecutionModel;D:\VTK-8.1.0\Common\ExecutionModel;D:\VTK8_build\Common\ComputationalGeometry;D:\VTK-8.1.0\Common\ComputationalGeometry;D:\VTK8_build\Filters\Core;D:\VTK-8.1.0\Filters\Core;D:\VTK8_build\Filters\General;D:\VTK-8.1.0\Filters\General;D:\VTK8_build\Imaging\Core;D:\VTK-8.1.0\Imaging\Core;D:\VTK8_build\Imaging\Fourier;D:\VTK-8.1.0\Imaging\Fourier;D:\VTK8_build\ThirdParty\alglib;D:\VTK-8.1.0\ThirdParty\alglib;D:\VTK8_build\Filters\Statistics;D:\VTK-8.1.0\Filters\Statistics;D:\VTK8_build\Filters\Extraction;D:\VTK-8.1.0\Filters\Extraction;D:\VTK8_build\Infovis\Core;D:\VTK-8.1.0\Infovis\Core;D:\VTK8_build\Filters\Geometry;D:\VTK-8.1.0\Filters\Geometry;D:\VTK8_build\Filters\Sources;D:\VTK-8.1.0\Filters\Sources;D:\VTK8_build\Rendering\Core;D:\VTK-8.1.0\Rendering\Core;D:\VTK8_build\ThirdParty\zlib;D:\VTK-8.1.0\ThirdParty\zlib;D:\VTK8_build\ThirdParty\freetype;D:\VTK-8.1.0\ThirdParty\freetype;D:\VTK8_build\Rendering\FreeType;D:\VTK-8.1.0\Rendering\FreeType;D:\VTK8_build\Rendering\Context2D;D:\VTK-8.1.0\Rendering\Context2D;D:\VTK8_build\Charts\Core;D:\VTK-8.1.0\Charts\Core;D:\VTK8_build\Utilities\DICOMParser;D:\VTK-8.1.0\Utilities\DICOMParser;D:\VTK-8.1.0\ThirdParty\lz4\vtklz4\lib;D:\VTK8_build\ThirdParty\lz4\vtklz4;D:\VTK8_build\ThirdParty\lz4;D:\VTK-8.1.0\ThirdParty\lz4;D:\VTK8_build\IO\Core;D:\VTK-8.1.0\IO\Core;D:\VTK8_build\IO\Legacy;D:\VTK-8.1.0\IO\Legacy;D:\VTK8_build\ThirdParty\expat;D:\VTK-8.1.0\ThirdParty\expat;D:\VTK8_build\IO\XMLParser;D:\VTK-8.1.0\IO\XMLParser;D:\VTK8_build\Domains\Chemistry;D:\VTK-8.1.0\Domains\Chemistry;D:\VTK8_build\Utilities\EncodeString;D:\VTK-8.1.0\Utilities\EncodeString;D:\VTK8_build\ThirdParty\glew;D:\VTK-8.1.0\ThirdParty\glew;D:\VTK8_build\Rendering\OpenGL2;D:\VTK-8.1.0\Rendering\OpenGL2;D:\VTK8_build\Domains\ChemistryOpenGL2;D:\VTK-8.1.0\Domains\ChemistryOpenGL2;D:\VTK8_build\IO\XML;D:\VTK-8.1.0\IO\XML;D:\VTK8_build\Utilities\HashSource;D:\VTK-8.1.0\Utilities\HashSource;D:\VTK8_build\Parallel\Core;D:\VTK-8.1.0\Parallel\Core;D:\VTK8_build\Filters\AMR;D:\VTK-8.1.0\Filters\AMR;D:\VTK8_build\Filters\FlowPaths;D:\VTK-8.1.0\Filters\FlowPaths;D:\VTK8_build\Filters\Generic;D:\VTK-8.1.0\Filters\Generic;D:\VTK8_build\Imaging\Sources;D:\VTK-8.1.0\Imaging\Sources;D:\VTK8_build\Filters\Hybrid;D:\VTK-8.1.0\Filters\Hybrid;D:\VTK8_build\Filters\HyperTree;D:\VTK-8.1.0\Filters\HyperTree;D:\VTK8_build\Imaging\General;D:\VTK-8.1.0\Imaging\General;D:\VTK8_build\Filters\Imaging;D:\VTK-8.1.0\Filters\Imaging;D:\VTK8_build\Filters\Modeling;D:\VTK-8.1.0\Filters\Modeling;D:\VTK8_build\Filters\Parallel;D:\VTK-8.1.0\Filters\Parallel;D:\VTK8_build\Filters\ParallelImaging;D:\VTK-8.1.0\Filters\ParallelImaging;D:\VTK8_build\Filters\Points;D:\VTK-8.1.0\Filters\Points;D:\VTK8_build\Filters\Programmable;D:\VTK-8.1.0\Filters\Programmable;D:\VTK8_build\Filters\SMP;D:\VTK-8.1.0\Filters\SMP;D:\VTK8_build\Filters\Selection;D:\VTK-8.1.0\Filters\Selection;D:\VTK8_build\Filters\Texture;D:\VTK-8.1.0\Filters\Texture;D:\VTK8_build\Filters\Topology;D:\VTK-8.1.0\Filters\Topology;D:\VTK8_build\ThirdParty\verdict;D:\VTK-8.1.0\ThirdParty\verdict;D:\VTK8_build\Filters\Verdict;D:\VTK-8.1.0\Filters\Verdict;D:\VTK8_build\GUISupport\MFC;D:\VTK-8.1.0\GUISupport\MFC;D:\VTK8_build\Utilities\MetaIO\vtkmetaio;D:\VTK8_build\Utilities\MetaIO;D:\VTK-8.1.0\Utilities\MetaIO;D:\VTK8_build\ThirdParty\jpeg;D:\VTK-8.1.0\ThirdParty\jpeg;D:\VTK8_build\ThirdParty\png;D:\VTK-8.1.0\ThirdParty\png;D:\VTK8_build\ThirdParty\tiff\vtktiff\libtiff;D:\VTK8_build\ThirdParty\tiff;D:\VTK-8.1.0\ThirdParty\tiff;D:\VTK8_build\IO\Image;D:\VTK-8.1.0\IO\Image;D:\VTK8_build\Imaging\Hybrid;D:\VTK-8.1.0\Imaging\Hybrid;D:\VTK8_build\Infovis\Layout;D:\VTK-8.1.0\Infovis\Layout;D:\VTK8_build\Interaction\Style;D:\VTK-8.1.0\Interaction\Style;D:\VTK8_build\Imaging\Color;D:\VTK-8.1.0\Imaging\Color;D:\VTK8_build\Rendering\Annotation;D:\VTK-8.1.0\Rendering\Annotation;D:\VTK8_build\Rendering\Volume;D:\VTK-8.1.0\Rendering\Volume;D:\VTK8_build\Interaction\Widgets;D:\VTK-8.1.0\Interaction\Widgets;D:\VTK8_build\Views\Core;D:\VTK-8.1.0\Views\Core;D:\VTK-8.1.0\ThirdParty\libproj4\vtklibproj4;D:\VTK8_build\ThirdParty\libproj4\vtklibproj4;D:\VTK8_build\ThirdParty\libproj4;D:\VTK-8.1.0\ThirdParty\libproj4;D:\VTK8_build\Geovis\Core;D:\VTK-8.1.0\Geovis\Core;D:\VTK8_build\ThirdParty\hdf5\vtkhdf5;D:\VTK-8.1.0\ThirdParty\hdf5\vtkhdf5\hl\src;D:\VTK-8.1.0\ThirdParty\hdf5\vtkhdf5\src;D:\VTK8_build\ThirdParty\hdf5;D:\VTK-8.1.0\ThirdParty\hdf5;D:\VTK8_build\IO\AMR;D:\VTK-8.1.0\IO\AMR;D:\VTK8_build\IO\EnSight;D:\VTK-8.1.0\IO\EnSight;D:\VTK-8.1.0\ThirdParty\netcdf\vtknetcdf\include;D:\VTK8_build\ThirdParty\netcdf\vtknetcdf;D:\VTK8_build\ThirdParty\netcdf;D:\VTK-8.1.0\ThirdParty\netcdf;D:\VTK8_build\ThirdParty\exodusII;D:\VTK-8.1.0\ThirdParty\exodusII;D:\VTK8_build\IO\Exodus;D:\VTK-8.1.0\IO\Exodus;D:\VTK8_build\ThirdParty\gl2ps;D:\VTK-8.1.0\ThirdParty\gl2ps;D:\VTK8_build\Rendering\GL2PSOpenGL2;D:\VTK-8.1.0\Rendering\GL2PSOpenGL2;D:\VTK-8.1.0\ThirdParty\libharu\vtklibharu\include;D:\VTK8_build\ThirdParty\libharu\vtklibharu\include;D:\VTK8_build\ThirdParty\libharu;D:\VTK-8.1.0\ThirdParty\libharu;D:\VTK8_build\IO\Export;D:\VTK-8.1.0\IO\Export;D:\VTK8_build\IO\ExportOpenGL2;D:\VTK-8.1.0\IO\ExportOpenGL2;D:\VTK8_build\IO\Geometry;D:\VTK-8.1.0\IO\Geometry;D:\VTK8_build\IO\Import;D:\VTK-8.1.0\IO\Import;D:\VTK8_build\ThirdParty\libxml2\vtklibxml2;D:\VTK8_build\ThirdParty\libxml2;D:\VTK-8.1.0\ThirdParty\libxml2;D:\VTK8_build\IO\Infovis;D:\VTK-8.1.0\IO\Infovis;D:\VTK8_build\IO\LSDyna;D:\VTK-8.1.0\IO\LSDyna;D:\VTK8_build\IO\MINC;D:\VTK-8.1.0\IO\MINC;D:\VTK8_build\ThirdParty\oggtheora;D:\VTK-8.1.0\ThirdParty\oggtheora;D:\VTK8_build\IO\Movie;D:\VTK-8.1.0\IO\Movie;D:\VTK8_build\ThirdParty\netcdfcpp;D:\VTK-8.1.0\ThirdParty\netcdfcpp;D:\VTK8_build\IO\NetCDF;D:\VTK-8.1.0\IO\NetCDF;D:\VTK8_build\IO\PLY;D:\VTK-8.1.0\IO\PLY;D:\VTK8_build\ThirdParty\jsoncpp;D:\VTK-8.1.0\ThirdParty\jsoncpp;D:\VTK8_build\IO\Parallel;D:\VTK-8.1.0\IO\Parallel;D:\VTK8_build\IO\ParallelXML;D:\VTK-8.1.0\IO\ParallelXML;D:\VTK8_build\ThirdParty\sqlite;D:\VTK-8.1.0\ThirdParty\sqlite;D:\VTK8_build\IO\SQL;D:\VTK-8.1.0\IO\SQL;D:\VTK8_build\IO\TecplotTable;D:\VTK-8.1.0\IO\TecplotTable;D:\VTK8_build\IO\Video;D:\VTK-8.1.0\IO\Video;D:\VTK8_build\Imaging\Math;D:\VTK-8.1.0\Imaging\Math;D:\VTK8_build\Imaging\Morphological;D:\VTK-8.1.0\Imaging\Morphological;D:\VTK8_build\Imaging\Statistics;D:\VTK-8.1.0\Imaging\Statistics;D:\VTK8_build\Imaging\Stencil;D:\VTK-8.1.0\Imaging\Stencil;D:\VTK8_build\Interaction\Image;D:\VTK-8.1.0\Interaction\Image;D:\VTK8_build\Rendering\ContextOpenGL2;D:\VTK-8.1.0\Rendering\ContextOpenGL2;D:\VTK8_build\Rendering\Image;D:\VTK-8.1.0\Rendering\Image;D:\VTK8_build\Rendering\LOD;D:\VTK-8.1.0\Rendering\LOD;D:\VTK8_build\Rendering\Label;D:\VTK-8.1.0\Rendering\Label;D:\VTK8_build\Rendering\VolumeOpenGL2;D:\VTK-8.1.0\Rendering\VolumeOpenGL2;D:\VTK8_build\Views\Context2D;D:\VTK-8.1.0\Views\Context2D;D:\VTK8_build\Views\Infovis;D:\VTK-8.1.0\Views\Infovis;C:\Users\tavi\PROJECT\fmi_VTK\fmivisbase;C:\Users\tavi\PROJECT\fmi_VTK\modules\newbase\newbase;C:\Users\tavi\PROJECT\fmi_VTK\modules\newbase;C:\Users\tavi\PROJECT\fmi_VTK\modules\boost;C:\Users\tavi\PROJECT\fmi_VTK\modules\smarttools\smarttools;C:\Users\tavi\PROJECT\fmi_VTK\modules\smarttools;D:\VTK8_build\Utilities\KWSys\vtksys;D:\VTK8_build\ThirdParty\hdf5\vtkhdf5\hl\src;D:\VTK8_build\ThirdParty\hdf5\vtkhdf5\src;D:\VTK8_build\ThirdParty\netcdfcpp\vtknetcdfcpp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <AdditionalDependencies>D:\VTK8_build\lib\Debug\vtksqlite-8.1.lib;..\fmivisbase\Debug\fmivisbase.lib;D:\VTK8_build\lib\Debug\vtkDomainsChemistryOpenGL2-8.1.lib;D:\VTK8_build\lib\Debug\vtkDomainsChemistry-8.1.lib;D:\VTK8_build\lib\Debug\vtkFiltersFlowPaths-8.1.lib;D:\VTK8_build\lib\Debug\vtkFiltersGeneric-8.1.lib;D:\VTK8_build\lib\Debug\vtkFiltersHyperTree-8.1.lib;D:\VTK8_build\lib\Debug\vtkFiltersParallelImaging-8.1.lib;D:\VTK8_build\lib\Debug\vtkFiltersPoints-8.1.lib;D:\VTK8_build\lib\Debug\vtkFiltersProgrammable-8.1.lib;D:\VTK8_build\lib\Debug\vtkFiltersSMP-8.1.lib;D:\VTK8_build\lib\Debug\vtkFiltersSelection-8.1.lib;D:\VTK8_build\lib\Debug\vtkFiltersTexture-8.1.lib;D:\VTK8_build\lib\Debug\vtkFiltersTopology-8.1.lib;D:\VTK8_build\lib\Debug\vtkFiltersVerdict-8.1.lib;D:\VTK8_build\lib\Debug\vtkverdict-8.1.lib;D:\VTK8_build\lib\Debug\vtkGUISupportMFC-8.1.lib;D:\VTK8_build\lib\Debug\vtkGeovisCore-8.1.lib;D:\VTK8_build\lib\Debug\vtkproj4-8.1.lib;D:\VTK8_build\lib\Debug\vtkIOAMR-8.1.lib;D:\VTK8_build\lib\Debug\vtkFiltersAMR-8.1.lib;D:\VTK8_build\lib\Debug\vtkIOEnSight-8.1.lib;D:\VTK8_build\lib\Debug\vtkIOExodus-8.1.lib;D:\VTK8_build\lib\Debug\vtkIOExportOpenGL2-8.1.lib;D:\VTK8_build\lib\Debug\vtkIOExport-8.1.lib;D:\VTK8_build\lib\Debug\vtkRenderingGL2PSOpenGL2-8.1.lib;D:\VTK8_build\lib\Debug\vtkgl2ps-8.1.lib;D:\VTK8_build\lib\Debug\vtklibharu-8.1.lib;D:\VTK8_build\lib\Debug\vtkIOImport-8.1.lib;D:\VTK8_build\lib\Debug\vtkIOInfovis-8.1.lib;D:\VTK8_build\lib\Debug\vtklibxml2-8.1.lib;D:\VTK8_build\lib\Debug\vtkIOLSDyna-8.1.lib;D:\VTK8_build\lib\Debug\vtkIOMINC-8.1.lib;D:\VTK8_build\lib\Debug\vtkIOMovie-8.1.lib;D:\VTK8_build\lib\Debug\vtkoggtheora-8.1.lib;D:\VTK8_build\lib\Debug\vtkIOPLY-8.1.lib;D:\VTK8_build\lib\Debug\vtkIOParallel-8.1.lib;D:\VTK8_build\lib\Debug\vtkFiltersParallel-8.1.lib;D:\VTK8_build\lib\Debug\vtkexoIIc-8.1.lib;D:\VTK8_build\lib\Debug\vtkIOGeometry-8.1.lib;D:\VTK8_build\lib\Debug\vtkIONetCDF-8.1.lib;D:\VTK8_build\lib\Debug\vtknetcdfcpp-8.1.lib;D:\VTK8_build\lib\Debug\vtkNetCDF-8.1.lib;D:\VTK8_build\lib\Debug\vtkhdf5_hl-8.1.lib;D:\VTK8_build\lib\Debug\vtkhdf5-8.1.lib;D:\VTK8_build\lib\Debug\vtkjsoncpp-8.1.lib;D:\VTK8_build\lib\Debug\vtkIOParallelXML-8.1.lib;D:\VTK8_build\lib\Debug\vtkParallelCore-8.1.lib;D:\VTK8_build\lib\Debug\vtkIOLegacy-8.1.lib;D:\VTK8_build\lib\Debug\vtksqlite-8.1.lib;D:\VTK8_build\lib\Debug\vtkIOSQL-8.1.lib;D:\VTK8_build\lib\Debug\vtkIOTecplotTable-8.1.lib;D:\VTK8_build\lib\Debug\vtkIOVideo-8.1.lib;D:\VTK8_build\lib\Debug\vtkImagingMorphological-8.1.lib;D:\VTK8_build\lib\Debug\vtkImagingStatistics-8.1.lib;D:\VTK8_build\lib\Debug\vtkImagingStencil-8.1.lib;D:\VTK8_build\lib\Debug\vtkInteractionImage-8.1.lib;D:\VTK8_build\lib\Debug\vtkRenderingContextOpenGL2-8.1.lib;D:\VTK8_build\lib\Debug\vtkRenderingImage-8.1.lib;D:\VTK8_build\lib\Debug\vtkRenderingLOD-8.1.lib;D:\VTK8_build\lib\Debug\vtkRenderingVolumeOpenGL2-8.1.lib;D:\VTK8_build\lib\Debug\vtkRenderingOpenGL2-8.1.lib;D:\VTK8_build\lib\Debug\vtkglew-8.1.lib;D:\VTK8_build\lib\Debug\vtkImagingMath-8.1.lib;D:\VTK8_build\lib\Debug\vtkViewsContext2D-8.1.lib;D:\VTK8_build\lib\Debug\vtkViewsInfovis-8.1.lib;D:\VTK8_build\lib\Debug\vtkChartsCore-8.1.lib;D:\VTK8_build\lib\Debug\vtkRenderingContext2D-8.1.lib;D:\VTK8_build\lib\Debug\vtkFiltersImaging-8.1.lib;D:\VTK8_build\lib\Debug\vtkInfovisLayout-8.1.lib;D:\VTK8_build\lib\Debug\vtkInfovisCore-8.1.lib;D:\VTK8_build\lib\Debug\vtkViewsCore-8.1.lib;D:\VTK8_build\lib\Debug\vtkInteractionWidgets-8.1.lib;D:\VTK8_build\lib\Debug\vtkFiltersHybrid-8.1.lib;D:\VTK8_build\lib\Debug\vtkImagingGeneral-8.1.lib;D:\VTK8_build\lib\Debug\vtkImagingSources-8.1.lib;D:\VTK8_build\lib\Debug\vtkFiltersModeling-8.1.lib;D:\VTK8_build\lib\Debug\vtkImagingHybrid-8.1.lib;D:\VTK8_build\lib\Debug\vtkIOImage-8.1.lib;D:\VTK8_build\lib\Debug\vtkDICOMParser-8.1.lib;D:\VTK8_build\lib\Debug\vtkmetaio-8.1.lib;comctl32.lib;wsock32.lib;D:\VTK8_build\lib\Debug\vtkpng-8.1.lib;D:\VTK8_build\lib\Debug\vtktiff-8.1.lib;D:\VTK8_build\lib\Debug\vtkjpeg-8.1.lib;D:\VTK8_build\lib\Debug\vtkInteractionStyle-8.1.lib;D:\VTK8_build\lib\Debug\vtkFiltersExtraction-8.1.lib;D:\VTK8_build\lib\Debug\vtkFiltersStatistics-8.1.lib;D:\VTK8_build\lib\Debug\vtkImagingFourier-8.1.lib;D:\VTK8_build\lib\Debug\vtkalglib-8.1.lib;D:\VTK8_build\lib\Debug\vtkRenderingAnnotation-8.1.lib;D:\VTK8_build\lib\Debug\vtkImagingColor-8.1.lib;D:\VTK8_build\lib\Debug\vtkRenderingVolume-8.1.lib;D:\VTK8_build\lib\Debug\vtkImagingCore-8.1.lib;D:\VTK8_build\lib\Debug\vtkIOXML-8.1.lib;D:\VTK8_build\lib\Debug\vtkIOXMLParser-8.1.lib;D:\VTK8_build\lib\Debug\vtkIOCore-8.1.lib;D:\VTK8_build\lib\Debug\vtklz4-8.1.lib;D:\VTK8_build\lib\Debug\vtkexpat-8.1.lib;D:\VTK8_build\lib\Debug\vtkRenderingLabel-8.1.lib;D:\VTK8_build\lib\Debug\vtkRenderingFreeType-8.1.lib;D:\VTK8_build\lib\Debug\vtkRenderingCore-8.1.lib;D:\VTK8_build\lib\Debug\vtkCommonColor-8.1.lib;D:\VTK8_build\lib\Debug\vtkFiltersGeometry-8.1.lib;D:\VTK8_build\lib\Debug\vtkFiltersSources-8.1.lib;D:\VTK8_build\lib\Debug\vtkFiltersGeneral-8.1.lib;D:\VTK8_build\lib\Debug\vtkCommonComputationalGeometry-8.1.lib;D:\VTK8_build\lib\Debug\vtkFiltersCore-8.1.lib;D:\VTK8_build\lib\Debug\vtkCommonExecutionModel-8.1.lib;D:\VTK8_build\lib\Debug\vtkCommonDataModel-8.1.lib;D:\VTK8_build\lib\Debug\vtkCommonMisc-8.1.lib;D:\VTK8_build\lib\Debug\vtkCommonSystem-8.1.lib;D:\VTK8_build\lib\Debug\vtksys-8.1.lib;ws2_32.lib;Psapi.lib;D:\VTK8_build\lib\Debug\vtkCommonTransforms-8.1.lib;D:\VTK8_build\lib\Debug\vtkCommonMath-8.1.lib;D:\VTK8_build\lib\Debug\vtkCommonCore-8.1.lib;D:\VTK8_build\lib\Debug\vtkfreetype-8.1.lib;D:\VTK8_build\lib\Debug\vtkzlib-8.1.lib;..\modules\smarttools\Debug\SmartTools.lib;..\modules\newbase\Debug\Newbase.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:/Users/tavi/PROJECT/fmi_VTK/modules/boost/lib;C:/Users/tavi/PROJECT/fmi_VTK/modules/boost/lib/$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <ImportLibrary>C:/Users/tavi/PROJECT/fmi_VTK_MSVC/volumevis/Debug/volumevis.lib</ImportLibrary>
+    </Link>
+    <Midl>
+      <MkTypLibCompatible>false</MkTypLibCompatible>
+      <ValidateAllParameters>true</ValidateAllParameters>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </Midl>
+    <ResourceCompile>
+      <Culture>0x0409</Culture>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <Midl>
+      <MkTypLibCompatible>false</MkTypLibCompatible>
+      <ValidateAllParameters>true</ValidateAllParameters>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </Midl>
+    <ResourceCompile>
+      <Culture>0x0409</Culture>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="MainFrm.h" />
+    <ClInclude Include="Resource.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="targetver.h" />
+    <ClInclude Include="volumevisMFC.h" />
+    <ClInclude Include="volumevisMFCDoc.h" />
+    <ClInclude Include="volumevisMFCView.h" />
+    <ClInclude Include="VolVis.h" />
+    <ClInclude Include="VTKDialog.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="MainFrm.cpp" />
+    <ClCompile Include="stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="volumevisMFC.cpp" />
+    <ClCompile Include="volumevisMFCDoc.cpp" />
+    <ClCompile Include="volumevisMFCView.cpp" />
+    <ClCompile Include="VolVis.cpp" />
+    <ClCompile Include="VTKDialog.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="volumevisMFC.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\volumevisMFC.rc2" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\Toolbar.bmp" />
+    <Image Include="res\volumevisMFC.ico" />
+    <Image Include="res\volumevisMFCDoc.ico" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

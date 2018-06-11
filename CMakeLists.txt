@@ -65,5 +65,9 @@ add_subdirectory(
 )
 
 add_subdirectory(
+	volumevisMFC
+)
+
+add_subdirectory(
 	tests
 )

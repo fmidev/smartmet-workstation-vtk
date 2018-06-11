@@ -35,13 +35,18 @@ nbsSurface::nbsSurface(const std::string &file, nbsMetadata *meta, int param, in
 	points = vtkSmartPointer<vtkPoints>::New();
 
 	textureCoordinates = vtkSmartPointer<vtkFloatArray>::New();
-	textureCoordinates->SetNumberOfComponents(3);
+	textureCoordinates->SetNumberOfComponents(2);
 	textureCoordinates->SetName("TextureCoordinates");
 
 	scalars = vtkSmartPointer<vtkFloatArray>::New();
 
 	scalars->SetNumberOfComponents(1);
 	scalars->SetName("Scalars");
+
+	normals = vtkSmartPointer<vtkFloatArray>::New();
+
+	normals->SetNumberOfComponents(3);
+	normals->SetName("Normals");
 
 	loadPoints();
 }
@@ -95,17 +100,22 @@ bool nbsSurface::loadPoints() {
 	points->Resize(gridX*gridY);
 
 	if (flat) {
+
+
+		float normal[3] = { 0,0,1 };
+
 		for (int x = 0; x < gridX; ++x)
 			for (int y = 0; y < gridY; ++y)
 			{
 				points->InsertNextPoint(x * spacing - (pad ? spacing : 0),
 					y * spacing - (pad ? spacing : 0), 0.1);
 
-				float tuple[3] = { std::min((float)x / gridX, 1.0f),
-					std::min((float)y / gridY, 1.0f) + 0,
-					0.1 };
+				float tuple[2] = { std::min((float)x / gridX, 1.0f),
+					std::min((float)y / gridY, 1.0f) + 0 };
 
 				textureCoordinates->InsertNextTuple(tuple);
+
+				normals->InsertNextTuple(normal);
 			}
 	}
 	else {
@@ -129,6 +139,7 @@ bool nbsSurface::loadPoints() {
 
 		dataInfo.GetLevelToVec(values);
 
+
 		for (int x = 0; x < gridX; ++x)
 			for (int y = 0; y < gridY; ++y)
 			{
@@ -137,9 +148,8 @@ bool nbsSurface::loadPoints() {
 									values[x + y*sizeX] * spacing / zHeight * 80); //VisualizerManager zHeight ja newBaseSourcer zRes
 
 
-				float tuple[3] = { std::min((float)x / gridX, 1.0f),
-					std::min((float)y / gridY, 1.0f) + 0,
-					0.1 };
+				float tuple[2] = { std::min((float)x / gridX, 1.0f),
+					std::min((float)y / gridY, 1.0f) + 0 };
 
 				textureCoordinates->InsertNextTuple(tuple);
 			}
@@ -167,6 +177,7 @@ bool nbsSurface::loadPoints() {
 	inputPolyData->ShallowCopy(delaunay->GetOutput());
 
 	inputPolyData->GetPointData()->SetTCoords(textureCoordinates);
+	if(flat) inputPolyData->GetPointData()->SetNormals(normals);
 
 	return true;
 }

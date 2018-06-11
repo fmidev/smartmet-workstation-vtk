@@ -77,7 +77,7 @@ inline vtkColor4f ColorIndexToRgb(int colorIndex)
 
 
 
-std::shared_ptr<NFmiDrawParamFactory> LoadOptions();
+std::shared_ptr<NFmiDrawParamFactory> LoadOptions(std::string file);
 
 
 inline vtkColor4f fmiToVtkColor(NFmiColor col) {
