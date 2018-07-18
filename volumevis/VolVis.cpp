@@ -302,10 +302,13 @@ fmiVis::Widgets3D fmiVis::Make3DView(std::string file, std::string surfFile, std
 
 	auto mapReader = vtkSmartPointer<vtkPNGReader>::New();
 	mapReader->SetFileName("bottom_indexed.png");
-
+	
 	mapReader->Update();
 
+
+
 	auto texture = vtkSmartPointer<vtkTexture>::New();
+
 	texture->SetInputData(mapReader->GetOutput());
 	texture->SetInterpolate(true);
 	texture->Update();

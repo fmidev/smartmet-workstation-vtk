@@ -15,10 +15,10 @@
 
 #include "nbsImpl.h"
 
-newBaseSourcer::newBaseSourcer(const std::string &file, nbsMetadata *meta, int param, int res, int sub) :
-	newBaseSourcerBase(file,meta,param,res),
+newBaseSourcer::newBaseSourcer(const std::string &file, nbsMetadata *meta, int param, int res, int sub, size_t dim) :
+	newBaseSourcerBase(file, meta, param, res),
 	im(nullptr), heights(),
-	subSample(sub)
+	subSample(sub), dimension(dim)
 {
 	SetNumberOfInputPorts(0);
 
@@ -106,23 +106,25 @@ int newBaseSourcer::RequestData(vtkInformation* vtkNotUsed(request),
 		
 		auto t0 = std::chrono::system_clock::now();
 
-		//luetaan datapisteiden korkeudet
-
 
 		//luetaan parametri
 		LoopParam(param,timeI,[=,&maxVal,&minVal](int x, int y, int z, float val) {
+	
+
+			
 					if (meta->hasHeight) {
 						z = getHeight(x, y, z);
 				
 					}
 
-
-					if (z >= sizeZ)
+					if (z >= sizeZ) {
 						z = sizeZ - 1;
+					} 
 
-						float* pixel = static_cast<float*>(im->GetScalarPointer(x, y, z));
+					float* pixel = static_cast<float*>(im->GetScalarPointer(x, y, z));
 
-						if (pixel[0] != kFloatMissing) {
+					if (pixel[0] != kFloatMissing) {
+
 
 							pixel[0] += val;
 
@@ -130,8 +132,9 @@ int newBaseSourcer::RequestData(vtkInformation* vtkNotUsed(request),
 							if (pixel[0] > maxVal) maxVal = pixel[0];
 							if (pixel[0] < minVal) minVal = pixel[0];
 						}
-						else
-							pixel[0] = val;
+					else
+						pixel[0] = val;
+
 				} );
 		float magnitude = maxVal - minVal;
 
@@ -187,35 +190,8 @@ int newBaseSourcer::RequestData(vtkInformation* vtkNotUsed(request),
 			}
 			threads.push_back(std::async(std::launch::async, [=]
 			{
-				for (int ix = startX; ix < endX; ++ix) {
-					for (int iy = startY; iy < endY; ++iy) {
-						float prevVal = 0, nextVal;
-						for (int iz = 0; iz < zRes; ++iz)
-						{
-							float* val = static_cast<float*>(im->GetScalarPointer(ix, iy, iz));
-							if (*val == kFloatMissing)
-							{
-								if (iz == 0 || iz == zRes - 1) *val = prevVal;
-								for (int findNext = iz + 1; findNext < zRes; ++findNext) {
-									float val2 = static_cast<float*>(im->GetScalarPointer(ix, iy, findNext))[0];
-									if (val2 != kFloatMissing || findNext == zRes - 1) {
-										if (val2 == kFloatMissing && findNext == zRes - 1) nextVal = prevVal;
-										else nextVal = val2;
-										for (int interpolateBack = findNext; interpolateBack >= iz; --interpolateBack) {
-											float alpha = float(findNext - interpolateBack) / float(findNext - iz + 1);
-											float* pixel = static_cast<float*>(im->GetScalarPointer(ix, iy, interpolateBack));
-											pixel[0] = prevVal*alpha + nextVal*(1.0f - alpha);
-										}
-										iz = findNext;
-										prevVal = val2;
-										break;
-									}
-								}
-							}
-							else prevVal = *val;
-						}
-					}
-				}
+				InterpolateImage(startX, startY, endX, endY);
+
 			}) );
 		}
 		//for(int i=0;i<zRes;++i)
@@ -303,28 +279,6 @@ void newBaseSourcer::ReadHeights(int time) {
 
 	dataZ += 0;
 
-// 	auto loop = [&](int x, int y, int z, float val) {
-// 
-// 
-// 		if (val == kFloatMissing) {
-// 			val = 0;
-// 			cout << "Missing height at " << x << ", " << y << ", " << z << endl;
-// 			return false;
-// 		}
-// 
-// 		float h = (val) / zHeight * float(sizeZ);
-// 
-// 		heights[x + y *sizeX + z*sizeX*sizeY] = h;
-// 		return true;
-// 	};
-
-// 
-// 	if (!LoopParam(kFmiGeopHeight, time, loop)) {
-// 		cout << "Warning: kFmiGeopHeight not found, using kFmiGeomHeight" << endl;
-// 		if (!LoopParam(kFmiGeomHeight, time, loop)) {
-// 			cout << "Warning: kFmiGeomHeight not found, heightdata unavailable" << endl;
-// 		}
-// 	}
 }
 
 void newBaseSourcer::AllocateHeights() {
@@ -343,6 +297,17 @@ void newBaseSourcer::AllocateHeights() {
 	heights.resize(sizeX*sizeY*dataZ);
 }
 
+bool newBaseSourcer::ValidValue(float *val)
+{
+	return (val[0] != kFloatMissing && (dimension < 3 || val[2] != kFloatMissing));
+}
+
+bool newBaseSourcer::ValidValue(std::vector<float> &val)
+{
+	return ValidValue(&val[0]);
+}
+
+
 void newBaseSourcer::ResetImage(bool realloc)
 {
 
@@ -355,14 +320,84 @@ void newBaseSourcer::ResetImage(bool realloc)
 		im->Initialize();
 		im->SetDimensions(sizeX, sizeY, sizeZ);
 		im->SetSpacing(2 * subSample, 2 * subSample, 2 * subSample);
-		im->AllocateScalars(VTK_FLOAT, 1);
+		im->AllocateScalars(VTK_FLOAT, dimension);
 	}
 
 	float* p = static_cast<float*>(im->GetScalarPointer());
-	for (long iz = 0; iz < sizeZ; ++iz) {
-		for (long iy = 0; iy < sizeY; ++iy) {
-			for (long ix = 0; ix < sizeX; ++ix) {
-				p[ix + iy*sizeX + iz*sizeX*sizeY] = kFloatMissing;
+
+	for (long i = 0; i < sizeX*sizeY*sizeZ * dimension; ++i)
+		p[i] = kFloatMissing;
+}
+
+
+//interpolates the invalid values between valid ones in each column in the startX,startY-endX,endY block
+//TODO handle overshooting values (requires a dedicated array for them and their height in order to find which one is lowest)
+void newBaseSourcer::InterpolateImage(int startX,int startY,int endX,int endY) {
+
+	int sizeZ = zRes / subSample;
+
+	for (int ix = startX; ix < endX; ++ix) {
+		for (int iy = startY; iy < endY; ++iy) {
+
+			std::vector<float> prevVal( dimension,0.0f );
+			std::vector<float> nextVal( dimension,0.0f );
+
+			for (int iz = 0; iz < sizeZ; ++iz)
+			{
+				float* val = static_cast<float*>(im->GetScalarPointer(ix, iy, iz));
+
+				if (ValidValue(val)) {
+
+					//remember the last valid value in this column
+					SetValue(prevVal, val);
+
+				} else {
+
+					if (iz == 0 || iz == sizeZ - 1) {
+						SetValue(val, prevVal);
+					}
+					//find the next valid value
+					for (int findNext = iz + 1; findNext < sizeZ; ++findNext) {
+
+
+						float* val2 = static_cast<float*>(im->GetScalarPointer(ix, iy, findNext));
+						//found one or reached the end
+						if (ValidValue(val2) || findNext == sizeZ - 1) {
+
+							if ( ValidValue(val2) ) {
+
+								SetValue(nextVal, val2);
+							}
+							else if( findNext == sizeZ - 1) {
+
+								float zero[3] = { 0.0f,0.0f,0.0f };
+								SetValue(nextVal, prevVal);
+							}
+
+							//go backwards, interpolating between the valid values
+							for (int interpolateBack = findNext; interpolateBack >= iz; --interpolateBack) {
+
+								float alpha = float(findNext - interpolateBack) / float(findNext - iz + 1);
+								float* pixel = static_cast<float*>(im->GetScalarPointer(ix, iy, interpolateBack));
+								
+
+								for (int i = 0; i < dimension; i++) {
+									pixel[i] = prevVal[i] * alpha + nextVal[i] * (1.0f - alpha);
+								}
+
+							}
+							
+
+							//this will be the new latest valid value
+							SetValue(prevVal, val2);
+
+							//continue from the valid value we found
+							iz = findNext;
+							break;
+						}
+					}
+				}
+				
 			}
 		}
 	}

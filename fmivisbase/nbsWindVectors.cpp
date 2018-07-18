@@ -20,7 +20,7 @@
 
 
 nbsWindVectors::nbsWindVectors(const std::string &file, nbsMetadata *meta, int res, int subSample) :
-	newBaseSourcer(file, meta, 30000, res,subSample)
+	newBaseSourcer(file, meta, 30000, res,subSample,3)
 {
 
 	ReadHeights(1);
@@ -225,59 +225,9 @@ int nbsWindVectors::RequestData(vtkInformation* vtkNotUsed(request),
 			}
 			threads.push_back(std::async(std::launch::async, [=]
 			{
-				for (int ix = startX; ix < endX; ++ix) {
-					for (int iy = startY; iy < endY; ++iy) {
-						float prevVal[3] = { 0,0,0 }, nextVal[3];
-						for (int iz = 0; iz < sizeZ; ++iz)
-						{
-							float* val = static_cast<float*>(im->GetScalarPointer(ix, iy, iz));
-							if (val[0] == kFloatMissing || val[2]==kFloatMissing)
-							{
-								if (iz == 0 || iz == sizeZ - 1) {
-									val[0] = prevVal[0];
-									val[1] = prevVal[1];
-									val[2] = prevVal[2];
-								}
-								for (int findNext = iz + 1; findNext < sizeZ; ++findNext) {
-									float* val2 = static_cast<float*>(im->GetScalarPointer(ix, iy, findNext));
-									if ((val2[0] != kFloatMissing || val2[2] != kFloatMissing) || findNext == sizeZ - 1) {
-										if ((val2[0] == kFloatMissing || val2[2] == kFloatMissing) && findNext == sizeZ - 1) {
-											nextVal[0] = prevVal[0];
-											nextVal[1] = prevVal[1];
-											nextVal[2] = prevVal[2];
-										}
-										else {
-											nextVal[0] = val2[0];
-											nextVal[1] = val2[1];
-											nextVal[2] = val2[2];
-										}
-										for (int interpolateBack = findNext; interpolateBack >= iz; --interpolateBack) {
-											float alpha = float(findNext - interpolateBack) / float(findNext - iz + 1);
-											float* pixel = static_cast<float*>(im->GetScalarPointer(ix, iy, interpolateBack));
 
-
-											pixel[0] = prevVal[0] * alpha + nextVal[0] * (1.0f - alpha);
-											pixel[1] = prevVal[1] * alpha + nextVal[1] * (1.0f - alpha);
-											pixel[2] = prevVal[2] * alpha + nextVal[2] * (1.0f - alpha);
-										}
-										iz = findNext;
-										
-										prevVal[0] = val2[0];
-										prevVal[1] = val2[1];
-										prevVal[2] = val2[2];
-
-										break;
-									}
-								}
-							}
-							else {
-								prevVal[0] = val[0];
-								prevVal[1] = val[1];
-								prevVal[2] = val[2];
-							}
-						}
-					}
-				}
+				InterpolateImage(startX, startY, endX, endY);
+			
 			}) );
 		}
 // 		for (int i = 0; i < sizeZ; ++i) {
@@ -312,24 +262,4 @@ int nbsWindVectors::RequestData(vtkInformation* vtkNotUsed(request),
 	//ds->ReleaseData();
 
 	return 1;
-}
-
-
-void nbsWindVectors::ResetImage(bool realloc)
-{
-	int sizeX = meta->sizeX / subSample, sizeY = meta->sizeY / subSample, sizeZ = zRes / subSample;
-
-	if (realloc || !im) {
-		if (!im)
-			im = vtkImageData::New();
-		im->Initialize();
-		im->SetDimensions(sizeX, sizeY, sizeZ);
-		im->SetSpacing(2*subSample, 2 * subSample, 2 * subSample);
-		im->AllocateScalars(VTK_FLOAT, 3);
-	}
-
-	float* p = static_cast<float*>(im->GetScalarPointer());
-	
-	for (long i = 0; i < sizeX*sizeY*sizeZ*3; ++i)
-		p[i] = kFloatMissing;
 }

@@ -1,6 +1,6 @@
 project (volumevis)
 
-find_package(VTK REQUIRED)
+find_package(VTK 8 REQUIRED)
 
 include(${VTK_USE_FILE})
 

@@ -53,7 +53,7 @@ ParamVisualizer3D::ParamVisualizer3D(const std::string & file, nbsMetadata & m, 
 	volMap->SetBlendModeToComposite();
 	volMap->SetRequestedRenderModeToGPU();
 	volMap->SetMaxMemoryInBytes(2e9);
-
+	volMap->SetInteractiveUpdateRate(0.1);
 
 	volProperty = vtkSmartPointer<vtkVolumeProperty>::New();
 	volProperty->ShadeOff();
