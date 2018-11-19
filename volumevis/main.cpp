@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
 	iren->SetInteractorStyle(style);
 
 
-	auto meta = nbsMetadata();
+	auto meta = fmiVis::nbsMetadata();
 	meta.init(file);
 
 

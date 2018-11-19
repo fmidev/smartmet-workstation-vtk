@@ -14,68 +14,79 @@
 
 #include <vtkDoubleArray.h>
 #include <vtkSelectVisiblePoints.h>
+#include <vtkTextProperty.h>
 
 #include "DrawOptions.h"
 
-class ContourLabeler {
+class vtkTextProperty;
 
-	vtkSmartPointer<vtkLabeledDataMapper> labelMapper;
-	vtkSmartPointer<vtkActor2D> labelActor;
-	vtkSmartPointer<vtkSelectVisiblePoints> pointSelector;
-	vtkSmartPointer<vtkPoints> points;
-	vtkSmartPointer<vtkDoubleArray> labels;
+namespace fmiVis {
 
-	vtkSmartPointer<vtkPolyData> polyData;
+	//Labels are submitted to ContourLabeler by ParamVisualizers, which uses a vtkLabeledDataMapper to draw them.
+	class ContourLabeler {
 
-	vtkRenderer *ren;
-public:
-	ContourLabeler(vtkRenderer *ren) :
-		labelMapper(vtkSmartPointer<vtkLabeledDataMapper>::New()),
-		labelActor(vtkSmartPointer<vtkActor2D>::New()),
-		pointSelector(vtkSmartPointer<vtkSelectVisiblePoints>::New()),
-		points(vtkSmartPointer<vtkPoints>::New()),
-		labels(vtkSmartPointer<vtkDoubleArray>::New()),
-		polyData(vtkSmartPointer<vtkPolyData>::New()),
-		ren(ren)
-	{
+		vtkSmartPointer<vtkLabeledDataMapper> labelMapper;
+		vtkSmartPointer<vtkActor2D> labelActor;
+		vtkSmartPointer<vtkSelectVisiblePoints> pointSelector;
+		vtkSmartPointer<vtkPoints> points;
+		vtkSmartPointer<vtkDoubleArray> labels;
 
-		labels->SetNumberOfComponents(1);
-		labels->SetName("Isovalues");
+		vtkSmartPointer<vtkPolyData> polyData;
 
-		pointSelector->SetRenderer(ren);
+		vtkRenderer *ren;
+	public:
+		ContourLabeler(vtkRenderer *ren) :
+			labelMapper(vtkSmartPointer<vtkLabeledDataMapper>::New()),
+			labelActor(vtkSmartPointer<vtkActor2D>::New()),
+			pointSelector(vtkSmartPointer<vtkSelectVisiblePoints>::New()),
+			points(vtkSmartPointer<vtkPoints>::New()),
+			labels(vtkSmartPointer<vtkDoubleArray>::New()),
+			polyData(vtkSmartPointer<vtkPolyData>::New()),
+			ren(ren)
+		{
 
-		labelMapper->SetInputConnection(pointSelector->GetOutputPort());
-		labelMapper->SetFieldDataName("Isovalues");
-		labelMapper->SetLabelModeToLabelScalars();
-		labelMapper->SetLabelFormat("%6.2f");
+			labels->SetNumberOfComponents(1);
+			labels->SetName("Isovalues");
+
+			pointSelector->SetRenderer(ren);
+
+			labelMapper->SetInputConnection(pointSelector->GetOutputPort());
+			labelMapper->SetFieldDataName("Isovalues");
+			labelMapper->SetLabelModeToLabelScalars();
+			labelMapper->SetLabelFormat("%6.1f");
+			labelMapper->GetLabelTextProperty()->SetJustificationToCentered();
+
+			labelActor->SetMapper(labelMapper);
+
+		}
+		inline void Clear() {
+			points->Reset();
+			labels->Reset();
+			ren->RemoveActor(labelActor);
+
+		}
+		inline void Add(double point[3], double label) {
+			points->InsertNextPoint(point);
+			labels->InsertNextTuple1(label);
+		}
+		inline void Update() {
+			polyData->SetPoints(points);
+			polyData->GetPointData()->SetScalars(labels);
+
+			pointSelector->SetInputData(polyData);
+
+			pointSelector->Update();
+			labelMapper->Update();
 
 
-		labelActor->SetMapper(labelMapper );
-		
-	}
-	inline void Clear() {
-		points->Reset();
-		labels->Reset();
-		ren->RemoveActor(labelActor);
+			ren->AddActor(labelActor);
+		}
+		//You can change the appereance of the labels from here
+		inline vtkTextProperty* GetProperty() {
+			return labelMapper->GetLabelTextProperty();
+		}
+	};
 
-	}
-	inline void Add(double point[3], double label) {
-		points->InsertNextPoint( point );
-		labels->InsertNextTuple1( label );
-	}
-	inline void Update() {
-		polyData->SetPoints(points);
-		polyData->GetPointData()->SetScalars(labels);
-
-		pointSelector->SetInputData(polyData);
-
-		pointSelector->Update();
-		labelMapper->Update();
-
-
-		ren->AddActor(labelActor);
-	}
-};
-
+}
 
 #endif /* CONTOURLABELER_H */

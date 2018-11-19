@@ -5,7 +5,6 @@
 
 #include "ParamVisualizerBase.h"
 
-struct nbsMetadata;
 class vtkAlgorithmOutput;
 class vtkGlyph3D;
 class vtkExtractSelectedIds;
@@ -18,45 +17,53 @@ class vtkProbeFilter;
 class vtkAssignAttribute;
 class NFmiDataIdent;
 
-class ParamVisualizerWindVec : public ParamVisualizerBase {
+namespace fmiVis {
 
-	//false = streamline
-	bool mode;
+	struct nbsMetadata;
 
-	vtkSmartPointer<vtkAlgorithmOutput> seedData;
-	vtkSmartPointer<vtkAssignAttribute> assign;
+	// traces streamlines from windvector data and renders them as coloured tubes or windbarbs
+	class ParamVisualizerWindVec : public ParamVisualizerBase {
 
-	vtkSmartPointer<vtkProbeFilter> probe;
+		//false = streamline
+		bool mode;
 
-	vtkSmartPointer<vtkGlyph3D> glypher;
+		vtkSmartPointer<vtkAlgorithmOutput> seedData;
+		vtkSmartPointer<vtkAssignAttribute> assign;
 
-	vtkSmartPointer<vtkExtractSelectedIds> extract;
-	vtkSmartPointer<vtkStreamTracer> streamer;
-	vtkSmartPointer<vtkTubeFilter> tuber;
+		vtkSmartPointer<vtkProbeFilter> probe;
 
-	vtkSmartPointer<vtkPolyDataMapper> map;
+		vtkSmartPointer<vtkGlyph3D> glypher;
 
-	vtkSmartPointer<vtkActor> act;
+		vtkSmartPointer<vtkExtractSelectedIds> extract;
+		vtkSmartPointer<vtkStreamTracer> streamer;
+		vtkSmartPointer<vtkTubeFilter> tuber;
 
-	void ModeStreamline();
-	void ModeGlyph();
+		vtkSmartPointer<vtkPolyDataMapper> map;
 
-public:
+		vtkSmartPointer<vtkActor> act;
 
-	ParamVisualizerWindVec(const std::string &file, nbsMetadata &m, NFmiDataIdent &param, NFmiDrawParamFactory* fac, vtkAlgorithmOutput* seedData);
+		void ModeStreamline();
+		void ModeGlyph();
 
-	virtual inline void ToggleMode() {
+	public:
 
-		if (mode) {
-			ModeStreamline();
+		//seeddata is the initial positions of the streamlines
+		ParamVisualizerWindVec(const std::string &file, nbsMetadata &m, NFmiDataIdent &param, NFmiDrawParamFactory* fac, vtkAlgorithmOutput* seedData);
+
+		virtual inline void ToggleMode() {
+
+			if (mode) {
+				ModeStreamline();
+			}
+			else {
+				ModeGlyph();
+			}
+
+			mode = !mode;
 		}
-		else {
-			ModeGlyph();
-		}
 
-		mode = !mode;
-	}
+	};
 
-};
+}
 
 #endif // ParamVisualizerWindVec_h

@@ -14,42 +14,47 @@
 #include <NFmiQueryData.h>
 #include <NFmiFastQueryInfo.h>
 
-typedef std::array<float, 2> paramRange;
+namespace fmiVis {
 
-//yleisiä tietoja newbase-datasta
-struct nbsMetadata {
-	NFmiPoint p1;
-	NFmiPoint p2;
-	float minH;
-	float maxH;
+	typedef std::array<float, 2> paramRange;
 
-	std::shared_ptr<NFmiQueryData> data;
-	std::shared_ptr<NFmiFastQueryInfo> dataInfo;
+	//general metadata record of a given newbase file
+	//call init() to read the information from the file
+	struct nbsMetadata {
+		NFmiPoint p1;
+		NFmiPoint p2;
+		float minH;
+		float maxH;
 
-	long timeSteps;
-	float maxHAvailable;
-	bool hasHeight;
-	int sizeX, sizeY, sizeZ;
+		std::shared_ptr<NFmiQueryData> data;
+		std::shared_ptr<NFmiFastQueryInfo> dataInfo;
 
-	std::vector<double> times;
-	std::map<double, int> timeIndex;
-	long minT;
-	long maxT;
+		long timeSteps;
+		float maxHAvailable;
+		bool hasHeight;
+		int sizeX, sizeY, sizeZ;
+
+		std::vector<double> times;
+		std::map<double, int> timeIndex;
+		long minT;
+		long maxT;
 
 
-	nbsMetadata() :
-		data(nullptr),
-		dataInfo(nullptr)
-	{}
+		nbsMetadata() :
+			data(nullptr),
+			dataInfo(nullptr)
+		{}
 
-	void init(const std::string &file);
-	static std::string getTimeString(double val);
+		void init(const std::string &file);
+		static std::string getTimeString(double val);
 
-	time_t timeStepToEpoch(double step) {
-		return minT + step*(double(maxT - minT) / (timeSteps));
-	}
+		time_t timeStepToEpoch(double step) {
+			return minT + step * (double(maxT - minT) / (timeSteps));
+		}
 
-	paramRange getParamRange(int p) const;
-};
+		paramRange getParamRange(int p) const;
+	};
 
+
+}
 #endif /*NEWBASESOURCERMETADATA_H*/

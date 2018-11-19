@@ -10,6 +10,8 @@ class vtkTextProperty;
 class vtkImageAppendComponents;
 class vtkImageReslice;
 
+
+//renders text to an image, do not use
 class TextImageLayer {
 
 	vtkSmartPointer<vtkImageData> image;

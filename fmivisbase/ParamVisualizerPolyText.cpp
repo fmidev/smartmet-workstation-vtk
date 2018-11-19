@@ -15,108 +15,111 @@
 
 #include "nbsSurface.h"
 
-ParamVisualizerPolyText::ParamVisualizerPolyText(const std::string &file, nbsMetadata &m, NFmiDataIdent &paramIdent, NFmiDrawParamFactory* fac) :
-	ParamVisualizerBase(new nbsSurface(file, &m, paramIdent.GetParamIdent(), 13000, true), m, paramIdent,fac),
-	vt(vtkSmartPointer<vtkVectorText>::New()),
-	tf(vtkSmartPointer<vtkTransformPolyDataFilter>::New()),
-	ap(vtkSmartPointer<vtkAppendPolyData>::New())
-	
-{
-	nbs->Update();
+namespace fmiVis {
+	ParamVisualizerPolyText::ParamVisualizerPolyText(const std::string &file, nbsMetadata &m, NFmiDataIdent &paramIdent, NFmiDrawParamFactory* fac) :
+		ParamVisualizerBase(new nbsSurface(file, &m, paramIdent.GetParamIdent(), 13000, true), m, paramIdent, fac), //13000 is magic for wind vectors, hopefully not in conflict with newbase
+		vt(vtkSmartPointer<vtkVectorText>::New()),
+		tf(vtkSmartPointer<vtkTransformPolyDataFilter>::New()),
+		ap(vtkSmartPointer<vtkAppendPolyData>::New())
 
-	map = vtkSmartPointer<vtkPolyDataMapper>::New();
+	{
+		nbs->Update();
 
-	map->AddInputConnection(ap->GetOutputPort());
+		map = vtkSmartPointer<vtkPolyDataMapper>::New();
 
-	map->SetScalarModeToUseCellData();
-	map->SetColorModeToMapScalars();
+		map->AddInputConnection(ap->GetOutputPort());
 
-
-
-	act = vtkSmartPointer<vtkActor>::New();
-	act->SetMapper(map);
+		map->SetScalarModeToUseCellData();
+		map->SetColorModeToMapScalars();
 
 
-	SetActiveMapper(act->GetMapper());
 
-	SetProp(act);
-
-}
+		act = vtkSmartPointer<vtkActor>::New();
+		act->SetMapper(map);
 
 
-void ParamVisualizerPolyText::UpdateTimeStep(double t)
-{
+		SetActiveMapper(act->GetMapper());
 
-	int sizeX = meta.sizeX;
-	int sizeY = meta.sizeY;
+		SetProp(act);
 
-	UpdateNBS(t);
-	
-	vtkPolyData * input = vtkPolyData::SafeDownCast(nbs->GetOutputDataObject(0));
-
-
-	auto inputSize = input->GetNumberOfPoints();
-
-	auto inputScalars = input->GetPointData()->GetScalars();
-
-	auto pos = vtkSmartPointer<vtkTransform>::New();
-
-	ap->RemoveAllInputs();
-
-	int ix = 0, iy = 0;
-	int step = 3;
-
-	while (iy < sizeY) {
-		ix = 0;
-		while (ix < sizeX) {
-
-			int i = iy + sizeY*ix;
-
-			auto s = std::ostringstream{};
-
-			auto val = inputScalars->GetTuple1(i);
-
-			s << val;
-
-			vt->SetText(s.str().c_str());
-			vt->Update();
-
-			double v[3];
-
-			input->GetPoint(i, v);
-
-			pos->Identity();
-
-
-			pos->Translate(v);
-			pos->Translate(0,0,2);
-			pos->Scale(step*0.75, step*0.75, 1);
-
-			tf->SetTransform(pos);
-
-
-			tf->SetInputData(vt->GetOutput());
-			tf->Update();
-
-			auto data = vtkSmartPointer<vtkPolyData>::New();
-
-			auto scalar = vtkSmartPointer<vtkFloatArray>::New();
-
-			scalar->SetNumberOfComponents(1);
-
-			for(int i=0;i<tf->GetOutput()->GetNumberOfCells();i++)
-				scalar->InsertNextTuple1(val / 100);
-
-			data->ShallowCopy(tf->GetOutput());
-			data->GetCellData()->SetScalars(scalar);
-
-			ap->AddInputData(data);
-			ix += step;
-		}
-		iy += step;
 	}
 
-	ap->Update();
 
-	map->Update();
+	void ParamVisualizerPolyText::UpdateTimeStep(double t)
+	{
+
+		int sizeX = meta.sizeX;
+		int sizeY = meta.sizeY;
+
+		UpdateNBS(t);
+
+		vtkPolyData * input = vtkPolyData::SafeDownCast(nbs->GetOutputDataObject(0));
+
+
+		auto inputSize = input->GetNumberOfPoints();
+
+		auto inputScalars = input->GetPointData()->GetScalars();
+
+		auto pos = vtkSmartPointer<vtkTransform>::New();
+
+		ap->RemoveAllInputs();
+
+		int ix = 0, iy = 0;
+		int step = 3;
+
+		while (iy < sizeY) {
+			ix = 0;
+			while (ix < sizeX) {
+
+				int i = iy + sizeY * ix;
+
+				auto s = std::ostringstream{};
+
+				auto val = inputScalars->GetTuple1(i);
+
+				s << val;
+
+				vt->SetText(s.str().c_str());
+				vt->Update();
+
+				double v[3];
+
+				input->GetPoint(i, v);
+
+				pos->Identity();
+
+
+				pos->Translate(v);
+				pos->Translate(0, 0, 2);
+				pos->Scale(step*0.75, step*0.75, 1);
+
+				tf->SetTransform(pos);
+
+
+				tf->SetInputData(vt->GetOutput());
+				tf->Update();
+
+				auto data = vtkSmartPointer<vtkPolyData>::New();
+
+				auto scalar = vtkSmartPointer<vtkFloatArray>::New();
+
+				scalar->SetNumberOfComponents(1);
+
+				for (int i = 0; i < tf->GetOutput()->GetNumberOfCells(); i++)
+					scalar->InsertNextTuple1(val / 100);
+
+				data->ShallowCopy(tf->GetOutput());
+				data->GetCellData()->SetScalars(scalar);
+
+				ap->AddInputData(data);
+				ix += step;
+			}
+			iy += step;
+		}
+
+		ap->Update();
+
+		map->Update();
+	}
+
 }

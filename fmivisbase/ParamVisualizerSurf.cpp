@@ -6,12 +6,16 @@
 #include <vtkProperty.h>
 #include <vtkType.h>
 #include <vtkProbeFilter.h>
-#include <vtkContourFilter.h>
+#include <vtkMarchingContourFilter.h>
 #include <vtkStripper.h>
 #include <vtkPointData.h>
 #include <vtkPolyData.h>
 #include <vtkColorTransferFunction.h>
 #include <vtkTexture.h>
+
+#include <vtkSplineFilter.h>
+
+#include <vtkRibbonFilter.h>
 
 #include "ContourLabeler.h"
 
@@ -31,323 +35,447 @@
 #include <NFmiDrawParam.h>
 #include <NFmiDataIdent.h>
 #include "areaUtil.h"
+#include "vtkCommand.h"
 
-void ParamVisualizerSurf::ModeIsoLine() {
+#include <vtkCookieCutter.h>
+#include <vtkContourLoopExtraction.h>
+#include <vtkTextProperty.h>
 
-	polyMap->SetLookupTable(isolineColFunc);
+namespace fmiVis {
 
-
-	contour->SetInputConnection(nbs->GetOutputPort());
-
-
-	append->RemoveAllInputConnections(0);
-
-	stripper->AddInputConnection(contour->GetOutputPort());
-
-	
-}
-
-void ParamVisualizerSurf::ModeColorContour() {
-
-	polyMap->SetLookupTable(contourColFunc);
-
-	contour->RemoveAllInputConnections(0);
-
-	append->RemoveAllInputConnections(0);
-	stripper->RemoveAllInputConnections(0);
-
-	append->SetInputConnection(0,nbs->GetOutputPort());
-
-}
+	class nullCommand : public vtkCommand {
+	public:
+		static nullCommand * New() {
+			return new nullCommand{};
+		}
+		void Execute(vtkObject *caller, unsigned long eventId,
+			void *callData) {};
+	protected:
+		nullCommand() {};
+	};
 
 
+	void ParamVisualizerSurf::ModeIsoLine() {
 
-void debugLines(vtkAppendPolyData* append,vtkPoints* points, vtkIdList *idList) {
-	auto data = vtkSmartPointer<vtkPolyData>::New();
-
-	// 				loop->SetLoop(line);
-	// 
-	// 				clip->SetClipFunction(loop);
-	// 				clip->Update();
+		polyMap->SetLookupTable(isolineColFunc);
 
 
-	data->Allocate(1);
-
-	data->SetPoints(points);
-
-	data->InsertNextCell(VTK_POLY_LINE, idList);
-
-	//data->ShallowCopy(clip->GetOutput());
-
-	auto dataScalars = vtkSmartPointer<vtkFloatArray>::New();
-	dataScalars->SetNumberOfComponents(1);
-	for (int i = 0; i < data->GetNumberOfPoints(); ++i)
-		dataScalars->InsertNextTuple1(double(i) / data->GetNumberOfPoints() * 200);
-
-	data->GetPointData()->SetScalars(dataScalars);
-
-	append->AddInputData(data);
-}
+		contour->SetInputConnection(nbs->GetOutputPort());
 
 
-void TriangulateContour(vtkSmartPointer<vtkPoints> line, vtkSmartPointer<vtkIdList> lineList,
-	vtkSmartPointer<vtkDecimatePolylineFilter> decimate, vtkSmartPointer<vtkContourTriangulator> triangulate, vtkSmartPointer<vtkAppendPolyData> append)
-{
-
-	auto data = vtkSmartPointer<vtkPolyData>::New();
-
-	data->Allocate(1);
-
-	data->SetPoints(line);
-
-	data->InsertNextCell(VTK_POLY_LINE, lineList);
+		append->RemoveAllInputConnections(0);
 
 
-	decimate->SetInputData(data);
-	decimate->Update();
 
-	triangulate->SetInputData(decimate->GetOutput());
 
-	triangulate->Update();
+		append->SetInputConnection(0, ribbon->GetOutputPort());
 
-	data->ShallowCopy(triangulate->GetOutput());
-	append->AddInputData(data);
-}
+		polyMap->Update();
+	}
 
-void ParamVisualizerSurf::UpdateTimeStep(double t) {
-	UpdateNBS(t);
+	void ParamVisualizerSurf::ModeColorContour() {
 
-	if (mode) {
+		polyMap->SetLookupTable(contourColFunc);
 
-		append->RemoveAllInputs();
-		append->SetInputConnection(0, contour->GetOutputPort());
+		contour->RemoveAllInputConnections(0);
 
-		contour->Update();
-		stripper->Update();
+		append->RemoveAllInputConnections(0);
 
-		vtkPoints *points =
-			stripper->GetOutput()->GetPoints();
-		vtkCellArray *cells =
-			stripper->GetOutput()->GetLines();
-		vtkDataArray *scalars =
-			stripper->GetOutput()->GetPointData()->GetScalars();
+		append->SetInputConnection(0, nbs->GetOutputPort());
 
-		vtkIdType *indices;
-		vtkIdType numberOfPoints;
-		unsigned int lineCount = 0;
-		for (cells->InitTraversal();
-			cells->GetNextCell(numberOfPoints, indices);
-			lineCount++)
-		{
+		polyMap->Update();
+	}
 
-			vtkIdType midPointId = indices[(numberOfPoints / 2)*(lineCount % 2)];
 
-			auto val = scalars->GetTuple1(midPointId);
 
-			if (numberOfPoints > 10)
+	void debugLines(vtkAppendPolyData* append, vtkPoints* points, vtkIdList *idList) {
+		auto data = vtkSmartPointer<vtkPolyData>::New();
+
+		// 				loop->SetLoop(line);
+		// 
+		// 				clip->SetClipFunction(loop);
+		// 				clip->Update();
+
+
+		data->Allocate(1);
+
+		data->SetPoints(points);
+
+		data->InsertNextCell(VTK_POLY_LINE, idList);
+
+		//data->ShallowCopy(clip->GetOutput());
+
+		auto dataScalars = vtkSmartPointer<vtkFloatArray>::New();
+		dataScalars->SetNumberOfComponents(1);
+		for (int i = 0; i < data->GetNumberOfPoints(); ++i)
+			dataScalars->InsertNextTuple1(double(i) / data->GetNumberOfPoints() * 200);
+
+		data->GetPointData()->SetScalars(dataScalars);
+
+		append->AddInputData(data);
+	}
+
+	//hatching
+	void TriangulateContour(vtkSmartPointer<vtkPoints> line, vtkSmartPointer<vtkIdList> lineList,
+		vtkSmartPointer<vtkDecimatePolylineFilter> decimate, vtkSmartPointer<vtkContourTriangulator> triangulate, vtkSmartPointer<vtkAppendPolyData> append)
+	{
+
+		auto data = vtkSmartPointer<vtkPolyData>::New();
+
+		data->Allocate(1);
+
+		data->SetPoints(line);
+
+		data->InsertNextCell(VTK_POLY_LINE, lineList);
+
+
+		decimate->SetInputData(data);
+		decimate->Update();
+
+		triangulate->SetInputData(decimate->GetOutput());
+
+		triangulate->Update();
+
+		data->ShallowCopy(triangulate->GetOutput());
+		append->AddInputData(data);
+	}
+
+	void ParamVisualizerSurf::UpdateTimeStep(double t) {
+		UpdateNBS(t);
+
+		if (mode) {
+
+			append->RemoveAllInputs();
+			//append->SetInputConnection(0, contour->GetOutputPort());
+			append->SetInputConnection(0, ribbon->GetOutputPort());
+
+			contour->Update();
+			stripper->Update();
+
+			pointWidths->Reset();
+
+			vtkPoints *points =
+				stripper->GetOutput()->GetPoints();
+			vtkCellArray *cells =
+				stripper->GetOutput()->GetLines();
+			vtkDataArray *scalars =
+				stripper->GetOutput()->GetPointData()->GetScalars();
+
+			vtkIdType *indices;
+			vtkIdType numberOfPoints;
+			unsigned int lineCount = 0;
+			for (cells->InitTraversal();
+				cells->GetNextCell(numberOfPoints, indices);
+				lineCount++)
 			{
 
-				double midPoint[3];
-				points->GetPoint(midPointId, midPoint);
+				vtkIdType midPointId = indices[(numberOfPoints / 2)*(lineCount % 2)];
 
-				labeler.Add(midPoint, val);
+				auto val = scalars->GetTuple1(midPointId);
+
+				if (numberOfPoints > 10)
+				{
+					double midPoint[3];
+					points->GetPoint(midPointId, midPoint);
+
+					labeler.Add(midPoint, val);
+
+				}
+
+				for (int i = 0; i < points->GetNumberOfPoints(); i++) {
+					pointWidths->InsertNextTuple1(lineWidth[scalars->GetTuple1(i)]);
+				}
+
+				//if (abs(val - 5.0) < 0.01) {
+
+
+					//loop->SetInputData(contour->GetOutput());
+
+					//loop->SetScalarRange(4, 6);
+					//loop->SetScalarThresholding(true);
+
+					//loop->Update();
+
+					//cutter->Update();
+
+					//append->AddInputData(contour->GetOutput());
+					//append->AddInputData(loop->GetOutput());
+
+					//debugLines(append, points, idList);
+
+				//}
+
 
 			}
-			/*
-			if (abs(val - 60) < 0.01) {
+
+			//int arrId = stripper->GetOutput()->GetPointData()->AddArray(pointWidths);
+			//ribbon->SetInputArrayToProcess(0, 0, 0, vtkDataObject::FIELD_ASSOCIATION_POINTS, "width");
+
+		}
 
 
-				auto line = vtkSmartPointer<vtkPoints>::New();
-				auto idList = vtkSmartPointer<vtkIdList>::New();
 
-				for (int i = 0; i < numberOfPoints; i++)
-					idList->InsertNextId(indices[i]);
-				points->GetPoints(idList, line);
-
-				auto lineList = vtkSmartPointer<vtkIdList>::New();
-				for (int i = 0; i < numberOfPoints; i++)
-					lineList->InsertNextId(i);
-				lineList->InsertNextId(0);
-
-
-				TriangulateContour(line, lineList, decimate, triangulate, append);
- 
-				debugLines(append, points, idList);
-
-			}
-			*/
-
-		} 
-
+		if (append->GetTotalNumberOfInputConnections())
+			polyMap->UpdateTimeStep(t);
 	}
 
-	if(append->GetTotalNumberOfInputConnections())
-		polyMap->UpdateTimeStep(t);
-}
 
+	vtkScalarsToColors  * ParamVisualizerSurf::getColor() {
+		return polyMap->GetLookupTable();
+	}
+	double * ParamVisualizerSurf::getRange() {
+		return polyMap->GetScalarRange();
+	}
 
-vtkScalarsToColors  * ParamVisualizerSurf::getColor() {
-	return polyMap->GetLookupTable();
-}
-double * ParamVisualizerSurf::getRange() {
-	return polyMap->GetScalarRange();
-}
-
-void ParamVisualizerSurf::UpdateNBS(double t)
-{
-	nbs->Modified();
-	if (flat)
+	//a hook to limit the update extent to the area currently visible on camera
+	void ParamVisualizerSurf::UpdateNBS(double t)
 	{
-		auto areaExt = AreaUtil::FindExtentScandic(ren, meta.dataInfo->Area());
-		int extents[6] = {	areaExt[0],areaExt[1],
-							areaExt[2],areaExt[3],
-							1,1 };
-
-		nbs->UpdateTimeStep(t, -1, 1, 0, extents);
-	}
-	else
-		nbs->UpdateTimeStep(t);
-
-}
-
-ParamVisualizerSurf::ParamVisualizerSurf(
-	const std::string &file, nbsMetadata &m, ContourLabeler &labeler,
-	NFmiDataIdent &paramIdent, NFmiDrawParamFactory* fac, bool flat) :
-
-	ParamVisualizerBase(new nbsSurface(file, &m, paramIdent.GetParamIdent(), 13000, flat, true), m, paramIdent, fac),
-	labeler(labeler), mode(false), flat(flat)
-{
-	nbs->Update();
-
-	hatch = HatchSource::New();
-	hatch->Generate(m.sizeX * 2, m.sizeY * 2, 20);
-
-	loop = vtkImplicitSelectionLoop::New();
-
-	loop->AutomaticNormalGenerationOff();
-	loop->SetNormal(0, 0, 1);
-
-	clip = vtkClipPolyData::New();
-
-	//clip->InsideOutOn();
-	//clip->GenerateClippedOutputOn();
-
-	clip->AddInputConnection(hatch->GetOutputPort());
-
-	contour = vtkContourFilter::New();
-	contour->SetComputeScalars(true);
-
-	stripper = vtkStripper::New();
-
-	stripper->SetInputConnection(contour->GetOutputPort());
-
-	append = vtkAppendPolyData::New();
-
-	polyMap = vtkPolyDataMapper::New();
-
-	polyMap->AddInputConnection(append->GetOutputPort());
-
-	polyMap->SelectColorArray("Scalars");
-
-	polyMap->SetColorModeToMapScalars();
-
-	triangulate = vtkSmartPointer<vtkContourTriangulator>::New();
-
-	clean = vtkSmartPointer<vtkCleanPolyData>::New();
-	decimate = vtkSmartPointer<vtkDecimatePolylineFilter>::New();
-
-	//decimate->AddInputConnection(clean->GetOutputPort());
-
-	SetActiveMapper(polyMap);
-
-	polyAct = vtkActor::New();
-
-	polyAct->SetMapper(polyMap);
-
-	ReloadOptions();
-
-	SetProp(polyAct);
-
-	ModeColorContour();
-}
-
-void ParamVisualizerSurf::ReloadOptions()
-{
-
-	auto drawParam = drawParamFac->CreateDrawParam(paramIdent, nullptr);
-
-	const int stepLimit = 100;
-
-
-	
-	auto range = meta.getParamRange(param);
-
-	auto step = drawParam->IsoLineGab();
-
-	int stepCount = (range[1] - range[0]) / step;
-	if (stepCount > stepLimit) stepCount = stepLimit;
-
-/*	contour->GenerateValues(stepCount,
-		drawParam->SimpleIsoLineZeroValue() - step * stepCount/2,
-		drawParam->SimpleIsoLineZeroValue() + step * stepCount/2);
-*/
-	contour->GenerateValues(stepCount, range[0], range[1]);
-	//stripper->SetJoinContiguousSegments(1);
-
-
-	double offset = drawParam->SimpleIsoLineZeroValue();
-
-	long lower = floor(range[0] / step )*step + offset;
-	long upper = ceil(range[1] / step )*step + offset;
-
-	polyMap->SetScalarRange(lower,upper);
-
-	if (!drawParam->UseSingleColorsWithSimpleIsoLines())
-		isolineColFunc = fmiVis::makeIsolineColorFunction(drawParam.get());
-	else
-		isolineColFunc =
-			fmiVis::constColor( &fmiVis::fmiToVtkColor(drawParam->IsolineColor()) );
-
-	contourColFunc =  fmiVis::makeContourColorFunction(drawParam.get());
-
-	if (drawParam->UseCustomIsoLineing() || drawParam->UseCustomColorContouring()) {
-		std::vector<vtkColor4f> colors;
-		std::vector<float> values;
-
-		if (drawParam->UseCustomIsoLineing()) 
+		nbs->Modified();
+		if (flat)
 		{
-			isolineColFunc = fmiVis::makeColorFunction(colors, values);
-			fmiVis::readCustomIsolineParams(drawParam.get(), colors, values);
+			auto areaExt = AreaUtil::FindExtentScandic(ren, meta);
+			int extents[6] = { areaExt[0],areaExt[1],
+								areaExt[2],areaExt[3],
+								1,1 };
+
+			nbs->UpdateTimeStep(t, -1, 1, 0, extents);
 		}
-		else 
-			fmiVis::readCustomContourParams(drawParam.get(), colors, values);
+		else
+			nbs->UpdateTimeStep(t);
 
-		contour->SetNumberOfContours(values.size());
-
-		int i = 0;
-
-		for (auto &val : values) {
-			contour->SetValue(i++, val);
-		}
-
-		polyMap->SetScalarRange(*values.begin(), *values.rbegin());
 	}
 
-	decimate->SetTargetReduction(0.9);
+	/*
+	vtkMarchingCountourFilter generates isolines out of the nbs data, vtkSplineFilter smooths them and vtkRibbonFilter turns them into wide polygonal lines
+	vtkAppendPolydata collects various attempts at hatching
+	color contour mode hardly requires filters
+	*/
 
-	//polyAct->GetProperty()->ShadingOff();
-	//polyAct->GetProperty()->SetOpacity(0.4);
+	ParamVisualizerSurf::ParamVisualizerSurf(
+		const std::string &file, nbsMetadata &m, ContourLabeler &labeler,
+		NFmiDataIdent &paramIdent, NFmiDrawParamFactory* fac, bool flat) :
+
+		ParamVisualizerBase(new nbsSurface(file, &m, paramIdent.GetParamIdent(), 13000, flat, true), m, paramIdent, fac),
+		labeler(labeler), mode(false), flat(flat)
+	{
+		nbs->Update();
+
+		//hatching
+		contour = vtkMarchingContourFilter::New();
+		contour->SetComputeScalars(true);
+		contour->SetUseScalarTree(true);
+
+		hatch = HatchSource::New();
+		hatch->Generate(m.sizeX * 2, m.sizeY * 2, 20);
 
 
-}
+		loop = vtkContourLoopExtraction::New();
+		loop->AddInputConnection(contour->GetOutputPort());
+		loop->SetLoopClosureToAll();
 
-ParamVisualizerSurf::~ParamVisualizerSurf() {
-	hatch->Delete();
-	loop->Delete();
-	clip->Delete();
-	contour->Delete();
-	stripper->Delete();
-	append->Delete();
-	polyMap->Delete();
-	polyAct->Delete();
+		cutter = vtkCookieCutter::New();
+
+		//	cutter->AddInputConnection(hatch->GetOutputPort());
+		//	cutter->SetLoopsConnection(loop->GetOutputPort());
+
+		stripper = vtkStripper::New();
+
+		stripper->SetInputConnection(contour->GetOutputPort());
+
+		//line smoothing
+		smooth = vtkSplineFilter::New();
+
+		smooth->SetSubdivideToLength();
+		smooth->SetLength(0.1);
+		smooth->SetInputConnection(stripper->GetOutputPort());
+
+		//line width
+		ribbon = vtkRibbonFilter::New();
+		ribbon->SetDebug(false);
+		ribbon->SetUseDefaultNormal(true);
+
+		//consumes a warning ribbonfilter spams for unknown reasons
+		auto warningSink = vtkSmartPointer<nullCommand>::New();
+
+		ribbon->AddObserver("WarningEvent", warningSink);
+
+		pointWidths = vtkSmartPointer<vtkFloatArray>::New();
+		pointWidths->SetName("width");
+
+		ribbon->SetInputConnection(stripper->GetOutputPort());
+		ribbon->SetVaryWidth(true);
+		ribbon->SetWidthFactor(8);
+		ribbon->SetWidth(0.1);
+
+		append = vtkAppendPolyData::New();
+
+		polyMap = vtkPolyDataMapper::New();
+
+		polyMap->AddInputConnection(append->GetOutputPort());
+
+		polyMap->SelectColorArray("Scalars");
+
+		polyMap->SetColorModeToMapScalars();
+
+		triangulate = vtkSmartPointer<vtkContourTriangulator>::New();
+
+		clean = vtkSmartPointer<vtkCleanPolyData>::New();
+		decimate = vtkSmartPointer<vtkDecimatePolylineFilter>::New();
+
+		//decimate->AddInputConnection(clean->GetOutputPort());
+
+		SetActiveMapper(polyMap);
+
+		polyAct = vtkActor::New();
+
+		polyAct->SetMapper(polyMap);
+
+
+		SetProp(polyAct);
+
+		//called by ReloadOptions()
+		//ModeColorContour();
+
+
+
+		ReloadOptions();
+	}
+	void ParamVisualizerSurf::ReloadOptions()
+	{
+
+		lineWidth.clear();
+
+		drawParam = drawParamFac->CreateDrawParam(paramIdent, nullptr);
+
+		const int stepLimit = 20;
+
+
+
+		auto range = meta.getParamRange(param);
+
+		auto step = drawParam->IsoLineGab();
+
+		int stepCount = (range[1] - range[0]) / step;
+		if (stepCount > stepLimit) stepCount = stepLimit;
+
+		/*	contour->GenerateValues(stepCount,
+				drawParam->SimpleIsoLineZeroValue() - step * stepCount/2,
+				drawParam->SimpleIsoLineZeroValue() + step * stepCount/2);
+		*/
+		contour->GenerateValues(stepCount, range[0], range[1]);
+		//stripper->SetJoinContiguousSegments(1);
+
+
+		double offset = drawParam->SimpleIsoLineZeroValue();
+
+		long lower = floor(range[0] / step)*step + offset;
+		long upper = ceil(range[1] / step)*step + offset;
+
+		polyMap->SetScalarRange(lower, upper);
+
+		if (!drawParam->UseSingleColorsWithSimpleIsoLines())
+			isolineColFunc = fmiVis::makeIsolineColorFunction(drawParam.get());
+		else
+			isolineColFunc =
+			fmiVis::constColor(&fmiVis::fmiToVtkColor(drawParam->IsolineColor()));
+
+		contourColFunc = fmiVis::makeContourColorFunction(drawParam.get());
+
+		auto labelProp = labeler.GetProperty();
+
+		labelProp->SetColor(drawParam->IsolineTextColor().Red(),
+			drawParam->IsolineTextColor().Green(),
+			drawParam->IsolineTextColor().Blue());
+		//	labelProp->SetOpacity(drawParam->IsolineTextColor().Alpha());
+
+
+		labelProp->SetFrameColor(drawParam->IsolineColor().Red(),
+			drawParam->IsolineColor().Green(),
+			drawParam->IsolineColor().Blue());
+
+		labelProp->SetFontSize(drawParam->SimpleIsoLineLabelHeight() * 6);
+
+
+		if (drawParam->ShowSimpleIsoLineLabelBox()) {
+
+			labelProp->SetFrame(true);
+
+			if (!drawParam->UseTransparentFillColor()) {
+
+				labelProp->SetBackgroundColor(drawParam->IsolineLabelBoxFillColor().Red(),
+					drawParam->IsolineLabelBoxFillColor().Green(),
+					drawParam->IsolineLabelBoxFillColor().Blue());
+
+				//			labelProp->SetBackgroundOpacity(drawParam->IsolineLabelBoxFillColor().Alpha());
+			}
+		}
+		else	labelProp->SetFrame(false);
+
+		if (drawParam->IsoLineSplineSmoothingFactor() > 1.0f) {
+			ribbon->SetInputConnection(smooth->GetOutputPort());
+			smooth->SetLength(5.0f / drawParam->IsoLineSplineSmoothingFactor());
+		}
+		else {
+			ribbon->SetInputConnection(stripper->GetOutputPort());
+		}
+
+		if (!drawParam->UseSimpleIsoLineDefinitions()) {
+			std::vector<vtkColor4f> colors;
+			std::vector<float> values;
+
+			//if (drawParam->UseCustomIsoLineing()) 
+			//{
+			fmiVis::readCustomIsolineParams(drawParam.get(), colors, values);
+			isolineColFunc = fmiVis::makeColorFunction(colors, values);
+			contourColFunc = isolineColFunc;
+			//}
+			//else 
+			//	fmiVis::readCustomContourParams(drawParam.get(), colors, values);
+
+			contour->SetNumberOfContours(values.size());
+
+			int i = 0;
+
+			for (auto &val : values) {
+				contour->SetValue(i++, val);
+			}
+
+			polyMap->SetScalarRange(*values.begin(), *values.rbegin());
+
+
+			auto &widths = drawParam->SpecialIsoLineWidth();
+			for (int i = 0; i < values.size(); i++) {
+				//lineWidth.insert(std::pair(values[i], widths[(i < widths.size()) ? i : (widths.size() - 1)]) );
+				lineWidth.insert(std::pair(values[i], 0.1 + double(i)*0.2));
+			}
+		}
+		else {
+			lineWidth.insert(std::pair(0, drawParam->SimpleIsoLineWidth()));
+		}
+
+
+		polyAct->GetProperty()->SetOpacity(drawParam->Alpha());
+
+		decimate->SetTargetReduction(0.8);
+
+		if (mode) ModeIsoLine();
+		else  ModeColorContour();
+
+		//polyAct->GetProperty()->ShadingOff();
+		//polyAct->GetProperty()->SetOpacity(0.4);
+
+	}
+
+	ParamVisualizerSurf::~ParamVisualizerSurf() {
+		hatch->Delete();
+		cutter->Delete();
+		loop->Delete();
+		contour->Delete();
+		stripper->Delete();
+		smooth->Delete();
+		append->Delete();
+		polyMap->Delete();
+		polyAct->Delete();
+	}
+
 }

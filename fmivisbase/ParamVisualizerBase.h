@@ -17,82 +17,97 @@ class vtkRenderer;
 class NFmiDrawParamFactory;
 class NFmiDataIdent;
 
-class ParamVisualizerBase {
-private:
-	vtkAbstractMapper *activeMapper;
-	vtkProp *prop;
-	bool crop;
-	bool enabled;
+namespace fmiVis {
+
+	//Contains basic interface and functionality common to visualizers, like communicating with the visualizermanager
+	class ParamVisualizerBase {
+	private:
+		vtkAbstractMapper *activeMapper;
+		vtkProp *prop;
+		bool crop;
+		bool enabled;
 
 
-protected:
+	protected:
 
-	vtkRenderer * ren;
-
-
-	NFmiDrawParamFactory* drawParamFac = nullptr;
-	
-	NFmiDataIdent &paramIdent;
-
-	const nbsMetadata &meta;
-
-	std::list<vtkAlgorithm* > filters;
-
-	vtkAlgorithm* nbs;
-
-	void SetActiveMapper(vtkAbstractMapper *m);
-	void SetProp(vtkProp *p);
-public:
-	int param;
-
-	ParamVisualizerBase(const std::string &file, nbsMetadata &m, NFmiDataIdent &paramIdent,NFmiDrawParamFactory* fac);
-	ParamVisualizerBase(vtkAlgorithm *nbs, nbsMetadata &m, NFmiDataIdent &paramIdent, NFmiDrawParamFactory* fac);
-	virtual ~ParamVisualizerBase();
-	void CropMapper(vtkPlanes* p);
-
-	inline void SetCropping(bool c) {
-		crop = c;
-	}
+		vtkRenderer * ren;
 
 
-	inline void SetRenderer(vtkRenderer* r) {
-		ren = r;
-	}
+		NFmiDrawParamFactory* drawParamFac = nullptr;
 
-	virtual void UpdateTimeStep(double t);
+		NFmiDataIdent &paramIdent;
 
-	virtual void UpdateNBS(double t);
+		const nbsMetadata &meta;
 
-	inline void EnableActor() {
-		enabled = true;
+		std::list<vtkAlgorithm* > filters;
 
-		if (prop) prop->SetVisibility(true);
-	}
+		vtkAlgorithm* nbs;
 
-	inline void DisableActor() {
-		enabled = false;
+		//choose the actual output of this visualizer through this - some visualizers require different types of them
+		void SetActiveMapper(vtkAbstractMapper *m);
+		void SetProp(vtkProp *p);
+	public:
+		int param;
 
-		if (prop) prop->SetVisibility(false);
+		ParamVisualizerBase(const std::string &file, nbsMetadata &m, NFmiDataIdent &paramIdent, NFmiDrawParamFactory* fac);
+		ParamVisualizerBase(vtkAlgorithm *nbs, nbsMetadata &m, NFmiDataIdent &paramIdent, NFmiDrawParamFactory* fac);
+		virtual ~ParamVisualizerBase();
 
-	}
 
-	virtual vtkScalarsToColors  * getColor() { return nullptr;  }
-	virtual double * getRange() { return nullptr; }
 
-	inline bool IsEnabled() {
-		return enabled;
-	}
+		void CropMapper(vtkPlanes* p);
 
-	inline vtkProp* GetProp() {
-		return prop;
-	}
+		//controls the actual cropping, CropMapper is called quite often
+		inline void SetCropping(bool c) {
+			crop = c;
+		}
 
-	inline void SetDrawParamFac(NFmiDrawParamFactory *p) {
-		drawParamFac = p;
-	}
 
-	virtual void ToggleMode() {};
+		inline void SetRenderer(vtkRenderer* r) {
+			ren = r;
+		}
 
-};
+		virtual void UpdateTimeStep(double t);
+
+		virtual void UpdateNBS(double t);
+
+		inline void EnableActor() {
+			enabled = true;
+
+			if (prop) prop->SetVisibility(true);
+		}
+
+		inline void DisableActor() {
+			enabled = false;
+
+			if (prop) prop->SetVisibility(false);
+
+		}
+
+		virtual vtkScalarsToColors  * getColor() { return nullptr; }
+		virtual double * getRange() { return nullptr; }
+
+		inline bool IsEnabled() {
+			return enabled;
+		}
+
+		inline vtkProp* GetProp() {
+			return prop;
+		}
+
+		inline void SetDrawParamFac(NFmiDrawParamFactory *p) {
+			drawParamFac = p;
+		}
+
+		//subclasses are to cycle their drawing modes when called
+		//disconnect unused filters to prevent them from being updated
+		virtual void ToggleMode() {};
+
+		//only implemented in surface visualizer at the moment
+		virtual void ReloadOptions() {};
+
+	};
+
+}
 
 #endif /* PARAMVISUALIZERBASE_H */

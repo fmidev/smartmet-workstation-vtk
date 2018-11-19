@@ -5,43 +5,48 @@
 
 class vtkPolyData;
 
-class HatchSource : public vtkPolyDataAlgorithm {
+namespace fmiVis {
 
-	vtkPolyData *data;
+	//hatchsource generates a series of diagonal lines, but clipping it proved difficult - the lines will likely need to be subdivided to some resolution
+	class HatchSource : public vtkPolyDataAlgorithm {
 
-	int width;
-	int height;
+		vtkPolyData *data;
 
-	int density;
+		int width;
+		int height;
 
-	void Generate();
+		int density;
 
-public:
+		void Generate();
 
-	static HatchSource* New() {
-		return new HatchSource();
-	}
+	public:
 
-	int RequestData(vtkInformation* vtkNotUsed(request),
-		vtkInformationVector** vtkNotUsed(inputVector),
-		vtkInformationVector* outputVector);
+		static HatchSource* New() {
+			return new HatchSource();
+		}
 
-	void Generate(int w, int h,int d) {
+		int RequestData(vtkInformation* vtkNotUsed(request),
+			vtkInformationVector** vtkNotUsed(inputVector),
+			vtkInformationVector* outputVector);
 
-		width = w;
-		height = h;
-		density = d;
+		void Generate(int w, int h, int d) {
 
-		Generate();
-	}
+			width = w;
+			height = h;
+			density = d;
 
-protected:
-	HatchSource();
-	~HatchSource();
+			Generate();
+		}
 
-private:
-	void operator=(const HatchSource &assign) = delete;
-	HatchSource(const HatchSource &copy) = delete;
-};
+	protected:
+		HatchSource();
+		~HatchSource();
 
+	private:
+		void operator=(const HatchSource &assign) = delete;
+		HatchSource(const HatchSource &copy) = delete;
+	};
+
+
+}
 #endif // HatchSource_h__

@@ -14,51 +14,58 @@ class vtkStripper;
 class vtkActor;
 class vtkAlgorithmOutput;
 
-class ContourLabeler;
+namespace fmiVis {
 
-class ParamVisualizer2D : public ParamVisualizerBase {
-protected:
+	class ContourLabeler;
 
-
-
-	vtkSmartPointer<vtkPolyDataMapper> polyMap;
-	
-	vtkSmartPointer<vtkProbeFilter> probeFilter;
-	vtkSmartPointer<vtkContourFilter> contourFilter;
-
-	vtkSmartPointer<vtkStripper> contourStripper;
-
-	ContourLabeler &labeler;
-
-	vtkSmartPointer<vtkActor>polyAct;
-
-	//false = color
-	bool mode;
-
-	void ModeIsoLine();
-	void ModeColorContour();
+	//a 2D specialization of paramvisualizer to be used with the plane widget - samples the plane and draws it as color contours or isolines
+	//TODO merge with ParamVisualizerSurf
+	//TODO add functionality to draw both isolines and colors at the same time - mapping the colors will be nontrivial
+	class ParamVisualizer2D : public ParamVisualizerBase {
+	protected:
 
 
-public:
-	ParamVisualizer2D(const std::string &file, nbsMetadata &m, NFmiDataIdent &paramIdent, NFmiDrawParamFactory* fac, vtkAlgorithmOutput* probingData,
-		vtkSmartPointer<vtkScalarsToColors> contourColors, ContourLabeler &labeler, double range[2], int numContours);
+		vtkSmartPointer<vtkPolyDataMapper> polyMap;
 
-	virtual void UpdateTimeStep(double t) override;
+		//probefilter samples probingData for the data to be drawn
+		vtkSmartPointer<vtkProbeFilter> probeFilter;
+		vtkSmartPointer<vtkContourFilter> contourFilter;
 
-	vtkScalarsToColors  * getColor();
-	double * getRange();
+		vtkSmartPointer<vtkStripper> contourStripper;
 
-	virtual inline void ToggleMode() {
+		ContourLabeler &labeler;
 
-		if (mode) {
-			ModeColorContour();
+		vtkSmartPointer<vtkActor>polyAct;
+
+		//false = color
+		bool mode;
+
+		void ModeIsoLine();
+		void ModeColorContour();
+
+
+	public:
+		ParamVisualizer2D(const std::string &file, nbsMetadata &m, NFmiDataIdent &paramIdent, NFmiDrawParamFactory* fac, vtkAlgorithmOutput* probingData,
+			vtkSmartPointer<vtkScalarsToColors> contourColors, ContourLabeler &labeler, double range[2], int numContours);
+
+		virtual void UpdateTimeStep(double t) override;
+
+		vtkScalarsToColors  * getColor();
+		double * getRange();
+
+		virtual inline void ToggleMode() {
+
+			if (mode) {
+				ModeColorContour();
+			}
+			else {
+				ModeIsoLine();
+			}
+
+			mode = !mode;
 		}
-		else {
-			ModeIsoLine();
-		}
+	};
 
-		mode = !mode;
-	}
-};
+}
 
 #endif /*PARAMVISUALIZER2D_H*/

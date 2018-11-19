@@ -5,9 +5,13 @@
 
 class vtkGlyph3D;
 
-void SetSourceBarb(vtkGlyph3D *glyph,float size);
+//meshes for glyphs are generated here
 
-void SetSourceArrow(vtkGlyph3D *glyph, float size);
+namespace fmiVis {
 
+	void SetSourceBarb(vtkGlyph3D *glyph, float size);
 
+	void SetSourceArrow(vtkGlyph3D *glyph, float size);
+
+}
 #endif // Glyphs_h

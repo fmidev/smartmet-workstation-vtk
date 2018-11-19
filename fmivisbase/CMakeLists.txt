@@ -23,6 +23,7 @@ if(VTK_LIBRARIES)
   ${VTK_LIBRARIES}
   Newbase
   SmartTools
+  JsonSpirit
   )
 else()
   target_link_libraries(${PROJECT_NAME} 
@@ -30,6 +31,7 @@ else()
   vtkWidgets 
   Newbase
   SmartTools
+  JsonSpirit
   )
 endif()
 

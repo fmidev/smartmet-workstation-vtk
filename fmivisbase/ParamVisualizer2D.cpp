@@ -16,117 +16,121 @@
 
 #include "ContourLabeler.h"
 
+namespace fmiVis {
 
+	void ParamVisualizer2D::ModeIsoLine() {
+		contourFilter->AddInputConnection(probeFilter->GetOutputPort(0));
 
-void ParamVisualizer2D::ModeIsoLine() {
-	contourFilter->AddInputConnection(probeFilter->GetOutputPort(0));
+		polyMap->RemoveAllInputConnections(0);
+		polyMap->AddInputConnection(contourFilter->GetOutputPort());
 
-	polyMap->RemoveAllInputConnections(0);
-	polyMap->AddInputConnection(contourFilter->GetOutputPort());
+		filters.clear();
 
-	filters.clear();
+		filters.push_back(probeFilter);
+		filters.push_back(contourFilter);
 
-	filters.push_back(probeFilter);
-	filters.push_back(contourFilter);
-
-}
-
-void ParamVisualizer2D::ModeColorContour() {
-
-	contourFilter->RemoveAllInputConnections(0);
-
-	polyMap->RemoveAllInputConnections(0);
-	polyMap->AddInputConnection(probeFilter->GetOutputPort());
-
-
-	filters.clear();
-
-	filters.push_back(probeFilter);
-}
-
-void ParamVisualizer2D::UpdateTimeStep(double t) {
-	ParamVisualizerBase::UpdateTimeStep(t);
-
-	if (!mode) return;
-
-	contourStripper->Update();
-
-	vtkPoints *points =
-		contourStripper->GetOutput()->GetPoints();
-	vtkCellArray *cells =
-		contourStripper->GetOutput()->GetLines();
-	vtkDataArray *scalars =
-		contourStripper->GetOutput()->GetPointData()->GetScalars();
-
-	vtkIdType *indices;
-	vtkIdType numberOfPoints;
-	unsigned int lineCount = 0;
-	for (cells->InitTraversal();
-		cells->GetNextCell(numberOfPoints, indices);
-		lineCount++)
-	{
-		if (numberOfPoints < 10)
-		{
-			continue;
-		}
-
-
-		vtkIdType midPointId = indices[(numberOfPoints / 2)*(lineCount%2)];
-
-		double midPoint[3];
-		points->GetPoint(midPointId, midPoint);
-
-		labeler.Add(midPoint, scalars->GetTuple1(midPointId));
 	}
-}
 
-ParamVisualizer2D::ParamVisualizer2D(const std::string & file, nbsMetadata & m,
-	NFmiDataIdent &paramIdent, NFmiDrawParamFactory* fac, vtkAlgorithmOutput * probingData,
-	vtkSmartPointer<vtkScalarsToColors> contourColors,
-	ContourLabeler &labeler, double range[2], int numContours) :
+	void ParamVisualizer2D::ModeColorContour() {
 
-	ParamVisualizerBase(file, m, paramIdent,fac),
-	labeler(labeler),
+		contourFilter->RemoveAllInputConnections(0);
+
+		polyMap->RemoveAllInputConnections(0);
+		polyMap->AddInputConnection(probeFilter->GetOutputPort());
 
 
-	mode(false)
-{
+		filters.clear();
 
-	probeFilter = vtkSmartPointer<vtkProbeFilter>::New();
+		filters.push_back(probeFilter);
+	}
+	
+	//an override to submit a point from each contour to the labeler
+	void ParamVisualizer2D::UpdateTimeStep(double t) {
+		ParamVisualizerBase::UpdateTimeStep(t);
 
-	probeFilter->SetSourceConnection(nbs->GetOutputPort() );
-	probeFilter->AddInputConnection(probingData);
+		if (!mode) return;
 
-	contourFilter = vtkSmartPointer<vtkContourFilter>::New();
+		contourStripper->Update();
 
-	contourFilter->GenerateValues(numContours, range[0], range[1]);
+		vtkPoints *points =
+			contourStripper->GetOutput()->GetPoints();
+		vtkCellArray *cells =
+			contourStripper->GetOutput()->GetLines();
+		vtkDataArray *scalars =
+			contourStripper->GetOutput()->GetPointData()->GetScalars();
 
-	contourStripper = vtkSmartPointer<vtkStripper>::New();
+		vtkIdType *indices;
+		vtkIdType numberOfPoints;
+		unsigned int lineCount = 0;
+		for (cells->InitTraversal();
+			cells->GetNextCell(numberOfPoints, indices);
+			lineCount++)
+		{
+			if (numberOfPoints < 10)
+			{
+				continue;
+			}
 
-	contourStripper->SetInputConnection(contourFilter->GetOutputPort());
+			//lazy attempt at spreading the points out
+			//there is a labeler class, vtkLabelePlacementMapper, that attempts better placement, but did not seem functional
+			vtkIdType midPointId = indices[(numberOfPoints / 2)*(lineCount % 2)];
 
-	polyMap = vtkSmartPointer<vtkPolyDataMapper>::New();
+			double midPoint[3];
+			points->GetPoint(midPointId, midPoint);
 
-	polyMap->SetLookupTable(contourColors);
-	polyMap->SetScalarRange(range[0], range[1]);
+			labeler.Add(midPoint, scalars->GetTuple1(midPointId));
+		}
+	}
 
-	SetActiveMapper(polyMap);
+	ParamVisualizer2D::ParamVisualizer2D(const std::string & file, nbsMetadata & m,
+		NFmiDataIdent &paramIdent, NFmiDrawParamFactory* fac, vtkAlgorithmOutput * probingData,
+		vtkSmartPointer<vtkScalarsToColors> contourColors,
+		ContourLabeler &labeler, double range[2], int numContours) :
 
-	polyAct = vtkSmartPointer<vtkActor>::New();
-
-	polyAct->SetMapper(polyMap);
-
-	polyAct->GetProperty()->ShadingOff();
-
-	SetProp(polyAct);
-
-	ModeColorContour();
-}
+		ParamVisualizerBase(file, m, paramIdent, fac),
+		labeler(labeler),
 
 
-vtkScalarsToColors  * ParamVisualizer2D::getColor() {
-	return polyMap->GetLookupTable();
-}
-double * ParamVisualizer2D::getRange() {
-	return polyMap->GetScalarRange();
+		mode(false)
+	{
+
+		probeFilter = vtkSmartPointer<vtkProbeFilter>::New();
+
+		probeFilter->SetSourceConnection(nbs->GetOutputPort());
+		probeFilter->AddInputConnection(probingData);
+
+		contourFilter = vtkSmartPointer<vtkContourFilter>::New();
+
+		contourFilter->GenerateValues(numContours, range[0], range[1]);
+
+		contourStripper = vtkSmartPointer<vtkStripper>::New();
+
+		contourStripper->SetInputConnection(contourFilter->GetOutputPort());
+
+		polyMap = vtkSmartPointer<vtkPolyDataMapper>::New();
+
+		polyMap->SetLookupTable(contourColors);
+		polyMap->SetScalarRange(range[0], range[1]);
+
+		SetActiveMapper(polyMap);
+
+		polyAct = vtkSmartPointer<vtkActor>::New();
+
+		polyAct->SetMapper(polyMap);
+
+		polyAct->GetProperty()->ShadingOff();
+
+		SetProp(polyAct);
+
+		ModeColorContour();
+	}
+
+
+	vtkScalarsToColors  * ParamVisualizer2D::getColor() {
+		return polyMap->GetLookupTable();
+	}
+	double * ParamVisualizer2D::getRange() {
+		return polyMap->GetScalarRange();
+	}
+
 }

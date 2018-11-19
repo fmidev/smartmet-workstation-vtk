@@ -6,7 +6,7 @@
 
 namespace fmiVis {
 
-
+	//updates the view when the camera is changed
 	class CameraCallback : public vtkCommand
 	{
 	public:

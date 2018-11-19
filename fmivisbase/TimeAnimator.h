@@ -15,14 +15,17 @@ class TimeAnimCallback;
 class TimeSliderWidgetCallback;
 class vtkTextActor;
 
-struct nbsMetadata;
+
 
 namespace fmiVis {
+
+	struct nbsMetadata;
+
 	class ViewportManager;
 
 	class TimeAnimator;
 
-
+	//callback for updating nbs with the slider
 	class TimeSliderWidgetCallback : public vtkCommand
 	{
 	public:
@@ -42,7 +45,7 @@ namespace fmiVis {
 
 	};
 
-
+//callback for automatic timestepping
 class TimeAnimCallback : public vtkCommand {
 public:
 	static TimeAnimCallback* New() {
@@ -63,7 +66,7 @@ protected:
 	}
 };
 
-
+//implements the timestep animation and UI
 class TimeAnimator {
 
 	vtkRenderWindow *renWin;
@@ -123,6 +126,7 @@ public:
 		else StartAnim();
 	}
 
+	//TODO put the steps into an array or something so they're the same no matter of the order of cycling them
 	inline void IncreaseDelay() {
 		double step = (std::max)(10.0, animDelay*0.5);
 		animDelay += step;

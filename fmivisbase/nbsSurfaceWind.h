@@ -7,23 +7,27 @@
 class vtkInformation;
 class vtkInformationVector;
 
-struct nbsMetadata;
+namespace fmiVis {
 
-class nbsSurfaceWind : public nbsSurface {
+	struct nbsMetadata;
 
-public:
-	nbsSurfaceWind(const std::string &file, nbsMetadata *meta, int subSample = 1);
+	//a wind vectorfield specialization of nbsSurface
+	class nbsSurfaceWind : public nbsSurface {
 
-	virtual int RequestData(vtkInformation* vtkNotUsed(request),
-		vtkInformationVector** vtkNotUsed(inputVector),
-		vtkInformationVector* outputVector);
-protected:
+	public:
+		nbsSurfaceWind(const std::string &file, nbsMetadata *meta, int subSample = 1);
 
-	int subSample;
+		virtual int RequestData(vtkInformation* vtkNotUsed(request),
+			vtkInformationVector** vtkNotUsed(inputVector),
+			vtkInformationVector* outputVector);
+	protected:
 
-	nbsSurfaceWind::~nbsSurfaceWind();
-	nbsSurfaceWind(const nbsSurfaceWind &copy) = delete;
-	void operator=(const nbsSurfaceWind &assign) = delete;
-};
+		int subSample;
 
+		nbsSurfaceWind::~nbsSurfaceWind();
+		nbsSurfaceWind(const nbsSurfaceWind &copy) = delete;
+		void operator=(const nbsSurfaceWind &assign) = delete;
+	};
+
+}
 #endif // NBSSURFACEWIND_H

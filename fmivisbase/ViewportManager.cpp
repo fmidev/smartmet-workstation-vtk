@@ -63,3 +63,10 @@ void fmiVis::ViewportManager::AddViewport(vtkSmartPointer<vtkRenderer> r, std::u
 {
 	viewports.emplace_back(r, std::move(vm), std::move(vt));
 }
+
+void fmiVis::ViewportManager::ReloadOptions()
+{
+	for (auto &vp : viewports) {
+		vp.vm->ReloadOptions();
+	}
+}

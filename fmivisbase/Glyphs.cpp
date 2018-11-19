@@ -13,262 +13,263 @@
 
 #include <vtkGlyph3D.h>
 
+namespace fmiVis {
+
+	//windbarb for val in m/s
+	vtkSmartPointer<vtkPolyData> CreateWindbarb(float val, float size) {
+
+		auto append = vtkAppendPolyData::New();
+
+		auto seed = vtkLineSource::New();
+		seed->SetPoint1(0, 0, 0);
+		seed->SetPoint2(0, 0, 1.5);
+		seed->Update();
 
 
-//windbarb for val in m/s
-vtkSmartPointer<vtkPolyData> CreateWindbarb(float val, float size) {
+		auto body = vtkTubeFilter::New();
+		body->SetRadius(0.1);
 
-	auto append = vtkAppendPolyData::New();
+		body->SetInputConnection(seed->GetOutputPort());
+		body->CappingOn();
+		body->SetNumberOfSides(5);
 
-	auto seed = vtkLineSource::New();
-	seed->SetPoint1(0, 0, 0);
-	seed->SetPoint2(0, 0, 1.5);
-	seed->Update();
-
-
-	auto body = vtkTubeFilter::New();
-	body->SetRadius(0.1);
-
-	body->SetInputConnection(seed->GetOutputPort());
-	body->CappingOn();
-	body->SetNumberOfSides(5);
-
-	body->SetVaryRadiusToVaryRadiusOff();
-	body->Update();
+		body->SetVaryRadiusToVaryRadiusOff();
+		body->Update();
 
 
-	auto dataList = std::list< vtkSmartPointer< vtkPolyData > >{};
+		auto dataList = std::list< vtkSmartPointer< vtkPolyData > >{};
 
 
-	auto data = vtkSmartPointer<vtkPolyData>::New();
+		auto data = vtkSmartPointer<vtkPolyData>::New();
 
-	data->ShallowCopy(body->GetOutput());
-	append->AddInputData(data);
-	dataList.push_back(data);
+		data->ShallowCopy(body->GetOutput());
+		append->AddInputData(data);
+		dataList.push_back(data);
 
-	double z = 0;
+		double z = 0;
 
-	val *= 2.0f; // m/s to knots
+		val *= 2.0f; // m/s to knots
 
-	while (val >= 5.0f) {
-		if (val >= 50.0f) {
-			z += 0.2f;
+		while (val >= 5.0f) {
+			if (val >= 50.0f) {
+				z += 0.2f;
 
-			seed->SetPoint1(0.08, 0, z-0.12);
-			seed->SetPoint2(0.5, 0, z);
-
-
-			body->SetRadius(0.075);
-			body->Update();
-
-			data = vtkSmartPointer<vtkPolyData>::New();
-			data->ShallowCopy(body->GetOutput());
-
-			append->AddInputData(data);
-			dataList.push_back(data);
+				seed->SetPoint1(0.08, 0, z - 0.12);
+				seed->SetPoint2(0.5, 0, z);
 
 
-			seed->SetPoint1(0.08, 0, z + 0.12);
-			seed->SetPoint2(0.5, 0, z);
+				body->SetRadius(0.075);
+				body->Update();
 
-			z += 0.1f;
+				data = vtkSmartPointer<vtkPolyData>::New();
+				data->ShallowCopy(body->GetOutput());
 
-			body->SetRadius(0.075);
-			body->Update();
+				append->AddInputData(data);
+				dataList.push_back(data);
 
-			data = vtkSmartPointer<vtkPolyData>::New();
-			data->ShallowCopy(body->GetOutput());
 
-			append->AddInputData(data);
-			dataList.push_back(data);
-			val -= 50.0f;
+				seed->SetPoint1(0.08, 0, z + 0.12);
+				seed->SetPoint2(0.5, 0, z);
+
+				z += 0.1f;
+
+				body->SetRadius(0.075);
+				body->Update();
+
+				data = vtkSmartPointer<vtkPolyData>::New();
+				data->ShallowCopy(body->GetOutput());
+
+				append->AddInputData(data);
+				dataList.push_back(data);
+				val -= 50.0f;
+			}
+			else if (val >= 10.0f) {
+				z += 0.125f;
+				seed->SetPoint1(0.1, 0, z);
+				seed->SetPoint2(0.5, 0, z);
+
+				body->SetRadius(0.05);
+				body->Update();
+
+				data = vtkSmartPointer<vtkPolyData>::New();
+				data->ShallowCopy(body->GetOutput());
+
+				append->AddInputData(data);
+				dataList.push_back(data);
+				val -= 10.0f;
+			}
+			else {
+				z += 0.12f;
+				seed->SetPoint1(0.1, 0, z);
+				seed->SetPoint2(0.3, 0, z);
+
+				body->SetRadius(0.04);
+				body->Update();
+
+				data = vtkSmartPointer<vtkPolyData>::New();
+				data->ShallowCopy(body->GetOutput());
+
+				append->AddInputData(data);
+				dataList.push_back(data);
+				val -= 5.0f;
+			}
+
 		}
-		else if (val >= 10.0f) {
-			z += 0.125f;
-			seed->SetPoint1(0.1, 0, z);
-			seed->SetPoint2(0.5, 0, z);
 
-			body->SetRadius(0.05);
-			body->Update();
+		append->Update();
 
-			data = vtkSmartPointer<vtkPolyData>::New();
-			data->ShallowCopy(body->GetOutput());
+		auto cleanFilter = vtkCleanPolyData::New();
+		cleanFilter->SetInputConnection(append->GetOutputPort());
+		cleanFilter->Update();
 
-			append->AddInputData(data);
-			dataList.push_back(data);
-			val -= 10.0f;
-		}
-		else {
-			z += 0.12f;
-			seed->SetPoint1(0.1, 0, z);
-			seed->SetPoint2(0.3,0, z);
+		auto transform = vtkTransform::New();
 
-			body->SetRadius(0.04);
-			body->Update();
+		transform->RotateY(90);
+		transform->Scale(size, size, size);
 
-			data = vtkSmartPointer<vtkPolyData>::New();
-			data->ShallowCopy(body->GetOutput());
+		auto transformFilter = vtkTransformPolyDataFilter::New();
+		transformFilter->SetInputData(append->GetOutput());
 
-			append->AddInputData(data);
-			dataList.push_back(data);
-			val -= 5.0f;
-		}
+		transformFilter->SetTransform(transform);
 
+		transformFilter->Update();
+
+
+		auto ret = vtkSmartPointer<vtkPolyData>::New();
+
+		ret->ShallowCopy(transformFilter->GetOutput());
+
+		append->Delete();
+		body->Delete();
+		seed->Delete();
+
+		transform->Delete();
+		cleanFilter->Delete();
+		transformFilter->Delete();
+
+
+
+		return ret;
 	}
 
-	append->Update();
-
-	auto cleanFilter = vtkCleanPolyData::New();
-	cleanFilter->SetInputConnection(append->GetOutputPort() );
-	cleanFilter->Update();
-
-	auto transform = vtkTransform::New();
-
-	transform->RotateY(90);
-	transform->Scale(size, size, size);
-
-	auto transformFilter = vtkTransformPolyDataFilter::New();
-	transformFilter->SetInputData(append->GetOutput());
-
-	transformFilter->SetTransform(transform);
-
-	transformFilter->Update();
+	vtkSmartPointer<vtkPolyData> CreateArrow(float size) {
 
 
-	auto ret = vtkSmartPointer<vtkPolyData>::New();
+		auto append = vtkAppendPolyData::New();
 
-	ret->ShallowCopy(transformFilter->GetOutput());
-
-	append->Delete();
-	body->Delete();
-	seed->Delete();
-
-	transform->Delete();
-	cleanFilter->Delete();
-	transformFilter->Delete();
-
-	
-
-	return ret;
-}
-
-vtkSmartPointer<vtkPolyData> CreateArrow(float size) {
+		auto seed = vtkLineSource::New();
+		seed->SetPoint1(0, 0, 0);
+		seed->SetPoint2(0, 0, 1);
+		seed->Update();
 
 
-	auto append = vtkAppendPolyData::New();
+		auto body = vtkTubeFilter::New();
+		body->SetRadius(0.1);
 
-	auto seed = vtkLineSource::New();
-	seed->SetPoint1(0, 0, 0);
-	seed->SetPoint2(0, 0, 1);
-	seed->Update();
+		body->SetInputConnection(seed->GetOutputPort());
+		body->CappingOn();
+		body->SetNumberOfSides(5);
 
-
-	auto body = vtkTubeFilter::New();
-	body->SetRadius(0.1);
-
-	body->SetInputConnection(seed->GetOutputPort());
-	body->CappingOn();
-	body->SetNumberOfSides(5);
-
-	body->SetVaryRadiusToVaryRadiusOff();
-	body->Update();
+		body->SetVaryRadiusToVaryRadiusOff();
+		body->Update();
 
 
-	auto dataList = std::list< vtkSmartPointer< vtkPolyData > >{};
+		auto dataList = std::list< vtkSmartPointer< vtkPolyData > >{};
 
 
-	auto data = vtkSmartPointer<vtkPolyData>::New();
+		auto data = vtkSmartPointer<vtkPolyData>::New();
 
-	data->ShallowCopy(body->GetOutput());
-	append->AddInputData(data);
-	dataList.push_back(data);
-
-
-	seed->SetPoint1(0, 0, 1);
-	seed->SetPoint2(0.2, 0, 0.8);
+		data->ShallowCopy(body->GetOutput());
+		append->AddInputData(data);
+		dataList.push_back(data);
 
 
-	body->SetRadius(0.075);
-	body->Update();
-
-	data = vtkSmartPointer<vtkPolyData>::New();
-	data->ShallowCopy(body->GetOutput());
-
-	append->AddInputData(data);
-	dataList.push_back(data);
+		seed->SetPoint1(0, 0, 1);
+		seed->SetPoint2(0.2, 0, 0.8);
 
 
-	seed->SetPoint1(0, 0, 1);
-	seed->SetPoint2(-0.2, 0, 0.8);
+		body->SetRadius(0.075);
+		body->Update();
+
+		data = vtkSmartPointer<vtkPolyData>::New();
+		data->ShallowCopy(body->GetOutput());
+
+		append->AddInputData(data);
+		dataList.push_back(data);
 
 
-	body->SetRadius(0.075);
-	body->Update();
-
-	data = vtkSmartPointer<vtkPolyData>::New();
-	data->ShallowCopy(body->GetOutput());
-
-	append->AddInputData(data);
-	dataList.push_back(data);
-	
-	append->Update();
-
-	auto cleanFilter = vtkCleanPolyData::New();
-	cleanFilter->SetInputConnection(append->GetOutputPort());
-	cleanFilter->Update();
-
-	auto transform = vtkTransform::New();
-
-	transform->RotateY(90);
-	transform->Scale(size, size, size);
-
-	auto transformFilter = vtkTransformPolyDataFilter::New();
-	transformFilter->SetInputData(append->GetOutput());
-
-	transformFilter->SetTransform(transform);
-
-	transformFilter->Update();
+		seed->SetPoint1(0, 0, 1);
+		seed->SetPoint2(-0.2, 0, 0.8);
 
 
-	auto ret = vtkSmartPointer<vtkPolyData>::New();
+		body->SetRadius(0.075);
+		body->Update();
 
-	ret->ShallowCopy(transformFilter->GetOutput());
+		data = vtkSmartPointer<vtkPolyData>::New();
+		data->ShallowCopy(body->GetOutput());
 
-	append->Delete();
-	body->Delete();
-	seed->Delete();
+		append->AddInputData(data);
+		dataList.push_back(data);
 
-	transform->Delete();
-	cleanFilter->Delete();
-	transformFilter->Delete();
+		append->Update();
+
+		auto cleanFilter = vtkCleanPolyData::New();
+		cleanFilter->SetInputConnection(append->GetOutputPort());
+		cleanFilter->Update();
+
+		auto transform = vtkTransform::New();
+
+		transform->RotateY(90);
+		transform->Scale(size, size, size);
+
+		auto transformFilter = vtkTransformPolyDataFilter::New();
+		transformFilter->SetInputData(append->GetOutput());
+
+		transformFilter->SetTransform(transform);
+
+		transformFilter->Update();
+
+
+		auto ret = vtkSmartPointer<vtkPolyData>::New();
+
+		ret->ShallowCopy(transformFilter->GetOutput());
+
+		append->Delete();
+		body->Delete();
+		seed->Delete();
+
+		transform->Delete();
+		cleanFilter->Delete();
+		transformFilter->Delete();
 
 
 
-	return ret;
-}
-
-void SetSourceBarb(vtkGlyph3D *glyph,float size) {
-	static auto barbs = std::vector<vtkSmartPointer<vtkPolyData>>();
-
-	for (int i = 0; i < 30; ++i) {
-
-		if (barbs.size() < 30)
-			barbs.push_back(CreateWindbarb(i * 5, size));
-
-		glyph->SetSourceData(i,barbs[i]);
+		return ret;
 	}
 
-	glyph->SetRange(0, 80);
-}
+	void SetSourceBarb(vtkGlyph3D *glyph, float size) {
+		static auto barbs = std::vector<vtkSmartPointer<vtkPolyData>>();
 
-void SetSourceArrow(vtkGlyph3D *glyph, float size) {
+		for (int i = 0; i < 30; ++i) {
+
+			if (barbs.size() < 30)
+				barbs.push_back(CreateWindbarb(i * 5, size));
+
+			glyph->SetSourceData(i, barbs[i]);
+		}
+
+		glyph->SetRange(0, 80);
+	}
+
+	void SetSourceArrow(vtkGlyph3D *glyph, float size) {
 
 
-	static auto arrow = vtkSmartPointer<vtkPolyData>(nullptr);
+		static auto arrow = vtkSmartPointer<vtkPolyData>(nullptr);
 
-	if (!arrow) arrow = CreateArrow(size);
-	glyph->SetSourceData( arrow );
+		if (!arrow) arrow = CreateArrow(size);
+		glyph->SetSourceData(arrow);
 
-	glyph->SetRange(0,0);
+		glyph->SetRange(0, 0);
 
+	}
 }

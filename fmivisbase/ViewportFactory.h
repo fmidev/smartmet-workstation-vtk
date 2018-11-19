@@ -12,13 +12,14 @@
 #include "VisualizerManager.h"
 
 
-struct nbsMetadata;
 class vtkRenderWindow;
 class vtkRenderWindowInteractor;
 
 
+//here are some methods to handle all the setup to get visualizer system up and running
 namespace fmiVis {
 
+	struct nbsMetadata;
 
 	class ViewportManager;
 	class ViewportManagerTimegrid;
@@ -28,8 +29,8 @@ namespace fmiVis {
 	public:
 		static std::map<int, std::string> paramsSurf;
 
-
-		static void MakeTimeGridView(size_t numX, size_t numY,std::string file, std::string drawParamPath,nbsMetadata &meta,ViewportManagerTimegrid &viewportMan,
+		//sets up numX by numY viewports onto the viewportMan and builds the UI. The data is sourced from file and drawn with options from drawParamPath
+		static void MakeTimeGridView(size_t numX, size_t numY,std::string file, std::string drawParamPath,nbsMetadata &meta, NFmiFastQueryInfo &dataInfo,ViewportManagerTimegrid &viewportMan,
 			vtkRenderWindowInteractor *iren, vtkRenderWindow *renWin, VisualizationInteractor2D *style);
 
 	};

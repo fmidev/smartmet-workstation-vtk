@@ -22,11 +22,13 @@
 
 class vtkTextActor;
 
-class VisualizerManager;
 
 
+
+//interactors collect user input and implement the UI, such at it is. imaginative architecthure is applied because of insufficient method virtualization on VTK's side
 namespace fmiVis {
 
+	class VisualizerManager;
 	class TimeAnimator;
 	class ViewportManager;
 

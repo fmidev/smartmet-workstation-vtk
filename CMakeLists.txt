@@ -48,6 +48,9 @@ add_subdirectory(
 )
 
 add_subdirectory(
+	modules/json_spirit
+)
+add_subdirectory(
 	fmivisbase
 )
 
@@ -67,7 +70,9 @@ add_subdirectory(
 add_subdirectory(
 	volumevisMFC
 )
-
+add_subdirectory(
+	surfacevisMFC
+)
 add_subdirectory(
 	tests
 )

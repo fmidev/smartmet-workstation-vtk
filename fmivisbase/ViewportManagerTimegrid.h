@@ -7,11 +7,13 @@
 
 namespace fmiVis {
 
+	//the multi-viewport version
 	class ViewportManagerTimegrid: public ViewportManager {
 		size_t sizeX, sizeY;
 
 		double timeStep;
 
+		//contains the overall UI
 		vtkSmartPointer<vtkRenderer> baseVP;
 	public:
 

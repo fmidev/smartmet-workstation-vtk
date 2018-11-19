@@ -7,21 +7,23 @@
 class vtkInformation;
 class vtkInformationVector;
 
-struct nbsMetadata;
+namespace fmiVis {
 
-class nbsWindVectors : public newBaseSourcer {
+	struct nbsMetadata;
 
-public:
-	nbsWindVectors(const std::string &file, nbsMetadata *meta, int res = 80, int subSample = 1);
+	class nbsWindVectors : public newBaseSourcer {
 
-	virtual int RequestData(vtkInformation* vtkNotUsed(request),
-		vtkInformationVector** vtkNotUsed(inputVector),
-		vtkInformationVector* outputVector);
-protected:
+	public:
+		nbsWindVectors(const std::string &file, nbsMetadata *meta, int res = 80, int subSample = 1);
 
-	nbsWindVectors::~nbsWindVectors();
-	nbsWindVectors(const nbsWindVectors &copy) = delete;
-	void operator=(const nbsWindVectors &assign) = delete;
-};
+		virtual int RequestData(vtkInformation* vtkNotUsed(request),
+			vtkInformationVector** vtkNotUsed(inputVector),
+			vtkInformationVector* outputVector);
+	protected:
 
+		nbsWindVectors::~nbsWindVectors();
+		nbsWindVectors(const nbsWindVectors &copy) = delete;
+		void operator=(const nbsWindVectors &assign) = delete;
+	};
+}
 #endif // nbsWindVectors_h

@@ -12,6 +12,7 @@
 #include "ViewportManager.h"
 #include "TimeAnimator.h"
 
+//keyboard command parsing
 void fmiVis::VisualizationInteractorImpl::OnKeyRelease(std::string &s,bool ctrl,vtkRenderer* vp)
 {
 
@@ -36,8 +37,10 @@ void fmiVis::VisualizationInteractorImpl::OnKeyRelease(std::string &s,bool ctrl,
 		else if (s.find("Down") == 0) {
 			ta->IncreaseDelay();
 		}
-		else
-		{
+		else if (s[0] == 'r' && ctrl) {
+			vm->ReloadOptions();
+		}
+		else {
 
 
 			int vid;

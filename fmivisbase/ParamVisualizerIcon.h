@@ -21,32 +21,37 @@ class vtkProgrammableAttributeDataFilter;
 class NFmiDrawParamFactory;
 class NFmiDataIdent;
 
-typedef std::function<float(float)> iconMapping;
+namespace fmiVis {
 
-class ParamVisualizerIcon : public ParamVisualizerBase {
-protected:
+	typedef std::function<float(float)> iconMapping;
+
+	//visualizes data as a subsampled grid of icons
+	class ParamVisualizerIcon : public ParamVisualizerBase {
+	protected:
 
 
-	vtkSmartPointer<vtkExtractSelectedIds> extract;
+		vtkSmartPointer<vtkExtractSelectedIds> extract;
 
-	vtkSmartPointer<vtkProgrammableAttributeDataFilter> attribs;
+		vtkSmartPointer<vtkProgrammableAttributeDataFilter> attribs;
 
-	vtkSmartPointer<vtkIconGlyphFilter> glypher;
+		vtkSmartPointer<vtkIconGlyphFilter> glypher;
 
-	vtkSmartPointer<vtkPolyDataMapper> polyMap;
+		vtkSmartPointer<vtkPolyDataMapper> polyMap;
 
-	iconMapping mapping;
+		iconMapping mapping;
 
-	vtkSmartPointer<vtkActor> polyAct;
+		vtkSmartPointer<vtkActor> polyAct;
 
-	//false = color
-	bool mode;
+		//false = color
+		bool mode;
 
-	friend void AttributeCallback(void* arg);
-public:
-	ParamVisualizerIcon(const std::string &file, nbsMetadata &m, NFmiDataIdent &paramIdent, NFmiDrawParamFactory* fac,iconMapping mapping);
+		friend void AttributeCallback(void* arg);
+	public:
+		ParamVisualizerIcon(const std::string &file, nbsMetadata &m, NFmiDataIdent &paramIdent, NFmiDrawParamFactory* fac, iconMapping mapping);
 
-	virtual inline void ToggleMode() { }
-};
+		virtual inline void ToggleMode() { }
+	};
+
+}
 
 #endif // ParamVisualizerIcon_h__

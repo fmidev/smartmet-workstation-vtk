@@ -26,7 +26,7 @@ set(
 
 set(
     BOOST_VERSION
-    1_61_0
+    1_66_0
     CACHE INTERNAL "" FORCE
     )
 

@@ -12,20 +12,26 @@ class vtkTextActor3D;
 class vtkPropAssembly;
 class vtkScalarsToColors;
 
-class ParamVisualizerArrayText : public ParamVisualizerBase {
+namespace fmiVis {
 
-	std::vector<vtkTextActor3D*> acts;
+	//poorly performing array-of-actors text visualizer that can customize each point of text individually
+	class ParamVisualizerArrayText : public ParamVisualizerBase {
 
-	vtkSmartPointer<vtkPropAssembly> assembly;
+		std::vector<vtkTextActor3D*> acts;
 
-	vtkSmartPointer<vtkScalarsToColors> colF;
+		vtkSmartPointer<vtkPropAssembly> assembly;
 
-public:
-	ParamVisualizerArrayText(const std::string &file, nbsMetadata &m, NFmiDataIdent &paramIdent, NFmiDrawParamFactory* fac, vtkSmartPointer<vtkScalarsToColors> col = nullptr);
-	~ParamVisualizerArrayText();
+		vtkSmartPointer<vtkScalarsToColors> colF;
 
-	void UpdateTimeStep(double t) override;
+	public:
+		ParamVisualizerArrayText(const std::string &file, nbsMetadata &m, NFmiDataIdent &paramIdent, NFmiDrawParamFactory* fac, vtkSmartPointer<vtkScalarsToColors> col = nullptr);
+		~ParamVisualizerArrayText();
 
-};
+		void UpdateTimeStep(double t) override;
+
+	};
+
+
+}
 
 #endif // ParamVisualizerArrayText_h__

@@ -15,43 +15,47 @@ class vtkPiecewiseFunction;
 class vtkVolume;
 class vtkActor;
 
+namespace fmiVis {
 
+	//volumetric visualizer for imagedata - operates in either raytrace or contour mode
+	//TODO make drawing parameters reloadable
+	class ParamVisualizer3D : public ParamVisualizerBase {
+	protected:
+		vtkSmartPointer<vtkPolyDataMapper> polyMap;
+		vtkSmartPointer<vtkSmartVolumeMapper> volMap;
 
-class ParamVisualizer3D : public ParamVisualizerBase {
-protected:
-	vtkSmartPointer<vtkPolyDataMapper> polyMap;
-	vtkSmartPointer<vtkSmartVolumeMapper> volMap;
+		vtkSmartPointer<vtkContourFilter> contourFilter;
+		vtkSmartPointer<vtkCleanPolyData> cleanFilter;
 
-	vtkSmartPointer<vtkContourFilter> contourFilter;
-	vtkSmartPointer<vtkCleanPolyData> cleanFilter;
+		vtkSmartPointer<vtkVolumeProperty> volProperty;
 
-	vtkSmartPointer<vtkVolumeProperty> volProperty;
+		vtkSmartPointer<vtkVolume> volAct;
+		vtkSmartPointer<vtkActor> polyAct;
 
-	vtkSmartPointer<vtkVolume> volAct;
-	vtkSmartPointer<vtkActor> polyAct;
+		//false = volume
+		bool mode;
 
-	//false = volume
-	bool mode;
+		void ModeVolume();
+		void ModeContour();
 
-	void ModeVolume();
-	void ModeContour();
+	public:
+		ParamVisualizer3D(const std::string &file, nbsMetadata &m, NFmiDataIdent &paramIdent, NFmiDrawParamFactory* fac,
+			vtkSmartPointer<vtkColorTransferFunction> volumeColor, vtkSmartPointer<vtkPiecewiseFunction> volumeOpacity,
+			float contourThreshold, double contourColor[3], float contourOpacity);
 
-public:
-	ParamVisualizer3D(const std::string &file, nbsMetadata &m, NFmiDataIdent &paramIdent, NFmiDrawParamFactory* fac,
-		vtkSmartPointer<vtkColorTransferFunction> volumeColor, vtkSmartPointer<vtkPiecewiseFunction> volumeOpacity,
-		float contourThreshold, double contourColor[3], float contourOpacity);
+		virtual inline void ToggleMode() {
 
-	virtual inline void ToggleMode() {
+			if (mode) {
+				ModeVolume();
+			}
+			else {
+				ModeContour();
+			}
 
-		if (mode) {
-			ModeVolume();
+			mode = !mode;
 		}
-		else {
-			ModeContour();
-		}
+	};
 
-		mode = !mode;
-	}
-};
+}
 
 #endif /*PARAMVISUALIZER3D_H*/

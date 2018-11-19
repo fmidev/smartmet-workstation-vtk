@@ -15,20 +15,24 @@ class vtkTransformPolyDataFilter;
 class NFmiDrawParamFactory;
 class NFmiDataIdent;
 
-class ParamVisualizerPolyText : public ParamVisualizerBase {
+namespace fmiVis {
 
-	vtkSmartPointer<vtkVectorText> vt;
-	vtkSmartPointer<vtkTransformPolyDataFilter> tf;
-	vtkSmartPointer<vtkAppendPolyData> ap;
+	//displays modifiable text as polygonal meshes...
+	class ParamVisualizerPolyText : public ParamVisualizerBase {
 
-	vtkSmartPointer<vtkPolyDataMapper> map;
-	vtkSmartPointer<vtkActor> act;
+		vtkSmartPointer<vtkVectorText> vt;
+		vtkSmartPointer<vtkTransformPolyDataFilter> tf;
+		vtkSmartPointer<vtkAppendPolyData> ap;
 
-public:
-	ParamVisualizerPolyText(const std::string &file, nbsMetadata &m, NFmiDataIdent &paramIdent, NFmiDrawParamFactory* fac);
+		vtkSmartPointer<vtkPolyDataMapper> map;
+		vtkSmartPointer<vtkActor> act;
 
-	void UpdateTimeStep(double t) override;
+	public:
+		ParamVisualizerPolyText(const std::string &file, nbsMetadata &m, NFmiDataIdent &paramIdent, NFmiDrawParamFactory* fac);
 
-};
+		void UpdateTimeStep(double t) override;
 
+	};
+
+}
 #endif // ParamVisualizerPolyText_h__

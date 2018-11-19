@@ -5,7 +5,6 @@
 
 #include "ParamVisualizerBase.h"
 
-struct nbsMetadata;
 class vtkAlgorithmOutput;
 class vtkGlyph3D;
 class vtkExtractSelectedIds;
@@ -17,51 +16,65 @@ class vtkPolyDataAlgorithm;
 class vtkAssignAttribute;
 class NFmiDataIdent;
 
-class ParamVisualizerWindVec2D : public ParamVisualizerBase {
+class vtkEvenlySpacedStreamlines2D;
 
-	enum MODE 
-	{ 
-		mode_stream = 0,
-		mode_barb = 1,
-		mode_arrow = 2,
+namespace fmiVis {
 
-		mode_count
-	} mode;
+	struct nbsMetadata;
 
-	vtkSmartPointer<vtkAssignAttribute> assign;
 
-	vtkSmartPointer<vtkGlyph3D> glypher;
 
-	vtkSmartPointer<vtkExtractSelectedIds> extract;
-	vtkSmartPointer<vtkStreamTracer> streamer;
-	vtkSmartPointer<vtkRibbonFilter> ribbon;
+	//planar specialization of windvectors, duplicates code. includes arrows as glyphs
+	//vtkEvenlySpacedStreamlines is bugged, see https://gitlab.kitware.com/vtk/vtk/issues/17380 and weep
+	//manually patched by changing PointIsWithinBounds()'s delta argument to a zero vector in vtkEvenlySpacedStreamlines2D::RequestData()
+	class ParamVisualizerWindVec2D : public ParamVisualizerBase {
 
-	vtkSmartPointer<vtkPolyDataMapper> map;
+		enum MODE
+		{
+			mode_stream = 0,
+			mode_barb = 1,
+			mode_arrow = 2,
 
-	vtkSmartPointer<vtkActor> act;
+			mode_count
+		} mode;
 
-	void ModeStreamline();
-	void ModeBarb();
-	void ModeArrow();
+		vtkSmartPointer<vtkAssignAttribute> assign;
 
-public:
+		vtkSmartPointer<vtkGlyph3D> glypher;
 
-	ParamVisualizerWindVec2D(const std::string &file, nbsMetadata &m, NFmiDataIdent &paramIdent, NFmiDrawParamFactory* fac);
+		vtkSmartPointer<vtkExtractSelectedIds> extract;
+		vtkSmartPointer<vtkStreamTracer> streamer;
+		vtkSmartPointer<vtkEvenlySpacedStreamlines2D> spacedStreamer;
+		vtkSmartPointer<vtkRibbonFilter> ribbon;
 
-	virtual void UpdateTimeStep(double t) override;
+		vtkSmartPointer<vtkPolyDataMapper> map;
 
-	virtual inline void ToggleMode() {
+		vtkSmartPointer<vtkActor> act;
 
-		if (mode==mode_stream) {
-			ModeBarb();
+		void ModeStreamline();
+		void ModeBarb();
+		void ModeArrow();
+
+	public:
+
+		ParamVisualizerWindVec2D(const std::string &file, nbsMetadata &m, NFmiDataIdent &paramIdent, NFmiDrawParamFactory* fac);
+
+		virtual void UpdateTimeStep(double t) override;
+
+		virtual inline void ToggleMode() {
+
+			if (mode == mode_stream) {
+				ModeBarb();
+			}
+			else if (mode == mode_barb) {
+				ModeArrow();
+			}
+			else if (mode == mode_arrow)
+				ModeStreamline();
+
 		}
-		else if(mode==mode_barb){
-			ModeArrow(); 
-		}
-		else if (mode == mode_arrow)
-			ModeStreamline();
 
-	}
+	};
 
-};
+}
 #endif // ParamVisualizerWindVec2D_h__

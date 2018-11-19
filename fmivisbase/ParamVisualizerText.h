@@ -14,22 +14,27 @@ class vtkTransformPolyDataFilter;
 class vtkTexture;
 class NFmiDataIdent;
 
-class ParamVisualizerText : public ParamVisualizerBase {
-
-	TextImageLayer tl;
-	vtkSmartPointer<vtkTransformPolyDataFilter> tf;
-	vtkSmartPointer<vtkAppendPolyData> ap;
-
-	vtkSmartPointer<vtkTexture> texture;
-	vtkSmartPointer<vtkPolyDataMapper> map;
-	vtkSmartPointer<vtkActor> act;
-
-public:
-	ParamVisualizerText(const std::string &file, nbsMetadata &m, NFmiDataIdent &paramIdent, NFmiDrawParamFactory* fac);
+namespace fmiVis {
 
 
-	void UpdateTimeStep(double t) override;
+	//renders text onto a image and then renders the image. do not use
+	class ParamVisualizerText : public ParamVisualizerBase {
 
-};
+		TextImageLayer tl;
+		vtkSmartPointer<vtkTransformPolyDataFilter> tf;
+		vtkSmartPointer<vtkAppendPolyData> ap;
 
+		vtkSmartPointer<vtkTexture> texture;
+		vtkSmartPointer<vtkPolyDataMapper> map;
+		vtkSmartPointer<vtkActor> act;
+
+	public:
+		ParamVisualizerText(const std::string &file, nbsMetadata &m, NFmiDataIdent &paramIdent, NFmiDrawParamFactory* fac);
+
+
+		void UpdateTimeStep(double t) override;
+
+	};
+
+}
 #endif // ParamVisualizerText_h__

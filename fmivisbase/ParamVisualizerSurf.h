@@ -3,91 +3,123 @@
 
 #include <memory>
 #include <vtkSmartPointer.h>
+#include <map>
 
 #include "ParamVisualizerBase.h"
 
 class vtkPolyDataMapper;
 
-class vtkContourFilter;
+class vtkMarchingContourFilter;
 class vtkScalarsToColors;
+
+
 class vtkStripper;
+class vtkContourLoopExtraction;
+class vtkCookieCutter;
+class vtkRibbonFilter;
+
 class vtkActor;
 class vtkPolyData;
-class ContourLabeler;
 class vtkAppendPolyData;
 class vtkClipPolyData;
-class HatchSource;
 class vtkImplicitSelectionLoop;
 class vtkContourTriangulator;
 class vtkDecimatePolylineFilter;
 class vtkCleanPolyData;
+class vtkFloatArray;
+class vtkSplineFilter;
 
 class NFmiDrawParam;
 class NFmiDataIdent;
 
-class ParamVisualizerSurf : public ParamVisualizerBase {
-protected:
+namespace fmiVis {
 
-	HatchSource *hatch;
-	vtkClipPolyData *clip;
-	vtkImplicitSelectionLoop *loop;
+	class HatchSource;
+	class ContourLabeler;
+	//a bloated class for visualizing surface data - supports option reloading, line widths and colors
+	//much of the code is duplicate from visualizer2D
+	//TODO merge with paramvisualizer2D
+	//TODO hatch drawing - lots of artifacts of past attempts at it remain
+	//vtkContourTriangualator could get the job done if it did what it claimed - at the time of writing, it does not clean up the lines like the documentation says
+	class ParamVisualizerSurf : public ParamVisualizerBase {
+	protected:
+		
+		//hatching
+		HatchSource *hatch;
+		vtkContourLoopExtraction *loop;
+		vtkCookieCutter *cutter;
 
-	vtkContourFilter *contour;
+		vtkMarchingContourFilter *contour;
 
-	vtkStripper* stripper;
+		vtkStripper* stripper;
 
-	ContourLabeler &labeler;
+		vtkRibbonFilter *ribbon;
+		vtkSmartPointer<vtkFloatArray> pointWidths;
 
-	bool flat;
+		vtkSplineFilter *smooth;
 
-	vtkAppendPolyData *append;
+		ContourLabeler &labeler;
 
-	vtkSmartPointer<vtkContourTriangulator> triangulate;
-	vtkSmartPointer<vtkDecimatePolylineFilter> decimate;
-	vtkSmartPointer<vtkCleanPolyData> clean;
+		boost::shared_ptr<NFmiDrawParam> drawParam;
 
-	vtkPolyDataMapper *polyMap;
+		bool flat;
 
-	vtkActor *polyAct;
+		vtkAppendPolyData *append;
 
-	vtkSmartPointer<vtkScalarsToColors> isolineColFunc;
-	vtkSmartPointer<vtkScalarsToColors> contourColFunc;
+		//hatching attempts
+		vtkSmartPointer<vtkContourTriangulator> triangulate;
+		vtkSmartPointer<vtkDecimatePolylineFilter> decimate;
+		vtkSmartPointer<vtkCleanPolyData> clean;
 
-	//false = color
-	bool mode;
+		vtkPolyDataMapper *polyMap;
 
-	void ModeIsoLine();
-	void ModeColorContour();
+		vtkActor *polyAct;
 
+		vtkSmartPointer<vtkScalarsToColors> isolineColFunc;
+		vtkSmartPointer<vtkScalarsToColors> contourColFunc;
 
-public:
-	ParamVisualizerSurf(const std::string &file, nbsMetadata &m, ContourLabeler &labeler, NFmiDataIdent &paramIdent, NFmiDrawParamFactory* fac, bool flat = false);
+		//isoline value : line width
+		std::map<double, double> lineWidth;
 
-	void ReloadOptions();
+		//false = color
+		bool mode;
 
-	~ParamVisualizerSurf();
-
-	virtual void UpdateTimeStep(double t) override;
-
-	vtkScalarsToColors  * getColor();
-	double * getRange();
+		void ModeIsoLine();
+		void ModeColorContour();
 
 
-	virtual inline void ToggleMode() {
+	public:
+		//flat is passed to nbs and controls if the mesh gets height data applied to it
+		ParamVisualizerSurf(const std::string &file, nbsMetadata &m, ContourLabeler &labeler, NFmiDataIdent &paramIdent, NFmiDrawParamFactory* fac, bool flat = false);
 
-		if (mode) {
+		//reads the options from a smartmet settings folder
+		void ReloadOptions();
 
-			ModeColorContour();
+		~ParamVisualizerSurf();
+
+		virtual void UpdateTimeStep(double t) override;
+
+		vtkScalarsToColors  * getColor();
+		double * getRange();
+
+
+		virtual inline void ToggleMode() {
+
+			if (mode) {
+
+				ModeColorContour();
+			}
+			else {
+
+				ModeIsoLine();
+			}
+
+			mode = !mode;
 		}
-		else {
 
-			ModeIsoLine();
-		}
+		virtual void UpdateNBS(double t) override;
+	};
 
-		mode = !mode;
-	}
-
-	virtual void UpdateNBS(double t) override;
-};
+}
 
 #endif /*PARAMVISUALIZERSURF_H*/

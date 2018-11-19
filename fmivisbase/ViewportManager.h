@@ -11,8 +11,6 @@
 class vtkRenderer;
 class vtkTextActor;
 
-
-
 namespace fmiVis {
 	class TimeAnimator;
 
@@ -29,6 +27,7 @@ namespace fmiVis {
 		{}
 	};
 
+	//a rather transparent intermediate manager that holds one or more viewports, each with their own visualizermanager
 	class ViewportManager {
 
 	protected:
@@ -46,7 +45,7 @@ namespace fmiVis {
 			std::unique_ptr<VisualizerManager> &&vm,
 			std::unique_ptr<std::vector<vtkSmartPointer<vtkTextActor>>> &&vt);
 
-
+		void ReloadOptions();
 	};
 
 

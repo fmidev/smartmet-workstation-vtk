@@ -66,11 +66,12 @@
 
 using namespace std::string_literals;
 
-
 namespace fmiVis {
 	std::map<int, Vis3DParams> config3D;
 	std::map<int, Vis2DParams> config2D;
 }
+
+using namespace fmiVis;
 
 class boxWidgetCallback : public vtkCommand
 {

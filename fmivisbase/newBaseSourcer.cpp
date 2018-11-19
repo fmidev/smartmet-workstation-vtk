@@ -15,6 +15,8 @@
 
 #include "nbsImpl.h"
 
+namespace fmiVis {
+
 newBaseSourcer::newBaseSourcer(const std::string &file, nbsMetadata *meta, int param, int res, int sub, size_t dim) :
 	newBaseSourcerBase(file, meta, param, res),
 	im(nullptr), heights(),
@@ -92,7 +94,7 @@ int newBaseSourcer::RequestData(vtkInformation* vtkNotUsed(request),
 
 	NFmiFastQueryInfo &dataInfo = pimpl->dataInfo;
 
-	//onko aika-askel jo muistissa
+	//is this a new timestep
 	if (timeI != prevTime) {
 
 		ResetImage();
@@ -107,7 +109,7 @@ int newBaseSourcer::RequestData(vtkInformation* vtkNotUsed(request),
 		auto t0 = std::chrono::system_clock::now();
 
 
-		//luetaan parametri
+		//reads the data into im
 		LoopParam(param,timeI,[=,&maxVal,&minVal](int x, int y, int z, float val) {
 	
 
@@ -146,6 +148,8 @@ int newBaseSourcer::RequestData(vtkInformation* vtkNotUsed(request),
 		//	cout << "z: " << i << " : " << static_cast<float*>(im->GetScalarPointer(0, 90, i))[0] << endl;
 
 		//cout << "interpolating..." << endl;
+
+		//TODO proper threadpool implementation
 
 		unsigned int usedThreadCount = boost::thread::hardware_concurrency();
 		auto threads = std::list<std::future<void>>();
@@ -208,13 +212,13 @@ int newBaseSourcer::RequestData(vtkInformation* vtkNotUsed(request),
 	}
 	else cout << "Reused time " << prevTime << std::endl;
 
-	//siirretään imagedata ulostuloon
+	//this is the actual output operation
 	ds->DeepCopy(im);
 
-	//kerrotaan mitä dataa löytyi
 	ds->GetInformation()->Set(vtkDataObject::DATA_TIME_STEP(), dataInfo.Time().EpochTime());
 	outInfo->Set(vtkDataObject::DATA_EXTENT(), reqExtent ? reqExtent : im->GetExtent(), 6);
 
+	//explicitly tell VTK there was a change of state
 	Modified();
 
 	//ptime utcTime = ptime(from_time_t(dataInfo.Time().EpochTime()));
@@ -401,4 +405,6 @@ void newBaseSourcer::InterpolateImage(int startX,int startY,int endX,int endY) {
 			}
 		}
 	}
+}
+
 }

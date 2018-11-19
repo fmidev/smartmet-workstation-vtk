@@ -29,145 +29,157 @@
 
 #include "Glyphs.h"
 
-
-void ParamVisualizerWindVec::ModeStreamline() {
-	
-	streamer->SetInputConnection(nbs->GetOutputPort());
-
-	glypher->RemoveAllInputConnections(0);
-
-	map->RemoveAllInputConnections(0);
-
-	map->AddInputConnection(tuber->GetOutputPort());
-
-	filters.clear();
-	
-	filters.push_back(extract);
-	filters.push_back(streamer);
-	filters.push_back(tuber);
-}
-void ParamVisualizerWindVec::ModeGlyph() {
+namespace fmiVis {
 
 
-	glypher->SetInputConnection(assign->GetOutputPort());
+	void ParamVisualizerWindVec::ModeStreamline() {
 
-	streamer->RemoveAllInputConnections(0);
+		streamer->SetInputConnection(nbs->GetOutputPort());
 
-	map->RemoveAllInputConnections(0);
+		glypher->RemoveAllInputConnections(0);
 
-	map->AddInputConnection(glypher->GetOutputPort());
+		map->RemoveAllInputConnections(0);
 
-	filters.clear();
+		map->AddInputConnection(tuber->GetOutputPort());
 
-	filters.push_back(extract);
-	filters.push_back(probe);
-	filters.push_back(assign);
-	filters.push_back(glypher);
-}
+		filters.clear();
 
-
-ParamVisualizerWindVec::ParamVisualizerWindVec(const std::string &file, nbsMetadata &m, NFmiDataIdent &paramIdent, NFmiDrawParamFactory* fac, vtkAlgorithmOutput* seedData) :
-	ParamVisualizerBase(new nbsWindVectors(file, &m),m, paramIdent,fac), seedData(seedData), mode(false)
-{
-
-	//nbs->setSubSample(3);
-	nbs->Update();
-
-	auto ids = vtkSmartPointer<vtkIdTypeArray>::New();
-	ids->SetNumberOfComponents(1);
-
-	auto width = 80;
-
-	auto downScale = 10;
+		filters.push_back(extract);
+		filters.push_back(streamer);
+		filters.push_back(tuber);
+	}
+	void ParamVisualizerWindVec::ModeGlyph() {
 
 
-	// Set values
-	for (unsigned int ix = 0; ix < width/downScale; ++ix)
-		for (unsigned int iy = 0; iy < width / downScale; ++iy)
-	{
-		ids->InsertNextValue(width / downScale + ix*downScale + (width / downScale / 2 +  iy*downScale)*width);
+		glypher->SetInputConnection(assign->GetOutputPort());
+
+		streamer->RemoveAllInputConnections(0);
+
+		map->RemoveAllInputConnections(0);
+
+		map->AddInputConnection(glypher->GetOutputPort());
+
+		filters.clear();
+
+		filters.push_back(extract);
+		filters.push_back(probe);
+		filters.push_back(assign);
+		filters.push_back(glypher);
 	}
 
-	auto selectionNode = vtkSmartPointer<vtkSelectionNode>::New();
-	selectionNode->SetFieldType(vtkSelectionNode::POINT);
-	selectionNode->SetContentType(vtkSelectionNode::INDICES);
-	selectionNode->SetSelectionList(ids);
-
-	auto selection = vtkSmartPointer<vtkSelection>::New();
-	selection->AddNode(selectionNode);
-
-	extract = vtkSmartPointer<vtkExtractSelectedIds>::New();
-	extract->SetInputConnection(0, seedData );
-
-	extract->SetInputData(1, selection);
-
-	probe = vtkSmartPointer<vtkProbeFilter>::New();
-	probe->SetPassPointArrays(true);
-	probe->SetInputConnection(extract->GetOutputPort());
-	probe->SetSourceConnection(nbs->GetOutputPort());
-
-	assign = vtkSmartPointer<vtkAssignAttribute>::New();
-
-	assign->SetInputConnection(probe->GetOutputPort());
-
-	assign->Assign("ImageScalars", vtkDataSetAttributes::VECTORS, vtkAssignAttribute::POINT_DATA);
-
-	assign->Update();
-
-	auto transform = vtkSmartPointer<vtkTransform>::New();
-
-	transform->Translate(-7.5, 0, 0);
-	transform->Update();
-
-	glypher = vtkSmartPointer<vtkGlyph3D>::New();
-
-	//glyph size
-	SetSourceBarb(glypher, 10);
 
 
-	glypher->OrientOn();
-	glypher->SetIndexModeToVector();
-	glypher->SetVectorModeToUseVector();
-	glypher->SetScaleModeToDataScalingOff();
-	glypher->SetColorModeToColorByScalar();
-	glypher->SetSourceTransform(transform);
+	/* 
+	seeddata and the data probe are subsampled with vtkExtractSelectedIDs
+	the results are then sent either to vtkStreamTracer for streamline tracing or vtkGlyph3D for windbarbs
+	vtkTubeFilter turns the streamlines into 3D meshes
+	*/
 
-	streamer = vtkSmartPointer<vtkStreamTracer>::New();
+	//TODO use nbs subsampling instead
+	ParamVisualizerWindVec::ParamVisualizerWindVec(const std::string &file, nbsMetadata &m, NFmiDataIdent &paramIdent, NFmiDrawParamFactory* fac, vtkAlgorithmOutput* seedData) :
+		ParamVisualizerBase(new nbsWindVectors(file, &m), m, paramIdent, fac), seedData(seedData), mode(false)
+	{
 
-	streamer->SetSourceConnection(extract->GetOutputPort());
-	streamer->SetMaximumPropagation(400);
-	streamer->SetIntegrationDirectionToBoth();
+		//nbs->setSubSample(3);
+		nbs->Update();
 
-	//integration accuracy for streamlines
-	streamer->SetInitialIntegrationStep(0.5);
-	streamer->SetIntegratorTypeToRungeKutta4();
+		auto ids = vtkSmartPointer<vtkIdTypeArray>::New();
+		ids->SetNumberOfComponents(1);
 
-	tuber = vtkSmartPointer<vtkTubeFilter>::New();
-	tuber->SetInputConnection(streamer->GetOutputPort());
-	tuber->SetInputArrayToProcess(1, 0, 0, vtkDataObject::FIELD_ASSOCIATION_POINTS, "ImageScalars");
-	tuber->SetVaryRadiusToVaryRadiusByVector();
+		auto width = 80;
 
-	//streamline width
-	tuber->SetRadius(1);
-	tuber->SetRadiusFactor(4);
-
-	tuber->SetNumberOfSides(4);
+		auto downScale = 10;
 
 
-	map = vtkSmartPointer<vtkPolyDataMapper>::New();
-	map->SetInputConnection(tuber->GetOutputPort());
+		//manual subsampling??
+		for (unsigned int ix = 0; ix < width / downScale; ++ix)
+			for (unsigned int iy = 0; iy < width / downScale; ++iy)
+			{
+				ids->InsertNextValue(width / downScale + ix * downScale + (width / downScale / 2 + iy * downScale)*width);
+			}
+
+		auto selectionNode = vtkSmartPointer<vtkSelectionNode>::New();
+		selectionNode->SetFieldType(vtkSelectionNode::POINT);
+		selectionNode->SetContentType(vtkSelectionNode::INDICES);
+		selectionNode->SetSelectionList(ids);
+
+		auto selection = vtkSmartPointer<vtkSelection>::New();
+		selection->AddNode(selectionNode);
+
+		extract = vtkSmartPointer<vtkExtractSelectedIds>::New();
+		extract->SetInputConnection(0, seedData);
+
+		extract->SetInputData(1, selection);
+
+		probe = vtkSmartPointer<vtkProbeFilter>::New();
+		probe->SetPassPointArrays(true);
+		probe->SetInputConnection(extract->GetOutputPort());
+		probe->SetSourceConnection(nbs->GetOutputPort());
+
+		assign = vtkSmartPointer<vtkAssignAttribute>::New();
+
+		assign->SetInputConnection(probe->GetOutputPort());
+
+		assign->Assign("ImageScalars", vtkDataSetAttributes::VECTORS, vtkAssignAttribute::POINT_DATA);
+
+		assign->Update();
+
+		auto transform = vtkSmartPointer<vtkTransform>::New();
+
+		transform->Translate(-7.5, 0, 0);
+		transform->Update();
+
+		glypher = vtkSmartPointer<vtkGlyph3D>::New();
+
+		//glyph size
+		SetSourceBarb(glypher, 10);
 
 
-	//colors
-	map->SetScalarRange(0,100);
-	map->SetColorModeToMapScalars();
-	map->SetLookupTable(fmiVis::blueToRedColFunc(0, 100) );
+		glypher->OrientOn();
+		glypher->SetIndexModeToVector();
+		glypher->SetVectorModeToUseVector();
+		glypher->SetScaleModeToDataScalingOff();
+		glypher->SetColorModeToColorByScalar();
+		glypher->SetSourceTransform(transform);
 
-	act = vtkSmartPointer<vtkActor>::New();
-	act->SetMapper(map);
+		streamer = vtkSmartPointer<vtkStreamTracer>::New();
 
-	SetActiveMapper(map);
-	SetProp(act);
+		streamer->SetSourceConnection(extract->GetOutputPort());
+		streamer->SetMaximumPropagation(400);
+		streamer->SetIntegrationDirectionToBoth();
 
-	ModeStreamline();
+		//integration accuracy for streamlines
+		streamer->SetInitialIntegrationStep(0.5);
+		streamer->SetIntegratorTypeToRungeKutta4();
+
+		tuber = vtkSmartPointer<vtkTubeFilter>::New();
+		tuber->SetInputConnection(streamer->GetOutputPort());
+		tuber->SetInputArrayToProcess(1, 0, 0, vtkDataObject::FIELD_ASSOCIATION_POINTS, "ImageScalars");
+		tuber->SetVaryRadiusToVaryRadiusByVector();
+
+		//streamline width
+		tuber->SetRadius(1);
+		tuber->SetRadiusFactor(4);
+
+		tuber->SetNumberOfSides(4);
+
+
+		map = vtkSmartPointer<vtkPolyDataMapper>::New();
+		map->SetInputConnection(tuber->GetOutputPort());
+
+
+		//colors
+		map->SetScalarRange(0, 100);
+		map->SetColorModeToMapScalars();
+		map->SetLookupTable(fmiVis::blueToRedColFunc(0, 100));
+
+		act = vtkSmartPointer<vtkActor>::New();
+		act->SetMapper(map);
+
+		SetActiveMapper(map);
+		SetProp(act);
+
+		ModeStreamline();
+	}
+
 }
