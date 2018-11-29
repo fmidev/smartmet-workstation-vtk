@@ -1,3 +1,12 @@
+Background story from SmartMet-workstation development perspective:
+1. Using VTK's 3D features to visualize meteorological data in 3D (new feature)
+ - Creating separate MFC dialog module as own library that can be used with SmartMet project
+2. Using VTK's 2D visualizations to replace SmartMet's current visualization library
+ - Idea is to do at least the isoline, color contour and streamline visualizations with VTK
+ - Currently used AVS ToolMaster is commercially licensed library
+ - It doesn't fit well with the Open source development of SmartMet
+----------------------------------------------------------------------
+
 A newbase data visualizer based on the Visualization Toolkit
 
 Overview of the project  
